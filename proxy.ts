@@ -1,16 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
 // Marketing routes: locale prefix as-needed (SEO — /pricing vs /es/pricing)
 const marketingMiddleware = createMiddleware(routing);
-
-// App/auth routes: never add locale prefix (clean URLs — /gear, /login)
-const appMiddleware = createMiddleware({
-  locales: routing.locales,
-  defaultLocale: routing.defaultLocale,
-  localePrefix: "never",
-});
 
 // Paths served by the [locale] marketing route group
 const marketingPaths = ["/", "/pricing"];
@@ -36,7 +29,11 @@ export default function proxy(request: NextRequest) {
   if (isMarketingRequest(request.nextUrl.pathname)) {
     return marketingMiddleware(request);
   }
-  return appMiddleware(request);
+
+  // App/auth routes: pass through without locale rewriting.
+  // next-intl resolves locale from NEXT_LOCALE cookie or Accept-Language
+  // header via getLocale() in server components.
+  return NextResponse.next();
 }
 
 export const config = {
