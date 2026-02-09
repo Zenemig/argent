@@ -105,7 +105,22 @@
     "brand": "Marca",
     "iso": "ISO",
     "process": "Proceso",
-    "custom": "Personalizado"
+    "custom": "Personalizado",
+    "cameraAdded": "Cámara agregada",
+    "cameraUpdated": "Cámara actualizada",
+    "cameraDeleted": "Cámara eliminada",
+    "lensAdded": "Lente agregado",
+    "lensUpdated": "Lente actualizado",
+    "lensDeleted": "Lente eliminado",
+    "filmAdded": "Película agregada",
+    "filmDeleted": "Película eliminada",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar {name}?",
+    "allFormats": "Todos los Formatos",
+    "allProcesses": "Todos los Procesos",
+    "allBrands": "Todas las Marcas",
+    "customStocks": "Stocks Personalizados",
+    "catalog": "Catálogo",
+    "stockCount": "{count} stocks"
   },
   "roll": {
     "loadNew": "Cargar Nuevo Rollo",
@@ -132,7 +147,21 @@
     },
     "labName": "Nombre del Laboratorio",
     "devNotes": "Notas de Revelado",
-    "frames": "{count, plural, one {# cuadro} other {# cuadros}}"
+    "frames": "{count, plural, one {# cuadro} other {# cuadros}}",
+    "noRolls": "No hay rollos activos",
+    "noRollsHint": "Carga un rollo para empezar a disparar",
+    "rollCreated": "Rollo cargado",
+    "rollUpdated": "Rollo actualizado",
+    "progress": "{current}/{total}",
+    "started": "Iniciado {date}",
+    "activeRolls": "Rollos Activos",
+    "allRolls": "Todos los Rollos",
+    "noCamera": "Agrega una cámara primero",
+    "noFilm": "No se encontraron películas compatibles",
+    "undoStatus": "Deshacer",
+    "statusUpdated": "Estado actualizado",
+    "filterByStatus": "Filtrar por estado",
+    "all": "Todos"
   },
   "frame": {
     "log": "Registrar Foto",
@@ -167,7 +196,11 @@
     "displayName": "Nombre para Mostrar",
     "copyright": "Aviso de Copyright",
     "about": "Acerca de Argent",
-    "version": "Versión"
+    "version": "Versión",
+    "saved": "Ajustes guardados",
+    "english": "English",
+    "spanish": "Español",
+    "none": "Ninguno"
   },
   "export": {
     "title": "Exportar",

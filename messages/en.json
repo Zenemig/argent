@@ -105,7 +105,22 @@
     "brand": "Brand",
     "iso": "ISO",
     "process": "Process",
-    "custom": "Custom"
+    "custom": "Custom",
+    "cameraAdded": "Camera added",
+    "cameraUpdated": "Camera updated",
+    "cameraDeleted": "Camera deleted",
+    "lensAdded": "Lens added",
+    "lensUpdated": "Lens updated",
+    "lensDeleted": "Lens deleted",
+    "filmAdded": "Film added",
+    "filmDeleted": "Film deleted",
+    "deleteConfirm": "Are you sure you want to delete {name}?",
+    "allFormats": "All Formats",
+    "allProcesses": "All Processes",
+    "allBrands": "All Brands",
+    "customStocks": "Custom Stocks",
+    "catalog": "Catalog",
+    "stockCount": "{count} stocks"
   },
   "roll": {
     "loadNew": "Load New Roll",
@@ -132,7 +147,21 @@
     },
     "labName": "Lab Name",
     "devNotes": "Development Notes",
-    "frames": "{count, plural, one {# frame} other {# frames}}"
+    "frames": "{count, plural, one {# frame} other {# frames}}",
+    "noRolls": "No active rolls yet",
+    "noRollsHint": "Load a roll of film to start shooting",
+    "rollCreated": "Roll loaded",
+    "rollUpdated": "Roll updated",
+    "progress": "{current}/{total}",
+    "started": "Started {date}",
+    "activeRolls": "Active Rolls",
+    "allRolls": "All Rolls",
+    "noCamera": "Add a camera first",
+    "noFilm": "No compatible films found",
+    "undoStatus": "Undo",
+    "statusUpdated": "Status updated",
+    "filterByStatus": "Filter by status",
+    "all": "All"
   },
   "frame": {
     "log": "Log Shot",
@@ -167,7 +196,11 @@
     "displayName": "Display Name",
     "copyright": "Copyright Notice",
     "about": "About Argent",
-    "version": "Version"
+    "version": "Version",
+    "saved": "Settings saved",
+    "english": "English",
+    "spanish": "Spanish",
+    "none": "None"
   },
   "export": {
     "title": "Export",
