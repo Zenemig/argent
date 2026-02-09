@@ -84,7 +84,7 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Hero */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-center px-4 py-24 text-center">
         <Image
-          src="/images/hero.png"
+          src="/images/hero-photographer.png"
           alt=""
           fill
           className="object-cover"
@@ -131,8 +131,15 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Features */}
-      <section className="px-4 py-24">
-        <div className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
+      <section className="relative px-4 py-24">
+        <Image
+          src="/images/hero.png"
+          alt=""
+          fill
+          className="object-cover opacity-10"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="relative z-10 mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
           {(["offline", "xmp", "crossPlatform", "openData"] as const).map(
             (key) => {
               const Icon = FEATURE_ICONS[key];
@@ -193,8 +200,15 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Pricing Preview */}
-      <section className="px-4 py-24">
-        <div className="mx-auto max-w-5xl text-center">
+      <section className="relative px-4 py-24">
+        <Image
+          src="/images/pricing-notebook.png"
+          alt=""
+          fill
+          className="object-cover opacity-10"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("pricing.title")}
           </h2>
