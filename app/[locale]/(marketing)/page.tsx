@@ -117,7 +117,7 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Problem Statement */}
-      <section className="grain relative overflow-hidden bg-muted/50 px-4 py-24">
+      <section className="leatherette relative overflow-hidden bg-muted/50 px-4 py-24">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <span className="text-6xl font-serif text-amber-500/20 leading-none select-none">&ldquo;</span>
@@ -161,7 +161,7 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="grain bg-muted/50 px-4 py-24">
+      <section id="how-it-works" className="leatherette bg-muted/50 px-4 py-24">
         <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("howItWorks.title")}
