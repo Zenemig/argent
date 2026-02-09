@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { RollDetail } from "@/components/roll/roll-detail";
 
 export async function generateMetadata() {
   const t = await getTranslations("roll");
@@ -11,14 +12,10 @@ export default async function RollPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const t = await getTranslations("roll");
 
   return (
     <main>
-      <h1 className="text-2xl font-bold">
-        {t("title")} #{id.slice(0, 8)}
-      </h1>
-      <p className="mt-4 text-muted-foreground">{t("selectCamera")}</p>
+      <RollDetail rollId={id} />
     </main>
   );
 }
