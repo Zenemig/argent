@@ -1,6 +1,28 @@
 import { useTranslations } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "marketing.pricing" });
+
+  return {
+    title: `${t("title")} | Argent`,
+    description: `Argent ${t("title")} — ${t("free")} & ${t("pro")}`,
+    alternates: {
+      canonical: locale === "en" ? "/pricing" : `/${locale}/pricing`,
+      languages: {
+        en: "/pricing",
+        es: "/es/pricing",
+      },
+    },
+  };
+}
 
 export default async function PricingPage({
   params,
@@ -25,12 +47,12 @@ function PricingContent() {
           <h2 className="text-2xl font-bold">{t("free")}</h2>
           <p className="mt-2 text-3xl font-bold">$0</p>
           <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-            <li>✓ Shot logging</li>
-            <li>✓ Gear management</li>
-            <li>✓ Roll lifecycle tracking</li>
-            <li>✓ XMP, CSV, JSON export</li>
-            <li>✓ Statistics</li>
-            <li>✓ Full offline support</li>
+            <li>&#10003; Shot logging</li>
+            <li>&#10003; Gear management</li>
+            <li>&#10003; Roll lifecycle tracking</li>
+            <li>&#10003; XMP, CSV, JSON export</li>
+            <li>&#10003; Statistics</li>
+            <li>&#10003; Full offline support</li>
           </ul>
           <Link
             href="/gear"
@@ -43,15 +65,13 @@ function PricingContent() {
         {/* Pro Tier */}
         <div className="rounded-xl border-2 border-primary bg-card p-8">
           <h2 className="text-2xl font-bold">{t("pro")}</h2>
-          <p className="mt-2 text-3xl font-bold">
-            {t("comingSoon")}
-          </p>
+          <p className="mt-2 text-3xl font-bold">{t("comingSoon")}</p>
           <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-            <li>✓ Everything in Free</li>
-            <li>✓ Cloud sync</li>
-            <li>✓ Multi-device access</li>
-            <li>✓ Reference image cloud backup</li>
-            <li>✓ Priority support</li>
+            <li>&#10003; Everything in Free</li>
+            <li>&#10003; Cloud sync</li>
+            <li>&#10003; Multi-device access</li>
+            <li>&#10003; Reference image cloud backup</li>
+            <li>&#10003; Priority support</li>
           </ul>
           <button
             type="button"

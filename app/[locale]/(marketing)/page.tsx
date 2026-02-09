@@ -1,6 +1,34 @@
 import { useTranslations } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "marketing" });
+
+  return {
+    title: `Argent — ${t("hero.title")}`,
+    description: t("hero.subtitle"),
+    alternates: {
+      canonical: locale === "en" ? "/" : `/${locale}`,
+      languages: {
+        en: "/",
+        es: "/es",
+      },
+    },
+    openGraph: {
+      title: `Argent — ${t("hero.title")}`,
+      description: t("hero.subtitle"),
+      type: "website",
+      siteName: "Argent",
+    },
+  };
+}
 
 export default async function HomePage({
   params,
@@ -10,14 +38,33 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <LandingPage />;
+  return <LandingPage locale={locale} />;
 }
 
-function LandingPage() {
+function LandingPage({ locale }: { locale: string }) {
   const t = useTranslations("marketing");
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Argent",
+    applicationCategory: "PhotographyApplication",
+    operatingSystem: "Web",
+    description: t("hero.subtitle"),
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
 
   return (
     <main className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
         <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
@@ -70,7 +117,7 @@ function LandingPage() {
                   {t(`features.${key}.description`)}
                 </p>
               </div>
-            )
+            ),
           )}
         </div>
       </section>
@@ -95,6 +142,39 @@ function LandingPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Preview */}
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-5xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight">
+            {t("pricing.title")}
+          </h2>
+          <div className="mt-12 grid max-w-4xl gap-8 sm:grid-cols-2 mx-auto">
+            <div className="rounded-xl border border-border bg-card p-8 text-left">
+              <h3 className="text-2xl font-bold">{t("pricing.free")}</h3>
+              <p className="mt-2 text-3xl font-bold">$0</p>
+              <Link
+                href="/gear"
+                className="mt-6 block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                {t("pricing.getStarted")}
+              </Link>
+            </div>
+            <div className="rounded-xl border-2 border-primary bg-card p-8 text-left">
+              <h3 className="text-2xl font-bold">{t("pricing.pro")}</h3>
+              <p className="mt-2 text-3xl font-bold">
+                {t("pricing.comingSoon")}
+              </p>
+              <Link
+                href={locale === "en" ? "/pricing" : `/${locale}/pricing`}
+                className="mt-6 block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold hover:bg-accent"
+              >
+                {t("pricing.joinWaitlist")}
+              </Link>
+            </div>
           </div>
         </div>
       </section>
