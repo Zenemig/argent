@@ -47,7 +47,7 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 
 - **(marketing)** routes use `[locale]` segment with `localePrefix: 'as-needed'` — English at `/`, `/pricing`; Spanish at `/es`, `/es/pricing`. Enables `hreflang` tags for SEO.
 - **(app)** and **(auth)** routes have no locale prefix — clean URLs like `/gear`, `/roll/abc123`, `/login`. Locale detected from cookie (`NEXT_LOCALE`) or browser `Accept-Language` header.
-- Middleware handles routing: rewrites marketing routes with locale prefix, passes app routes through with locale from cookie.
+- Proxy (`proxy.ts`) handles routing: rewrites marketing routes with locale prefix, passes app routes through with locale from cookie.
 
 ## Code Conventions
 
@@ -70,7 +70,7 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 - **Supabase SSR client only.** Use `@supabase/ssr` with `getAll()`/`setAll()` cookie methods. Never use the deprecated `@supabase/auth-helpers-nextjs` or individual `get`/`set`/`remove` cookie methods.
 - **`supabase.auth.getUser()` on server, never `getSession()`.** `getSession()` doesn't validate the JWT and is a security risk on the server side.
 - **Next.js 16 async params.** Route params and searchParams are Promises: `const { id } = await params`.
-- **Next.js 16 middleware deprecation.** `middleware.ts` is deprecated in favor of `proxy.ts`. We keep `middleware.ts` for next-intl compatibility. Rename when next-intl supports the proxy convention.
+- **Next.js 16 proxy convention.** `middleware.ts` was renamed to `proxy.ts` (same API, renamed function). next-intl's `createMiddleware` still works — it just returns a request handler.
 - **Zod 4 API differences.** `z.record()` requires two args: `z.record(z.string(), z.unknown())`. No `z.instanceof()` for browser-only types.
 - **Hybrid i18n routing.** Marketing routes use `[locale]` prefix for SEO. App/auth routes have no prefix — locale comes from cookie. Don't mix up the two patterns.
 - **supabase/migrations/ uses plain SQL.** Excluded from tsconfig. Don't import TS modules there.

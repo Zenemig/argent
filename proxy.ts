@@ -32,7 +32,7 @@ function isMarketingRequest(pathname: string): boolean {
   return false;
 }
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   if (isMarketingRequest(request.nextUrl.pathname)) {
     return marketingMiddleware(request);
   }
