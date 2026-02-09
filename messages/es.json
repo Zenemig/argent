@@ -1,0 +1,206 @@
+{
+  "common": {
+    "appName": "Argent",
+    "tagline": "El compañero del fotógrafo analógico",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "done": "Listo",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "noResults": "No se encontraron resultados",
+    "confirm": "Confirmar",
+    "close": "Cerrar"
+  },
+  "nav": {
+    "dashboard": "Inicio",
+    "gear": "Equipo",
+    "settings": "Ajustes",
+    "stats": "Estadísticas"
+  },
+  "marketing": {
+    "hero": {
+      "title": "Registra Cada Foto. Incrusta Cada Detalle.",
+      "subtitle": "La app offline-first para fotógrafos analógicos. Registra exposiciones en el campo, gestiona tu equipo y genera archivos XMP sidecar para incrustar metadatos en tus escaneos.",
+      "cta": "Empieza Gratis",
+      "learnMore": "Saber Más"
+    },
+    "problem": {
+      "title": "El Problema de la Última Milla",
+      "description": "Disparas en película. La revelas y escaneas. Pero tus escaneos no tienen metadatos — ni cámara, ni lente, ni ajustes de exposición. La brecha entre tus notas y tus archivos es la última milla. Argent la cierra."
+    },
+    "features": {
+      "offline": {
+        "title": "Offline-First",
+        "description": "Registra disparos en el campo sin conexión. Tus datos viven en tu dispositivo."
+      },
+      "xmp": {
+        "title": "Exportación XMP Sidecar",
+        "description": "Genera archivos de metadatos que Lightroom y Capture One leen nativamente."
+      },
+      "crossPlatform": {
+        "title": "Multiplataforma",
+        "description": "Funciona en cualquier dispositivo con navegador. Instala como PWA para una experiencia nativa."
+      },
+      "openData": {
+        "title": "Datos Abiertos",
+        "description": "Exporta todo como JSON, CSV o XMP. Tus datos nunca están bloqueados."
+      }
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona",
+      "step1": {
+        "title": "Registra",
+        "description": "Toca para registrar cada exposición — velocidad, apertura, lente y notas."
+      },
+      "step2": {
+        "title": "Revela",
+        "description": "Sigue tu rollo a través del laboratorio y de vuelta."
+      },
+      "step3": {
+        "title": "Exporta",
+        "description": "Genera XMP sidecars o scripts de ExifTool. Los metadatos llegan a tus escaneos."
+      }
+    },
+    "pricing": {
+      "title": "Precios Simples",
+      "free": "Gratis",
+      "pro": "Pro",
+      "comingSoon": "Próximamente",
+      "joinWaitlist": "Unirse a la Lista de Espera",
+      "getStarted": "Comenzar"
+    },
+    "footer": {
+      "madeFor": "Hecho para fotógrafos analógicos",
+      "github": "GitHub",
+      "privacy": "Privacidad",
+      "terms": "Términos"
+    }
+  },
+  "gear": {
+    "title": "Equipo",
+    "cameras": "Cámaras",
+    "lenses": "Lentes",
+    "films": "Películas",
+    "addCamera": "Agregar Cámara",
+    "addLens": "Agregar Lente",
+    "addFilm": "Agregar Película",
+    "emptyCamera": "Agrega tu primera cámara para comenzar",
+    "emptyLens": "Agrega tu primer lente para registrar qué vidrio usas",
+    "emptyFilm": "Explora el catálogo de películas o agrega un stock personalizado",
+    "name": "Nombre",
+    "make": "Marca",
+    "format": "Formato",
+    "frameCount": "Número de Cuadros",
+    "notes": "Notas",
+    "focalLength": "Distancia Focal",
+    "maxAperture": "Apertura Máxima",
+    "linkedCamera": "Cámara Vinculada",
+    "universal": "Universal",
+    "brand": "Marca",
+    "iso": "ISO",
+    "process": "Proceso",
+    "custom": "Personalizado"
+  },
+  "roll": {
+    "loadNew": "Cargar Nuevo Rollo",
+    "title": "Rollo",
+    "selectCamera": "Seleccionar Cámara",
+    "selectFilm": "Seleccionar Película",
+    "configure": "Configurar Rollo",
+    "ei": "Índice de Exposición (EI)",
+    "pushPull": "Push/Pull",
+    "defaultLens": "Lente Predeterminado",
+    "status": {
+      "loaded": "Cargado",
+      "active": "Activo",
+      "finished": "Terminado",
+      "developed": "Revelado",
+      "scanned": "Escaneado",
+      "archived": "Archivado"
+    },
+    "actions": {
+      "finish": "Terminar Rollo",
+      "develop": "Marcar Revelado",
+      "scan": "Marcar Escaneado",
+      "archive": "Archivar"
+    },
+    "labName": "Nombre del Laboratorio",
+    "devNotes": "Notas de Revelado",
+    "frames": "{count, plural, one {# cuadro} other {# cuadros}}"
+  },
+  "frame": {
+    "log": "Registrar Foto",
+    "save": "Guardar Foto",
+    "shutterSpeed": "Velocidad",
+    "aperture": "Apertura",
+    "lens": "Lente",
+    "meteringMode": "Medición",
+    "exposureComp": "Comp. Exp.",
+    "filterUsed": "Filtro",
+    "note": "Nota Rápida",
+    "location": "Ubicación",
+    "frameNumber": "Cuadro {number}",
+    "exceedWarning": "Esto excede el número de cuadros del rollo. ¿Continuar de todos modos?",
+    "metering": {
+      "spot": "Puntual",
+      "center": "Centro",
+      "matrix": "Matricial",
+      "incident": "Incidente",
+      "sunny16": "Sunny 16"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "themeSystem": "Sistema",
+    "defaultMetering": "Modo de Medición Predeterminado",
+    "defaultCamera": "Cámara Predeterminada",
+    "displayName": "Nombre para Mostrar",
+    "copyright": "Aviso de Copyright",
+    "about": "Acerca de Argent",
+    "version": "Versión"
+  },
+  "export": {
+    "title": "Exportar",
+    "xmp": "XMP Sidecars (ZIP)",
+    "csv": "ExifTool CSV",
+    "script": "ExifTool Script (.sh)",
+    "json": "Respaldo JSON",
+    "filenamePattern": "Patrón de Nombre de Archivo",
+    "download": "Descargar"
+  },
+  "stats": {
+    "title": "Estadísticas",
+    "mostUsedFilm": "Películas Más Usadas",
+    "shotsPerMonth": "Fotos Por Mes",
+    "mostUsedCamera": "Cámaras Más Usadas",
+    "mostUsedFocalLength": "Distancias Focales Más Usadas",
+    "avgFramesPerRoll": "Prom. Cuadros Por Rollo"
+  },
+  "sync": {
+    "synced": "Todo sincronizado",
+    "syncing": "Sincronizando...",
+    "offline": "Sin conexión",
+    "error": "Error de sincronización",
+    "localOnly": "Solo local"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu Contraseña?",
+    "orContinueWith": "O continuar con",
+    "google": "Google"
+  }
+}

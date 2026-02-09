@@ -2,7 +2,7 @@
 
 Offline-first PWA for analogue photographers. Log shots, manage gear/film inventory, generate XMP sidecar files and ExifTool scripts for embedding metadata into scans. Cross-platform, works fully offline.
 
-**Stack:** Next.js 15 (App Router), TypeScript strict, Tailwind CSS v4, shadcn/ui (New York, zinc, dark default), Dexie.js (IndexedDB), Supabase (PostgreSQL + Auth + Storage), Serwist (PWA), next-intl (en + es), Zod, Vitest, Playwright. Deployed on Vercel. Licensed AGPL-3.0.
+**Stack:** Next.js 16 (App Router), TypeScript strict, Tailwind CSS v4, shadcn/ui (New York, zinc, dark default), Dexie.js (IndexedDB), Supabase (PostgreSQL + Auth + Storage), Serwist (PWA), next-intl (en + es), Zod 4, Vitest, Playwright. Deployed on Vercel. Licensed AGPL-3.0.
 
 ## Commands
 
@@ -69,7 +69,9 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 - **Dexie.js, NOT Dexie Cloud.** We use Dexie for local IndexedDB only. Supabase is the cloud backend. Never import from `dexie-cloud-addon`.
 - **Supabase SSR client only.** Use `@supabase/ssr` with `getAll()`/`setAll()` cookie methods. Never use the deprecated `@supabase/auth-helpers-nextjs` or individual `get`/`set`/`remove` cookie methods.
 - **`supabase.auth.getUser()` on server, never `getSession()`.** `getSession()` doesn't validate the JWT and is a security risk on the server side.
-- **Next.js 15 async params.** Route params and searchParams are Promises: `const { id } = await params`.
+- **Next.js 16 async params.** Route params and searchParams are Promises: `const { id } = await params`.
+- **Next.js 16 middleware deprecation.** `middleware.ts` is deprecated in favor of `proxy.ts`. We keep `middleware.ts` for next-intl compatibility. Rename when next-intl supports the proxy convention.
+- **Zod 4 API differences.** `z.record()` requires two args: `z.record(z.string(), z.unknown())`. No `z.instanceof()` for browser-only types.
 - **Hybrid i18n routing.** Marketing routes use `[locale]` prefix for SEO. App/auth routes have no prefix — locale comes from cookie. Don't mix up the two patterns.
 - **supabase/migrations/ uses plain SQL.** Excluded from tsconfig. Don't import TS modules there.
 - **Film format validation.** When loading a roll, only show films matching the camera's format (e.g., no 120 film in a 35mm camera).

@@ -1,0 +1,206 @@
+{
+  "common": {
+    "appName": "Argent",
+    "tagline": "The film photographer's companion",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "close": "Close"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "gear": "Gear Bag",
+    "settings": "Settings",
+    "stats": "Statistics"
+  },
+  "marketing": {
+    "hero": {
+      "title": "Log Every Shot. Embed Every Detail.",
+      "subtitle": "The offline-first app for analogue photographers. Log exposures in the field, manage your gear, and generate XMP sidecar files to embed metadata into your scans.",
+      "cta": "Start Logging — Free",
+      "learnMore": "Learn More"
+    },
+    "problem": {
+      "title": "The Last Mile Problem",
+      "description": "You shoot film. You get it developed and scanned. But your scans have no metadata — no camera, no lens, no exposure settings. The gap between your notes and your files is the last mile. Argent bridges it."
+    },
+    "features": {
+      "offline": {
+        "title": "Offline-First",
+        "description": "Log shots in the field without connectivity. Your data lives on your device."
+      },
+      "xmp": {
+        "title": "XMP Sidecar Export",
+        "description": "Generate metadata files that Lightroom and Capture One read natively."
+      },
+      "crossPlatform": {
+        "title": "Cross-Platform",
+        "description": "Works on any device with a browser. Install as a PWA for a native feel."
+      },
+      "openData": {
+        "title": "Open Data",
+        "description": "Export everything as JSON, CSV, or XMP. Your data is never locked in."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Log",
+        "description": "Tap to record each exposure — shutter speed, aperture, lens, and notes."
+      },
+      "step2": {
+        "title": "Develop",
+        "description": "Track your roll through the lab and back."
+      },
+      "step3": {
+        "title": "Export",
+        "description": "Generate XMP sidecars or ExifTool scripts. Metadata meets your scans."
+      }
+    },
+    "pricing": {
+      "title": "Simple Pricing",
+      "free": "Free",
+      "pro": "Pro",
+      "comingSoon": "Coming Soon",
+      "joinWaitlist": "Join Waitlist",
+      "getStarted": "Get Started"
+    },
+    "footer": {
+      "madeFor": "Made for film photographers",
+      "github": "GitHub",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "gear": {
+    "title": "Gear Bag",
+    "cameras": "Cameras",
+    "lenses": "Lenses",
+    "films": "Films",
+    "addCamera": "Add Camera",
+    "addLens": "Add Lens",
+    "addFilm": "Add Film",
+    "emptyCamera": "Add your first camera to get started",
+    "emptyLens": "Add your first lens to track what glass you use",
+    "emptyFilm": "Browse the film catalog or add a custom stock",
+    "name": "Name",
+    "make": "Make",
+    "format": "Format",
+    "frameCount": "Frame Count",
+    "notes": "Notes",
+    "focalLength": "Focal Length",
+    "maxAperture": "Max Aperture",
+    "linkedCamera": "Linked Camera",
+    "universal": "Universal",
+    "brand": "Brand",
+    "iso": "ISO",
+    "process": "Process",
+    "custom": "Custom"
+  },
+  "roll": {
+    "loadNew": "Load New Roll",
+    "title": "Roll",
+    "selectCamera": "Select Camera",
+    "selectFilm": "Select Film",
+    "configure": "Configure Roll",
+    "ei": "Exposure Index (EI)",
+    "pushPull": "Push/Pull",
+    "defaultLens": "Default Lens",
+    "status": {
+      "loaded": "Loaded",
+      "active": "Active",
+      "finished": "Finished",
+      "developed": "Developed",
+      "scanned": "Scanned",
+      "archived": "Archived"
+    },
+    "actions": {
+      "finish": "Finish Roll",
+      "develop": "Mark Developed",
+      "scan": "Mark Scanned",
+      "archive": "Archive"
+    },
+    "labName": "Lab Name",
+    "devNotes": "Development Notes",
+    "frames": "{count, plural, one {# frame} other {# frames}}"
+  },
+  "frame": {
+    "log": "Log Shot",
+    "save": "Save Shot",
+    "shutterSpeed": "Shutter Speed",
+    "aperture": "Aperture",
+    "lens": "Lens",
+    "meteringMode": "Metering",
+    "exposureComp": "Exp. Comp.",
+    "filterUsed": "Filter",
+    "note": "Quick Note",
+    "location": "Location",
+    "frameNumber": "Frame {number}",
+    "exceedWarning": "This exceeds the roll's frame count. Continue anyway?",
+    "metering": {
+      "spot": "Spot",
+      "center": "Center",
+      "matrix": "Matrix",
+      "incident": "Incident",
+      "sunny16": "Sunny 16"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "themeSystem": "System",
+    "defaultMetering": "Default Metering Mode",
+    "defaultCamera": "Default Camera",
+    "displayName": "Display Name",
+    "copyright": "Copyright Notice",
+    "about": "About Argent",
+    "version": "Version"
+  },
+  "export": {
+    "title": "Export",
+    "xmp": "XMP Sidecars (ZIP)",
+    "csv": "ExifTool CSV",
+    "script": "ExifTool Script (.sh)",
+    "json": "JSON Backup",
+    "filenamePattern": "Scan Filename Pattern",
+    "download": "Download"
+  },
+  "stats": {
+    "title": "Statistics",
+    "mostUsedFilm": "Most Used Film Stocks",
+    "shotsPerMonth": "Shots Per Month",
+    "mostUsedCamera": "Most Used Cameras",
+    "mostUsedFocalLength": "Most Used Focal Lengths",
+    "avgFramesPerRoll": "Avg. Frames Per Roll"
+  },
+  "sync": {
+    "synced": "All synced",
+    "syncing": "Syncing...",
+    "offline": "Offline",
+    "error": "Sync error",
+    "localOnly": "Local only"
+  },
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "orContinueWith": "Or continue with",
+    "google": "Google"
+  }
+}
