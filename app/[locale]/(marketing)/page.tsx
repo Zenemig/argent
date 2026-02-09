@@ -193,8 +193,8 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Pricing Preview */}
-      <section className="grain px-4 py-24">
-        <div className="relative z-10 mx-auto max-w-5xl text-center">
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("pricing.title")}
           </h2>
