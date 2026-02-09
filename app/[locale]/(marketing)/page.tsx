@@ -51,6 +51,12 @@ const FEATURE_ICONS = {
   openData: FolderOpen,
 } as const;
 
+const HOW_IT_WORKS_IMAGES = {
+  step1: "/images/how-it-works-log.png",
+  step2: "/images/how-it-works-develop.png",
+  step3: "/images/how-it-works-export.png",
+} as const;
+
 function LandingPage({ locale }: { locale: string }) {
   const t = useTranslations("marketing");
 
@@ -155,11 +161,19 @@ function LandingPage({ locale }: { locale: string }) {
           </h2>
           <div className="mt-12 grid gap-8 sm:grid-cols-3">
             {(["step1", "step2", "step3"] as const).map((step, i) => (
-              <div key={step}>
-                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+              <div key={step} className="flex flex-col items-center">
+                <div className="relative mb-6 aspect-square w-48 overflow-hidden rounded-2xl">
+                  <Image
+                    src={HOW_IT_WORKS_IMAGES[step]}
+                    alt={t(`howItWorks.${step}.title`)}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                   {i + 1}
                 </div>
-                <h3 className="mt-4 text-lg font-semibold">
+                <h3 className="mt-3 text-lg font-semibold">
                   {t(`howItWorks.${step}.title`)}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
