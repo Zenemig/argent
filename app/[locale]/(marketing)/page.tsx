@@ -3,8 +3,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { WifiOff, FileCode, Globe, FolderOpen } from "lucide-react";
-import { Logo, LogoIcon } from "@/components/logo";
+import { WifiOff, FileCode, Globe, FolderOpen, Check } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 export async function generateMetadata({
   params,
@@ -117,12 +117,14 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Problem Statement */}
-      <section className="bg-muted/50 px-4 py-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight">
+      <section className="grain relative overflow-hidden bg-muted/50 px-4 py-24">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
+        <div className="relative z-10 mx-auto max-w-3xl text-center">
+          <span className="text-6xl font-serif text-amber-500/20 leading-none select-none">&ldquo;</span>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight">
             {t("problem.title")}
           </h2>
-          <p className="mt-6 text-lg text-muted-foreground">
+          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
             {t("problem.description")}
           </p>
         </div>
@@ -137,15 +139,20 @@ function LandingPage({ locale }: { locale: string }) {
               return (
                 <div
                   key={key}
-                  className="rounded-xl border border-border bg-card p-6"
+                  className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-zinc-600 hover:shadow-md"
                 >
-                  <Icon className="mb-3 h-6 w-6 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold">
-                    {t(`features.${key}.title`)}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t(`features.${key}.description`)}
-                  </p>
+                  <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-amber-500/5 blur-2xl transition-all group-hover:bg-amber-500/10" />
+                  <div className="relative">
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                      <Icon className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      {t(`features.${key}.title`)}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {t(`features.${key}.description`)}
+                    </p>
+                  </div>
                 </div>
               );
             },
@@ -154,8 +161,8 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="bg-muted/50 px-4 py-24">
-        <div className="mx-auto max-w-5xl text-center">
+      <section id="how-it-works" className="grain bg-muted/50 px-4 py-24">
+        <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("howItWorks.title")}
           </h2>
@@ -186,30 +193,57 @@ function LandingPage({ locale }: { locale: string }) {
       </section>
 
       {/* Pricing Preview */}
-      <section className="px-4 py-24">
-        <div className="mx-auto max-w-5xl text-center">
+      <section className="grain px-4 py-24">
+        <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             {t("pricing.title")}
           </h2>
-          <div className="mt-12 grid max-w-4xl gap-8 sm:grid-cols-2 mx-auto">
-            <div className="rounded-xl border border-border bg-card p-8 text-left">
-              <h3 className="text-2xl font-bold">{t("pricing.free")}</h3>
-              <p className="mt-2 text-3xl font-bold">$0</p>
+          <div className="mx-auto mt-12 grid max-w-4xl gap-8 sm:grid-cols-2">
+            {/* Free Tier */}
+            <div className="flex flex-col gap-8 rounded-xl border border-border bg-card p-8 text-left shadow-sm">
+              <div>
+                <h3 className="text-2xl font-bold">{t("pricing.free")}</h3>
+                <p className="mt-2 text-3xl font-bold">$0</p>
+              </div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                {(["logging", "gear", "lifecycle", "export", "stats", "offline"] as const).map((feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 shrink-0 text-amber-500/80" />
+                    {t(`pricing.freeFeatures.${feature}`)}
+                  </li>
+                ))}
+              </ul>
               <Link
                 href="/gear"
-                className="mt-6 block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 {t("pricing.getStarted")}
               </Link>
             </div>
-            <div className="rounded-xl border-2 border-primary bg-card p-8 text-left">
-              <h3 className="text-2xl font-bold">{t("pricing.pro")}</h3>
-              <p className="mt-2 text-3xl font-bold">
-                {t("pricing.comingSoon")}
-              </p>
+            {/* Pro Tier */}
+            <div className="flex flex-col gap-8 rounded-xl border border-amber-500/40 bg-card p-8 text-left shadow-sm">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-2xl font-bold">{t("pricing.pro")}</h3>
+                  <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
+                    Soon
+                  </span>
+                </div>
+                <p className="mt-2 text-3xl font-bold">
+                  {t("pricing.comingSoon")}
+                </p>
+              </div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                {(["everything", "sync", "multiDevice", "backup", "support"] as const).map((feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 shrink-0 text-amber-500/80" />
+                    {t(`pricing.proFeatures.${feature}`)}
+                  </li>
+                ))}
+              </ul>
               <Link
                 href={locale === "en" ? "/pricing" : `/${locale}/pricing`}
-                className="mt-6 block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold hover:bg-accent"
+                className="mt-auto block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold hover:bg-accent"
               >
                 {t("pricing.joinWaitlist")}
               </Link>
@@ -218,27 +252,6 @@ function LandingPage({ locale }: { locale: string }) {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border px-4 py-12">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-3">
-            <LogoIcon className="h-5 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              {t("footer.madeFor")}
-            </p>
-          </div>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <a
-              href="https://github.com/Zenemig/argent"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground"
-            >
-              {t("footer.github")}
-            </a>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

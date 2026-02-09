@@ -73,7 +73,22 @@
       "pro": "Pro",
       "comingSoon": "Próximamente",
       "joinWaitlist": "Unirse a la Lista de Espera",
-      "getStarted": "Comenzar"
+      "getStarted": "Comenzar",
+      "freeFeatures": {
+        "logging": "Registro de fotos",
+        "gear": "Gestión de equipo",
+        "lifecycle": "Ciclo de vida del rollo",
+        "export": "Exportación XMP, CSV, JSON",
+        "stats": "Estadísticas",
+        "offline": "Soporte offline completo"
+      },
+      "proFeatures": {
+        "everything": "Todo lo de Gratis",
+        "sync": "Sincronización en la nube",
+        "multiDevice": "Acceso multi-dispositivo",
+        "backup": "Respaldo de imágenes en la nube",
+        "support": "Soporte prioritario"
+      }
     },
     "nav": {
       "openApp": "Abrir App"

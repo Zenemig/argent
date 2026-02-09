@@ -73,7 +73,22 @@
       "pro": "Pro",
       "comingSoon": "Coming Soon",
       "joinWaitlist": "Join Waitlist",
-      "getStarted": "Get Started"
+      "getStarted": "Get Started",
+      "freeFeatures": {
+        "logging": "Shot logging",
+        "gear": "Gear management",
+        "lifecycle": "Roll lifecycle tracking",
+        "export": "XMP, CSV, JSON export",
+        "stats": "Statistics",
+        "offline": "Full offline support"
+      },
+      "proFeatures": {
+        "everything": "Everything in Free",
+        "sync": "Cloud sync",
+        "multiDevice": "Multi-device access",
+        "backup": "Image cloud backup",
+        "support": "Priority support"
+      }
     },
     "nav": {
       "openApp": "Open App"
