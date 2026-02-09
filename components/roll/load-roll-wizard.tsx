@@ -56,7 +56,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   const [filmId, setFilmId] = useState("");
   const [ei, setEi] = useState(400);
   const [pushPull, setPushPull] = useState(0);
-  const [lensId, setLensId] = useState("");
+  const [lensId, setLensId] = useState("__none__");
   const [notes, setNotes] = useState("");
 
   const cameras = useLiveQuery(
@@ -159,7 +159,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
       user_id: GUEST_USER_ID,
       camera_id: cameraId,
       film_id: filmId,
-      lens_id: lensId || null,
+      lens_id: lensId === "__none__" ? null : lensId,
       status: "loaded",
       frame_count: selectedCamera.default_frame_count,
       ei,
@@ -187,7 +187,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     setFilmId("");
     setEi(400);
     setPushPull(0);
-    setLensId("");
+    setLensId("__none__");
     setNotes("");
     onOpenChange(false);
   }
@@ -381,7 +381,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                     <SelectValue placeholder="—" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">—</SelectItem>
+                    <SelectItem value="__none__">—</SelectItem>
                     {lenses.map((l) => (
                       <SelectItem key={l.id} value={l.id}>
                         {l.name}

@@ -34,7 +34,7 @@ export function SettingsContent() {
   const [theme, setTheme] = useState("dark");
   const [displayName, setDisplayName] = useState("");
   const [copyright, setCopyright] = useState("");
-  const [defaultMetering, setDefaultMetering] = useState("");
+  const [defaultMetering, setDefaultMetering] = useState("__none__");
 
   // Load settings
   useEffect(() => {
@@ -46,7 +46,7 @@ export function SettingsContent() {
       const cr = await getSetting("copyright");
       if (cr) setCopyright(cr);
       const dm = await getSetting("defaultMetering");
-      if (dm) setDefaultMetering(dm);
+      setDefaultMetering(dm || "__none__");
     }
     load();
   }, []);
@@ -61,11 +61,11 @@ export function SettingsContent() {
     [],
   );
 
-  const [defaultCamera, setDefaultCamera] = useState("");
+  const [defaultCamera, setDefaultCamera] = useState("__none__");
 
   useEffect(() => {
     getSetting("defaultCamera").then((v) => {
-      if (v) setDefaultCamera(v);
+      setDefaultCamera(v || "__none__");
     });
   }, []);
 
@@ -157,7 +157,7 @@ export function SettingsContent() {
               <SelectValue placeholder={t("none")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">{t("none")}</SelectItem>
+              <SelectItem value="__none__">{t("none")}</SelectItem>
               {METERING_MODES.map((m) => (
                 <SelectItem key={m} value={m}>
                   {m}
@@ -185,7 +185,7 @@ export function SettingsContent() {
                 <SelectValue placeholder={t("none")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("none")}</SelectItem>
+                <SelectItem value="__none__">{t("none")}</SelectItem>
                 {cameras.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}

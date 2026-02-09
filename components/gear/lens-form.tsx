@@ -33,7 +33,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
   const [make, setMake] = useState(lens?.make ?? "");
   const [focalLength, setFocalLength] = useState(lens?.focal_length ?? 50);
   const [maxAperture, setMaxAperture] = useState(lens?.max_aperture ?? 1.8);
-  const [cameraId, setCameraId] = useState(lens?.camera_id ?? "");
+  const [cameraId, setCameraId] = useState(lens?.camera_id ?? "__none__");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,7 +48,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
         make: make.trim(),
         focal_length: focalLength,
         max_aperture: maxAperture,
-        camera_id: cameraId || null,
+        camera_id: cameraId === "__none__" ? null : cameraId,
         updated_at: now,
       });
       toast.success(t("lensUpdated"));
@@ -60,7 +60,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
         make: make.trim(),
         focal_length: focalLength,
         max_aperture: maxAperture,
-        camera_id: cameraId || null,
+        camera_id: cameraId === "__none__" ? null : cameraId,
         deleted_at: null,
         updated_at: now,
         created_at: now,
@@ -132,7 +132,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
             <SelectValue placeholder={t("universal")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t("universal")}</SelectItem>
+            <SelectItem value="__none__">{t("universal")}</SelectItem>
             {cameras.map((cam) => (
               <SelectItem key={cam.id} value={cam.id}>
                 {cam.name}

@@ -47,8 +47,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
   const [shutterSpeed, setShutterSpeed] = useState("1/125");
   const [aperture, setAperture] = useState(5.6);
-  const [lensId, setLensId] = useState(roll.lens_id ?? "");
-  const [meteringMode, setMeteringMode] = useState<string>("");
+  const [lensId, setLensId] = useState(roll.lens_id ?? "__none__");
+  const [meteringMode, setMeteringMode] = useState<string>("__none__");
   const [exposureComp, setExposureComp] = useState(0);
   const [filter, setFilter] = useState("");
   const [note, setNote] = useState("");
@@ -129,8 +129,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       frame_number: nextFrameNumber,
       shutter_speed: shutterSpeed,
       aperture,
-      lens_id: lensId || null,
-      metering_mode: (meteringMode as MeteringMode) || null,
+      lens_id: lensId === "__none__" ? null : lensId,
+      metering_mode: meteringMode === "__none__" ? null : (meteringMode as MeteringMode),
       exposure_comp: exposureComp,
       filter: filter.trim() || null,
       latitude: loc?.lat ?? null,
@@ -269,7 +269,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                       <SelectValue placeholder="—" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">—</SelectItem>
+                      <SelectItem value="__none__">—</SelectItem>
                       {lenses.map((l) => (
                         <SelectItem key={l.id} value={l.id}>
                           {l.focal_length}mm
@@ -287,7 +287,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                     <SelectValue placeholder="—" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">—</SelectItem>
+                    <SelectItem value="__none__">—</SelectItem>
                     {METERING_MODES.map((m) => (
                       <SelectItem key={m} value={m}>
                         {t(`metering.${m}`)}
