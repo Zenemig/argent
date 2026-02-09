@@ -2,6 +2,8 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
+import { WifiOff, FileCode, Globe, FolderOpen } from "lucide-react";
 import { Logo, LogoIcon } from "@/components/logo";
 
 export async function generateMetadata({
@@ -42,6 +44,13 @@ export default async function HomePage({
   return <LandingPage locale={locale} />;
 }
 
+const FEATURE_ICONS = {
+  offline: WifiOff,
+  xmp: FileCode,
+  crossPlatform: Globe,
+  openData: FolderOpen,
+} as const;
+
 function LandingPage({ locale }: { locale: string }) {
   const t = useTranslations("marketing");
 
@@ -67,27 +76,37 @@ function LandingPage({ locale }: { locale: string }) {
       />
 
       {/* Hero */}
-      <section className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
-        <Logo className="mb-8 h-10 text-zinc-300 sm:h-14" />
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
-          {t("hero.title")}
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          {t("hero.subtitle")}
-        </p>
-        <div className="mt-10 flex gap-4">
-          <Link
-            href="/gear"
-            className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
-          >
-            {t("hero.cta")}
-          </Link>
-          <a
-            href="#how-it-works"
-            className="rounded-xl border border-border px-6 py-3 text-sm font-semibold hover:bg-accent"
-          >
-            {t("hero.learnMore")}
-          </a>
+      <section className="relative flex min-h-[80vh] flex-col items-center justify-center px-4 py-24 text-center">
+        <Image
+          src="/images/hero.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background" />
+        <div className="relative z-10">
+          <Logo className="mx-auto mb-8 h-10 text-zinc-300 sm:h-14" />
+          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
+            {t("hero.title")}
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+            {t("hero.subtitle")}
+          </p>
+          <div className="mt-10 flex justify-center gap-4">
+            <Link
+              href="/gear"
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+            >
+              {t("hero.cta")}
+            </Link>
+            <a
+              href="#how-it-works"
+              className="rounded-xl border border-border bg-background/50 px-6 py-3 text-sm font-semibold backdrop-blur hover:bg-accent"
+            >
+              {t("hero.learnMore")}
+            </a>
+          </div>
         </div>
       </section>
 
@@ -107,19 +126,23 @@ function LandingPage({ locale }: { locale: string }) {
       <section className="px-4 py-24">
         <div className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
           {(["offline", "xmp", "crossPlatform", "openData"] as const).map(
-            (key) => (
-              <div
-                key={key}
-                className="rounded-xl border border-border bg-card p-6"
-              >
-                <h3 className="text-lg font-semibold">
-                  {t(`features.${key}.title`)}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t(`features.${key}.description`)}
-                </p>
-              </div>
-            ),
+            (key) => {
+              const Icon = FEATURE_ICONS[key];
+              return (
+                <div
+                  key={key}
+                  className="rounded-xl border border-border bg-card p-6"
+                >
+                  <Icon className="mb-3 h-6 w-6 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold">
+                    {t(`features.${key}.title`)}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t(`features.${key}.description`)}
+                  </p>
+                </div>
+              );
+            },
           )}
         </div>
       </section>
