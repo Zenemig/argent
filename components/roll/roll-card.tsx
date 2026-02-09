@@ -8,16 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import type { Roll } from "@/lib/types";
+import { STATUS_COLORS } from "@/lib/roll-lifecycle";
 import { format } from "date-fns";
-
-const STATUS_COLORS: Record<string, string> = {
-  loaded: "bg-blue-500/20 text-blue-400",
-  active: "bg-green-500/20 text-green-400",
-  finished: "bg-yellow-500/20 text-yellow-400",
-  developed: "bg-purple-500/20 text-purple-400",
-  scanned: "bg-cyan-500/20 text-cyan-400",
-  archived: "bg-muted text-muted-foreground",
-};
 
 export function RollCard({ roll }: { roll: Roll }) {
   const t = useTranslations("roll");

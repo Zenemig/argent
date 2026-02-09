@@ -17,16 +17,8 @@ import { Separator } from "@/components/ui/separator";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { GUEST_USER_ID } from "@/lib/guest";
+import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
 import { toast } from "sonner";
-
-async function getSetting(key: string): Promise<string | null> {
-  const row = await db._syncMeta.get(key);
-  return row?.value ?? null;
-}
-
-async function setSetting(key: string, value: string): Promise<void> {
-  await db._syncMeta.put({ key, value });
-}
 
 export function SettingsContent() {
   const t = useTranslations("settings");
@@ -72,22 +64,11 @@ export function SettingsContent() {
   function handleThemeChange(value: string) {
     setTheme(value);
     setSetting("theme", value);
-
-    const html = document.documentElement;
-    if (value === "dark") {
-      html.classList.add("dark");
-      html.classList.remove("light");
-    } else if (value === "light") {
-      html.classList.remove("dark");
-      html.classList.add("light");
-    } else {
-      // System
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      html.classList.toggle("dark", prefersDark);
-      html.classList.toggle("light", !prefersDark);
-    }
+    applyTheme(
+      value,
+      document.documentElement,
+      window.matchMedia("(prefers-color-scheme: dark)"),
+    );
     toast.success(t("saved"));
   }
 

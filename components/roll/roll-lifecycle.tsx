@@ -14,40 +14,17 @@ import {
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
 import type { Roll, RollStatus } from "@/lib/types";
-import { ROLL_STATUSES } from "@/lib/constants";
+import {
+  STATUS_ORDER,
+  getNextStatus,
+  getPrevStatus,
+  ACTION_KEYS,
+} from "@/lib/roll-lifecycle";
 import { toast } from "sonner";
 
 interface RollLifecycleProps {
   roll: Roll;
 }
-
-const STATUS_ORDER: RollStatus[] = [
-  "loaded",
-  "active",
-  "finished",
-  "developed",
-  "scanned",
-  "archived",
-];
-
-function getNextStatus(current: RollStatus): RollStatus | null {
-  const idx = STATUS_ORDER.indexOf(current);
-  if (idx === -1 || idx >= STATUS_ORDER.length - 1) return null;
-  return STATUS_ORDER[idx + 1];
-}
-
-function getPrevStatus(current: RollStatus): RollStatus | null {
-  const idx = STATUS_ORDER.indexOf(current);
-  if (idx <= 0) return null;
-  return STATUS_ORDER[idx - 1];
-}
-
-const ACTION_KEYS: Record<string, string> = {
-  finished: "finish",
-  developed: "develop",
-  scanned: "scan",
-  archived: "archive",
-};
 
 export function RollLifecycle({ roll }: RollLifecycleProps) {
   const t = useTranslations("roll");
