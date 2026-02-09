@@ -75,6 +75,9 @@
       "joinWaitlist": "Unirse a la Lista de Espera",
       "getStarted": "Comenzar"
     },
+    "nav": {
+      "openApp": "Abrir App"
+    },
     "footer": {
       "madeFor": "Hecho para fotógrafos analógicos",
       "github": "GitHub",

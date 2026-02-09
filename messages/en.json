@@ -75,6 +75,9 @@
       "joinWaitlist": "Join Waitlist",
       "getStarted": "Get Started"
     },
+    "nav": {
+      "openApp": "Open App"
+    },
     "footer": {
       "madeFor": "Made for film photographers",
       "github": "GitHub",

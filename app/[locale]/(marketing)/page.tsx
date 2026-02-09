@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
+import { Logo, LogoIcon } from "@/components/logo";
 
 export async function generateMetadata({
   params,
@@ -67,6 +68,7 @@ function LandingPage({ locale }: { locale: string }) {
 
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+        <Logo className="mb-8 h-10 text-zinc-300 sm:h-14" />
         <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
           {t("hero.title")}
         </h1>
@@ -182,9 +184,12 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Footer */}
       <footer className="border-t border-border px-4 py-12">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-sm text-muted-foreground">
-            {t("footer.madeFor")}
-          </p>
+          <div className="flex items-center gap-3">
+            <LogoIcon className="h-5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              {t("footer.madeFor")}
+            </p>
+          </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <a
               href="https://github.com/Zenemig/argent"

@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   description:
     "Offline-first PWA for analogue photographers. Log exposures, manage gear, and generate XMP sidecar files.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

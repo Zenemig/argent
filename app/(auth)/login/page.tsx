@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { LogoIcon } from "@/components/logo";
 
 export async function generateMetadata() {
   const t = await getTranslations("auth");
@@ -10,7 +11,8 @@ export default async function LoginPage() {
 
   return (
     <div className="w-full max-w-sm space-y-6">
-      <div className="text-center">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <LogoIcon className="h-10 text-zinc-300" />
         <h1 className="text-2xl font-bold">{t("login")}</h1>
       </div>
       <form className="space-y-4">

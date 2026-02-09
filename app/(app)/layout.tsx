@@ -3,6 +3,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { DbProvider } from "@/components/db-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
+import { Logo } from "@/components/logo";
 
 export default async function AppLayout({
   children,
@@ -16,6 +17,9 @@ export default async function AppLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DbProvider>
         <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6">
+          <div className="mb-4">
+            <Logo className="h-5 text-muted-foreground" />
+          </div>
           {children}
         </div>
         <BottomNav />
