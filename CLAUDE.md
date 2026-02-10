@@ -18,8 +18,7 @@ Offline-first PWA for analogue photographers. Log shots, manage gear/film invent
 ## Architecture
 
 ```
-app/[locale]/(marketing)/          -- Landing page, pricing (locale prefix: as-needed for SEO)
-app/[locale]/(marketing)/pricing/  -- /pricing (en), /es/pricing (es)
+app/[locale]/(marketing)/          -- Landing page (locale prefix: as-needed for SEO)
 app/(app)/                         -- Dashboard (no locale prefix, clean URLs)
 app/(app)/gear/                    -- Gear bag: /gear
 app/(app)/roll/[id]/               -- Roll detail: /roll/abc123
@@ -45,7 +44,7 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 
 ### i18n Routing (Hybrid)
 
-- **(marketing)** routes use `[locale]` segment with `localePrefix: 'as-needed'` — English at `/`, `/pricing`; Spanish at `/es`, `/es/pricing`. Enables `hreflang` tags for SEO.
+- **(marketing)** routes use `[locale]` segment with `localePrefix: 'as-needed'` — English at `/`; Spanish at `/es`. Enables `hreflang` tags for SEO.
 - **(app)** and **(auth)** routes have no locale prefix — clean URLs like `/gear`, `/roll/abc123`, `/login`. Locale detected from cookie (`NEXT_LOCALE`) or browser `Accept-Language` header.
 - Proxy (`proxy.ts`) handles routing: rewrites marketing routes with locale prefix, passes app routes through with locale from cookie.
 
@@ -80,12 +79,11 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 
 ## User Tiers
 
-Three tiers with feature gating via `useUserTier()` hook and `<ProGate>` wrapper:
+Two tiers with feature gating via `useUserTier()` hook and `<ProGate>` wrapper. Unauthenticated users are redirected to `/login`.
 
 | Tier | Auth | Sync | How |
 |------|------|------|-----|
-| Guest | None | Local only | No prompts for local features |
-| Free | Email/Google | Local only | Account for future sync |
+| Free | Email/Google | Local only | Default on signup |
 | Pro | Invitation (MVP) | Cloud sync + image backup | Manual via Supabase dashboard |
 
 **Admin: Grant Pro access** (via Supabase SQL editor or dashboard):
@@ -102,10 +100,48 @@ UPDATE user_profiles SET tier = 'pro' WHERE id = '<user-uuid>';
 - **EI (Exposure Index)** -- Actual ISO used, may differ from film's box speed when pushing/pulling
 - **Push/pull** -- Intentionally over/underexposing film (e.g., +1 stop push, -2 stop pull)
 
-## Key References
+## Data Model (Dexie.js)
 
-For full architecture, data model, entity schemas, sync engine design, and export format specs:
-@IMPLEMENTATION_PLAN.md
+```typescript
+db.version(1).stores({
+  cameras:    '&id, user_id, format, [user_id+deleted_at], updated_at',
+  lenses:     '&id, user_id, camera_id, [user_id+deleted_at], updated_at',
+  films:      '&id, user_id, brand, format, process, is_custom, [user_id+deleted_at], updated_at',
+  rolls:      '&id, user_id, camera_id, film_id, status, [user_id+status], [user_id+deleted_at], updated_at',
+  frames:     '&id, roll_id, frame_number, [roll_id+frame_number], updated_at',
+  filmStock:  '&id, brand, name, iso, format, process',  // seed data, read-only
+  _syncQueue: '++id, table, entity_id, operation, status, retry_count, last_attempt',
+  _syncMeta:  '&key',
+});
+```
+
+Entity interfaces in `lib/types.ts`. Zod schemas in `lib/schemas.ts`. Seed data (80+ film stocks) in `lib/seed.ts`.
+
+## Roll Status Lifecycle
+
+```
+loaded -> active -> finished -> developed -> scanned -> archived
+```
+
+Each transition records a date (`start_date`, `finish_date`, `develop_date`, `scan_date`). Status can go back one step (undo).
+
+## Sync Engine
+
+- **LWW (Last-Write-Wins)** with server-assigned `updated_at` timestamps.
+- All mutations go through `syncAdd()`/`syncUpdate()` in `lib/sync-write.ts` — writes to Dexie immediately, queues for Supabase upload.
+- Retry queue in `_syncQueue` table with exponential backoff (max 5 retries).
+- Download sync: queries Supabase for rows where `updated_at > lastDownloadSync`, bulk puts into Dexie.
+- Image sync: thumbnails stored locally in Dexie, full images uploaded to Supabase Storage (Pro only).
+- Sync is Pro-only. Free users see "Local only" in the sync status indicator.
+
+## Export Formats
+
+Exporters in `lib/exporters/` (dynamically imported, never in initial bundle):
+
+- **XMP sidecar** (`xmp.ts`): XML/RDF with `tiff`, `exif`, `exifEX`, `dc`, `xmp`, `photoshop`, `Iptc4xmpCore` namespaces. Compatible with Lightroom Classic and Capture One. Downloadable as ZIP.
+- **ExifTool CSV** (`csv.ts`): CSV with `SourceFile` column for `exiftool -csv` flag. EXIF date format (`YYYY:MM:DD HH:MM:SS`).
+- **ExifTool script** (`exiftool-script.ts`): `.sh` script with one `exiftool` command per frame, `-overwrite_original` flag.
+- **JSON** (`json.ts`): Full data dump of roll + frames for backup/portability.
 
 ## Compaction
 
