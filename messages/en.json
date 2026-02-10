@@ -21,7 +21,8 @@
     "dashboard": "Dashboard",
     "gear": "Gear Bag",
     "settings": "Settings",
-    "stats": "Statistics"
+    "stats": "Statistics",
+    "signOut": "Sign Out"
   },
   "marketing": {
     "hero": {
@@ -91,7 +92,10 @@
       }
     },
     "nav": {
-      "openApp": "Open App"
+      "openApp": "Open App",
+      "login": "Log In",
+      "signup": "Sign Up",
+      "pricing": "Pricing"
     },
     "footer": {
       "madeFor": "Made for film photographers",
@@ -269,6 +273,8 @@
     "featureMultiDevice": "Multi-device access",
     "featureBackup": "Reference image cloud backup",
     "cta": "Join Waitlist",
+    "getProWhenReady": "Get Pro when available",
+    "waitlistConfirmed": "You're on the list! We'll notify you when Pro is available.",
     "syncTeaser": "Upgrade to Pro to enable cloud sync",
     "proActive": "Pro",
     "proManageHint": "You have Pro access. Managed via your account."

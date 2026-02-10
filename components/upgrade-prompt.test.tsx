@@ -5,6 +5,10 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+vi.mock("@/app/(app)/settings/actions", () => ({
+  joinWaitlist: vi.fn(),
+}));
+
 import { UpgradePrompt } from "./upgrade-prompt";
 
 describe("UpgradePrompt", () => {
@@ -21,10 +25,9 @@ describe("UpgradePrompt", () => {
     expect(screen.getByText("featureBackup")).toBeDefined();
   });
 
-  it("renders CTA link pointing to /pricing", () => {
+  it("renders Join Waitlist button", () => {
     render(<UpgradePrompt />);
     const cta = screen.getByText("cta");
-    expect(cta.closest("a")).toBeDefined();
-    expect(cta.closest("a")?.getAttribute("href")).toBe("/pricing");
+    expect(cta.closest("button")).toBeDefined();
   });
 });

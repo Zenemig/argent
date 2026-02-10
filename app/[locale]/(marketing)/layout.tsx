@@ -33,10 +33,16 @@ export default async function MarketingLayout({
               {t("footer.github")}
             </a>
             <Link
-              href="/gear"
+              href="/login"
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {t("nav.login")}
+            </Link>
+            <Link
+              href="/login?mode=signup"
               className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              {t("nav.openApp")}
+              {t("nav.signup")}
             </Link>
           </div>
         </div>

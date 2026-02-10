@@ -101,7 +101,7 @@ function LandingPage({ locale }: { locale: string }) {
           </p>
           <div className="mt-10 flex justify-center gap-4">
             <Link
-              href="/gear"
+              href="/login?mode=signup"
               className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
               {t("hero.cta")}
@@ -228,7 +228,7 @@ function LandingPage({ locale }: { locale: string }) {
                 ))}
               </ul>
               <Link
-                href="/gear"
+                href="/login"
                 className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 {t("pricing.getStarted")}
@@ -256,7 +256,7 @@ function LandingPage({ locale }: { locale: string }) {
                 ))}
               </ul>
               <Link
-                href={locale === "en" ? "/pricing" : `/${locale}/pricing`}
+                href="/login?mode=signup&interest=pro"
                 className="mt-auto block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold hover:bg-accent"
               >
                 {t("pricing.joinWaitlist")}

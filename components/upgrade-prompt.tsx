@@ -1,13 +1,25 @@
 "use client";
 
-import Link from "next/link";
+import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Cloud, Monitor, Image } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { joinWaitlist } from "@/app/(app)/settings/actions";
+import { toast } from "sonner";
 
 export function UpgradePrompt() {
   const t = useTranslations("upgrade");
+  const [pending, startTransition] = useTransition();
+
+  function handleJoin() {
+    startTransition(async () => {
+      const result = await joinWaitlist();
+      if (result.success) {
+        toast.success(t("waitlistConfirmed"));
+      }
+    });
+  }
 
   return (
     <Card>
@@ -30,8 +42,8 @@ export function UpgradePrompt() {
             {t("featureBackup")}
           </li>
         </ul>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/pricing">{t("cta")}</Link>
+        <Button variant="outline" size="sm" disabled={pending} onClick={handleJoin}>
+          {t("cta")}
         </Button>
       </CardContent>
     </Card>

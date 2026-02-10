@@ -21,7 +21,8 @@
     "dashboard": "Inicio",
     "gear": "Equipo",
     "settings": "Ajustes",
-    "stats": "Estadísticas"
+    "stats": "Estadísticas",
+    "signOut": "Cerrar Sesión"
   },
   "marketing": {
     "hero": {
@@ -91,7 +92,10 @@
       }
     },
     "nav": {
-      "openApp": "Abrir App"
+      "openApp": "Abrir App",
+      "login": "Iniciar Sesión",
+      "signup": "Registrarse",
+      "pricing": "Precios"
     },
     "footer": {
       "madeFor": "Hecho para fotógrafos analógicos",
@@ -269,6 +273,8 @@
     "featureMultiDevice": "Acceso multi-dispositivo",
     "featureBackup": "Respaldo de imágenes de referencia en la nube",
     "cta": "Unirse a la Lista de Espera",
+    "getProWhenReady": "Avísame cuando Pro esté listo",
+    "waitlistConfirmed": "¡Estás en la lista! Te avisaremos cuando Pro esté disponible.",
     "syncTeaser": "Mejora a Pro para activar la sincronización en la nube",
     "proActive": "Pro",
     "proManageHint": "Tienes acceso Pro. Gestionado desde tu cuenta."
