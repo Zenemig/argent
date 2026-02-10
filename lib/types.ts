@@ -14,6 +14,7 @@ export type {
   LensStock,
   SyncQueueItem,
   SyncMeta,
+  SyncConflict,
   UserProfile,
 } from "./schemas";
 

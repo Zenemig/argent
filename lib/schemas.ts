@@ -208,6 +208,22 @@ export const syncMetaSchema = z.object({
 export type SyncMeta = z.infer<typeof syncMetaSchema>;
 
 // ---------------------------------------------------------------------------
+// Sync Conflict (logged when download overwrites local data with pending upload)
+// ---------------------------------------------------------------------------
+
+export const syncConflictSchema = z.object({
+  id: z.number().int().positive().optional(), // auto-increment
+  table: z.string().min(1),
+  entity_id: z.string().min(1),
+  local_data: z.record(z.string(), z.unknown()),
+  server_data: z.record(z.string(), z.unknown()),
+  resolved_by: z.enum(["server_wins"]),
+  created_at: z.number().int().positive(),
+});
+
+export type SyncConflict = z.infer<typeof syncConflictSchema>;
+
+// ---------------------------------------------------------------------------
 // User Profile (stored in Supabase, cached locally)
 // ---------------------------------------------------------------------------
 

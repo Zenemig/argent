@@ -1,11 +1,12 @@
 import { db } from "./db";
-import type { SyncableTable } from "./constants";
+import { SYNCABLE_TABLES, type SyncableTable } from "./constants";
 import type { SyncQueueItem } from "./types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_BATCH_SIZE = 200;
 const MAX_RETRIES = 5;
 const MAX_BACKOFF_MS = 60_000;
+const DOWNLOAD_PAGE_SIZE = 1000;
 
 /** Fields that should not be sent to Supabase (local-only blobs). */
 const LOCAL_ONLY_FIELDS: Record<SyncableTable, string[]> = {
@@ -231,4 +232,185 @@ export async function getQueueStats(): Promise<{
     .equals("failed")
     .count();
   return { pending, failed };
+}
+
+// ---------------------------------------------------------------------------
+// Download Sync
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert ISO timestamp strings from Postgres to epoch-ms for Dexie.
+ * Returns a new object — does not mutate the original.
+ */
+export function convertTimestampsFromServer(
+  entity: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = { ...entity };
+  for (const field of TIMESTAMP_FIELDS) {
+    const val = result[field];
+    if (typeof val === "string") {
+      result[field] = new Date(val).getTime();
+    }
+  }
+  return result;
+}
+
+/**
+ * Preserve local-only fields that the server doesn't have.
+ * For frames: keep the local thumbnail blob so bulkPut doesn't wipe it.
+ */
+export function preserveLocalFields(
+  table: SyncableTable,
+  serverEntity: Record<string, unknown>,
+  localEntity: Record<string, unknown> | undefined,
+): Record<string, unknown> {
+  if (table === "frames" && localEntity?.thumbnail) {
+    return { ...serverEntity, thumbnail: localEntity.thumbnail };
+  }
+  return serverEntity;
+}
+
+/**
+ * Download rows from a single Supabase table, with pagination.
+ * If `since` is null, downloads all rows (full resync).
+ * If `since` is set, downloads only rows updated after that timestamp.
+ */
+export async function downloadFromTable(
+  supabase: SupabaseClient,
+  table: SyncableTable,
+  since: string | null,
+): Promise<Record<string, unknown>[]> {
+  const allRows: Record<string, unknown>[] = [];
+  let offset = 0;
+
+  while (true) {
+    // Build query: select → filter → order → paginate
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query: any = supabase.from(table).select("*");
+
+    if (since) {
+      query = query.gt("updated_at", since);
+    }
+
+    query = query
+      .order("updated_at", { ascending: true })
+      .range(offset, offset + DOWNLOAD_PAGE_SIZE - 1);
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(
+        `Download from ${table} failed: ${error.message}`,
+      );
+    }
+
+    if (!data || data.length === 0) break;
+
+    allRows.push(...(data as Record<string, unknown>[]));
+
+    if (data.length < DOWNLOAD_PAGE_SIZE) break;
+    offset += DOWNLOAD_PAGE_SIZE;
+  }
+
+  return allRows;
+}
+
+/**
+ * Main download sync orchestrator.
+ * Downloads updated rows from Supabase, applies LWW conflict resolution
+ * (server wins), logs conflicts, and updates the local database.
+ *
+ * @returns Summary of downloaded entities and conflicts detected.
+ */
+export async function processDownloadSync(
+  supabase: SupabaseClient,
+): Promise<{ downloaded: number; conflicts: number }> {
+  const meta = await db._syncMeta.get("lastDownloadSync");
+  const since = meta?.value ?? null;
+
+  let totalDownloaded = 0;
+  let totalConflicts = 0;
+  let maxUpdatedAt: string | null = null;
+
+  for (const table of SYNCABLE_TABLES) {
+    const rows = await downloadFromTable(supabase, table, since);
+    if (rows.length === 0) continue;
+
+    // Track the max updated_at across all tables for the watermark
+    for (const row of rows) {
+      const rowUpdatedAt = row.updated_at as string;
+      if (!maxUpdatedAt || rowUpdatedAt > maxUpdatedAt) {
+        maxUpdatedAt = rowUpdatedAt;
+      }
+    }
+
+    // Convert timestamps and check for conflicts
+    const toUpsert: Record<string, unknown>[] = [];
+
+    for (const serverRow of rows) {
+      const entityId = serverRow.id as string;
+      const converted = convertTimestampsFromServer(serverRow);
+
+      // Check if there's a pending upload queue entry for this entity
+      const pendingEntries = await db._syncQueue
+        .where("table")
+        .equals(table)
+        .filter(
+          (item) =>
+            item.entity_id === entityId &&
+            (item.status === "pending" || item.status === "in_progress"),
+        )
+        .toArray();
+
+      if (pendingEntries.length > 0) {
+        // Conflict: local has pending changes, server has newer data
+        const localEntity = await db.table(table).get(entityId);
+
+        if (localEntity) {
+          await db._syncConflicts.add({
+            table,
+            entity_id: entityId,
+            local_data: localEntity as Record<string, unknown>,
+            server_data: converted,
+            resolved_by: "server_wins",
+            created_at: Date.now(),
+          });
+          totalConflicts++;
+        }
+
+        // Remove stale queue entries (server wins)
+        const queueIds = pendingEntries
+          .filter((e) => e.id !== undefined)
+          .map((e) => e.id as number);
+        if (queueIds.length > 0) {
+          await db._syncQueue.where("id").anyOf(queueIds).delete();
+        }
+      }
+
+      // Preserve local-only fields (e.g., thumbnail for frames)
+      const localEntity = await db.table(table).get(entityId);
+      const merged = preserveLocalFields(
+        table,
+        converted,
+        localEntity as Record<string, unknown> | undefined,
+      );
+
+      toUpsert.push(merged);
+    }
+
+    if (toUpsert.length > 0) {
+      await db.table(table).bulkPut(toUpsert);
+      totalDownloaded += toUpsert.length;
+    }
+  }
+
+  // Update watermark using max updated_at from server (avoids clock skew)
+  if (maxUpdatedAt) {
+    await db._syncMeta.put({
+      key: "lastDownloadSync",
+      value: maxUpdatedAt,
+    });
+  }
+
+  return { downloaded: totalDownloaded, conflicts: totalConflicts };
 }

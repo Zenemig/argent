@@ -29,6 +29,10 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
         await db._syncMeta.put({ key: "seeded_lenses", value: "true" });
       }
 
+      if (navigator.storage?.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
+
       setReady(true);
     }
     init();

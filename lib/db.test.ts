@@ -24,6 +24,7 @@ describe("ArgentDb", () => {
     const tableNames = db.tables.map((t) => t.name).sort();
     expect(tableNames).toEqual(
       [
+        "_syncConflicts",
         "_syncMeta",
         "_syncQueue",
         "cameraStock",

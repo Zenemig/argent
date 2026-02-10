@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
-import { processUploadQueue } from "@/lib/sync-engine";
+import { processDownloadSync, processUploadQueue } from "@/lib/sync-engine";
 import { createClient } from "@/lib/supabase/client";
 import { GUEST_USER_ID } from "@/lib/guest";
 
@@ -52,6 +52,8 @@ export function useSync(userId: string): UseSyncResult {
 
     try {
       const supabase = createClient();
+      // Download first: resolve server-wins conflicts before uploading
+      await processDownloadSync(supabase);
       await processUploadQueue(supabase);
     } finally {
       syncInProgressRef.current = false;

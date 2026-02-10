@@ -10,6 +10,7 @@ import type {
   LensStock,
   SyncQueueItem,
   SyncMeta,
+  SyncConflict,
 } from "./types";
 
 export class ArgentDb extends Dexie {
@@ -23,6 +24,7 @@ export class ArgentDb extends Dexie {
   lensStock!: EntityTable<LensStock, "id">;
   _syncQueue!: EntityTable<SyncQueueItem, "id">;
   _syncMeta!: EntityTable<SyncMeta, "key">;
+  _syncConflicts!: EntityTable<SyncConflict, "id">;
 
   constructor() {
     super("argent");
@@ -48,6 +50,10 @@ export class ArgentDb extends Dexie {
     this.version(2).stores({
       cameraStock: "&id, make, name, mount, format, type",
       lensStock: "&id, make, name, mount, focal_length, max_aperture",
+    });
+
+    this.version(3).stores({
+      _syncConflicts: "++id, table, entity_id",
     });
   }
 }
