@@ -256,12 +256,21 @@
   },
   "export": {
     "title": "Exportar",
-    "xmp": "XMP Sidecars (ZIP)",
+    "xmp": "XMP Sidecars",
     "csv": "ExifTool CSV",
     "script": "ExifTool Script (.sh)",
     "json": "Respaldo JSON",
-    "filenamePattern": "Patrón de Nombre de Archivo",
-    "download": "Descargar"
+    "filenamePattern": "Patrón de Nombre",
+    "fileList": "Lista de Archivos",
+    "patternHint": "Usa {frame_number} para el número de cuadro (con ceros a 3 dígitos)",
+    "fileListHint": "Pega un nombre de archivo por línea. Debe coincidir con el número de cuadros ({count}).",
+    "fileListMismatch": "Se esperaban {expected} nombres pero se recibieron {actual}",
+    "preview": "Vista Previa",
+    "download": "Descargar ZIP",
+    "generating": "Generando...",
+    "noFrames": "No hay cuadros para exportar",
+    "success": "Archivos XMP descargados",
+    "error": "Error al generar archivos XMP"
   },
   "stats": {
     "title": "Estadísticas",

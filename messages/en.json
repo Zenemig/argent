@@ -256,12 +256,21 @@
   },
   "export": {
     "title": "Export",
-    "xmp": "XMP Sidecars (ZIP)",
+    "xmp": "XMP Sidecars",
     "csv": "ExifTool CSV",
     "script": "ExifTool Script (.sh)",
     "json": "JSON Backup",
-    "filenamePattern": "Scan Filename Pattern",
-    "download": "Download"
+    "filenamePattern": "Filename Pattern",
+    "fileList": "File List",
+    "patternHint": "Use {frame_number} for the frame number (zero-padded to 3 digits)",
+    "fileListHint": "Paste one scan filename per line. Must match the number of frames ({count}).",
+    "fileListMismatch": "Expected {expected} filenames but got {actual}",
+    "preview": "Preview",
+    "download": "Download ZIP",
+    "generating": "Generating...",
+    "noFrames": "No frames to export",
+    "success": "XMP files downloaded",
+    "error": "Failed to generate XMP files"
   },
   "stats": {
     "title": "Statistics",

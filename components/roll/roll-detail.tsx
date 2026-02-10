@@ -1,15 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { db } from "@/lib/db";
 import { ShotLogger } from "./shot-logger";
 import { RollLifecycle } from "./roll-lifecycle";
+import { XMPExportDialog } from "@/components/export/xmp-export-dialog";
 import { format } from "date-fns";
 
 interface RollDetailProps {
@@ -18,6 +26,9 @@ interface RollDetailProps {
 
 export function RollDetail({ rollId }: RollDetailProps) {
   const t = useTranslations("roll");
+  const tExport = useTranslations("export");
+
+  const [xmpDialogOpen, setXmpDialogOpen] = useState(false);
 
   const roll = useLiveQuery(() => db.rolls.get(rollId), [rollId]);
   const camera = useLiveQuery(
@@ -63,6 +74,22 @@ export function RollDetail({ rollId }: RollDetailProps) {
         <Badge variant="outline">
           {format(roll.start_date, "MMM d, yyyy")}
         </Badge>
+
+        {(roll.status === "scanned" || roll.status === "archived") && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                {tExport("title")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setXmpDialogOpen(true)}>
+                {tExport("xmp")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <RollLifecycle roll={roll} />
@@ -70,6 +97,13 @@ export function RollDetail({ rollId }: RollDetailProps) {
       <Separator />
 
       <ShotLogger roll={roll} />
+
+      <XMPExportDialog
+        rollId={roll.id}
+        frameCount={roll.frame_count}
+        open={xmpDialogOpen}
+        onOpenChange={setXmpDialogOpen}
+      />
     </div>
   );
 }
