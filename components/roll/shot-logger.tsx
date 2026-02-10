@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { db } from "@/lib/db";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import {
   SHUTTER_SPEEDS,
   APERTURES,
@@ -123,7 +124,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     const now = Date.now();
     const loc = locationRef.current;
 
-    await db.frames.add({
+    await syncAdd("frames", {
       id: ulid(),
       roll_id: roll.id,
       frame_number: nextFrameNumber,
@@ -142,11 +143,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       captured_at: now,
       updated_at: now,
       created_at: now,
-    });
+    }, roll.user_id);
 
     // Update roll status to active if it's loaded
     if (roll.status === "loaded") {
-      await db.rolls.update(roll.id, {
+      await syncUpdate("rolls", roll.id, {
         status: "active",
         updated_at: now,
       });

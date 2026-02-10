@@ -25,7 +25,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { syncAdd } from "@/lib/sync-write";
+import { useUserId } from "@/hooks/useUserId";
 import { DEFAULT_FRAME_COUNTS } from "@/lib/constants";
 import type { Camera as CameraType, FilmFormat } from "@/lib/types";
 import { toast } from "sonner";
@@ -50,6 +51,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   const router = useRouter();
   const t = useTranslations("roll");
   const tc = useTranslations("common");
+  const userId = useUserId();
 
   const [step, setStep] = useState<Step>("camera");
   const [cameraId, setCameraId] = useState("");
@@ -63,10 +65,10 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     () =>
       db.cameras
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray(),
-    [],
+    [userId],
   );
 
   const selectedCamera = useMemo(
@@ -78,7 +80,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     () =>
       db.lenses
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter(
           (l) =>
             (l.deleted_at === null || l.deleted_at === undefined) &&
@@ -87,7 +89,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
               l.camera_id === cameraId),
         )
         .toArray(),
-    [cameraId],
+    [userId, cameraId],
   );
 
   const filmOptions = useLiveQuery(async (): Promise<FilmOption[]> => {
@@ -100,7 +102,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
 
     const customs = await db.films
       .where("user_id")
-      .equals(GUEST_USER_ID)
+      .equals(userId)
       .filter(
         (f) =>
           (f.deleted_at === null || f.deleted_at === undefined) &&
@@ -128,7 +130,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     ];
 
     return options;
-  }, [selectedCamera]);
+  }, [selectedCamera, userId]);
 
   const selectedFilm = useMemo(
     () => filmOptions?.find((f) => f.id === filmId) ?? null,
@@ -154,9 +156,9 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     const now = Date.now();
     const id = ulid();
 
-    await db.rolls.add({
+    await syncAdd("rolls", {
       id,
-      user_id: GUEST_USER_ID,
+      user_id: userId,
       camera_id: cameraId,
       film_id: filmId,
       lens_id: lensId === "__none__" ? null : lensId,

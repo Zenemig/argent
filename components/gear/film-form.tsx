@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db } from "@/lib/db";
+import { syncAdd } from "@/lib/sync-write";
 import { FILM_FORMATS, FILM_PROCESSES } from "@/lib/constants";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { useUserId } from "@/hooks/useUserId";
 import type { FilmFormat, FilmProcess } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ interface FilmFormProps {
 export function FilmForm({ onDone }: FilmFormProps) {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
 
   const [brand, setBrand] = useState("");
   const [name, setName] = useState("");
@@ -40,9 +41,9 @@ export function FilmForm({ onDone }: FilmFormProps) {
 
     const now = Date.now();
 
-    await db.films.add({
+    await syncAdd("films", {
       id: ulid(),
-      user_id: GUEST_USER_ID,
+      user_id: userId,
       brand: brand.trim(),
       name: name.trim(),
       iso,

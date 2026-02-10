@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db } from "@/lib/db";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { FILM_FORMATS, DEFAULT_FRAME_COUNTS } from "@/lib/constants";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { useUserId } from "@/hooks/useUserId";
 import type { Camera, FilmFormat } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ interface CameraFormProps {
 export function CameraForm({ camera, onDone }: CameraFormProps) {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
   const isEdit = !!camera;
 
   const [name, setName] = useState(camera?.name ?? "");
@@ -53,7 +54,7 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
     const now = Date.now();
 
     if (isEdit && camera) {
-      await db.cameras.update(camera.id, {
+      await syncUpdate("cameras", camera.id, {
         name: name.trim(),
         make: make.trim(),
         format,
@@ -63,9 +64,9 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
       });
       toast.success(t("cameraUpdated"));
     } else {
-      await db.cameras.add({
+      await syncAdd("cameras", {
         id: ulid(),
-        user_id: GUEST_USER_ID,
+        user_id: userId,
         name: name.trim(),
         make: make.trim(),
         format,

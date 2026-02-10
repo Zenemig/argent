@@ -51,7 +51,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useUserId } from "@/hooks/useUserId";
 import { FILM_FORMATS, LENS_MOUNTS, CAMERA_TYPES } from "@/lib/constants";
 import { CameraForm } from "./camera-form";
 import type { Camera, CameraStock } from "@/lib/types";
@@ -62,6 +63,7 @@ import { toast } from "sonner";
 export function CameraCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
   const [showAdd, setShowAdd] = useState(false);
   const [editCamera, setEditCamera] = useState<Camera | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -73,10 +75,10 @@ export function CameraCatalog() {
     () =>
       db.cameras
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .sortBy("created_at"),
-    [],
+    [userId],
   );
 
   const cameraStocks = useLiveQuery(() => db.cameraStock.toArray(), []);
@@ -92,7 +94,7 @@ export function CameraCatalog() {
   }, [cameraStocks, formatFilter, mountFilter, typeFilter]);
 
   async function handleDelete(camera: Camera) {
-    await db.cameras.update(camera.id, {
+    await syncUpdate("cameras", camera.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });
@@ -101,9 +103,9 @@ export function CameraCatalog() {
 
   async function handleAddFromCatalog(stock: CameraStock) {
     const now = Date.now();
-    await db.cameras.add({
+    await syncAdd("cameras", {
       id: ulid(),
-      user_id: GUEST_USER_ID,
+      user_id: userId,
       name: `${stock.make} ${stock.name}`,
       make: stock.make,
       format: stock.format,

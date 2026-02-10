@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useUserId } from "@/hooks/useUserId";
 import type { Lens, Camera } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ interface LensFormProps {
 export function LensForm({ lens, cameras, onDone }: LensFormProps) {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
   const isEdit = !!lens;
 
   const [name, setName] = useState(lens?.name ?? "");
@@ -43,7 +44,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
     const now = Date.now();
 
     if (isEdit && lens) {
-      await db.lenses.update(lens.id, {
+      await syncUpdate("lenses", lens.id, {
         name: name.trim(),
         make: make.trim(),
         focal_length: focalLength,
@@ -53,9 +54,9 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
       });
       toast.success(t("lensUpdated"));
     } else {
-      await db.lenses.add({
+      await syncAdd("lenses", {
         id: ulid(),
-        user_id: GUEST_USER_ID,
+        user_id: userId,
         name: name.trim(),
         make: make.trim(),
         focal_length: focalLength,

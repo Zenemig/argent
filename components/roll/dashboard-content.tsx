@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { useUserId } from "@/hooks/useUserId";
 import { ROLL_STATUSES } from "@/lib/constants";
 import { RollCard } from "./roll-card";
 import { LoadRollWizard } from "./load-roll-wizard";
@@ -23,6 +23,7 @@ import type { RollStatus } from "@/lib/types";
 
 export function DashboardContent() {
   const t = useTranslations("roll");
+  const userId = useUserId();
   const [showWizard, setShowWizard] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -30,7 +31,7 @@ export function DashboardContent() {
     () =>
       db.rolls
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((r) => {
           if (r.deleted_at !== null && r.deleted_at !== undefined) return false;
           if (statusFilter !== "all" && r.status !== statusFilter) return false;
@@ -38,7 +39,7 @@ export function DashboardContent() {
         })
         .reverse()
         .sortBy("created_at"),
-    [statusFilter],
+    [userId, statusFilter],
   );
 
   if (!rolls) return null;

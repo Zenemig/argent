@@ -51,7 +51,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useUserId } from "@/hooks/useUserId";
 import { LENS_MOUNTS } from "@/lib/constants";
 import { LensForm } from "./lens-form";
 import type { Lens, Camera, LensStock } from "@/lib/types";
@@ -62,6 +63,7 @@ import { toast } from "sonner";
 export function LensCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
   const [showAdd, setShowAdd] = useState(false);
   const [editLens, setEditLens] = useState<Lens | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -71,20 +73,20 @@ export function LensCatalog() {
     () =>
       db.lenses
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((l) => l.deleted_at === null || l.deleted_at === undefined)
         .sortBy("created_at"),
-    [],
+    [userId],
   );
 
   const cameras = useLiveQuery(
     () =>
       db.cameras
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray(),
-    [],
+    [userId],
   );
 
   const lensStocks = useLiveQuery(() => db.lensStock.toArray(), []);
@@ -98,7 +100,7 @@ export function LensCatalog() {
   }, [lensStocks, mountFilter]);
 
   async function handleDelete(lens: Lens) {
-    await db.lenses.update(lens.id, {
+    await syncUpdate("lenses", lens.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });
@@ -107,9 +109,9 @@ export function LensCatalog() {
 
   async function handleAddFromCatalog(stock: LensStock) {
     const now = Date.now();
-    await db.lenses.add({
+    await syncAdd("lenses", {
       id: ulid(),
-      user_id: GUEST_USER_ID,
+      user_id: userId,
       name: `${stock.make} ${stock.name}`,
       make: stock.make,
       focal_length: stock.focal_length,

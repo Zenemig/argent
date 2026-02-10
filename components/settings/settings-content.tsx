@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { LogOut } from "lucide-react";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { useUserId } from "@/hooks/useUserId";
 import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/app/(app)/settings/actions";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 
 export function SettingsContent() {
   const t = useTranslations("settings");
+  const userId = useUserId();
 
   const [theme, setTheme] = useState("dark");
   const [displayName, setDisplayName] = useState("");
@@ -60,10 +61,10 @@ export function SettingsContent() {
     () =>
       db.cameras
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray(),
-    [],
+    [userId],
   );
 
   const [defaultCamera, setDefaultCamera] = useState("__none__");

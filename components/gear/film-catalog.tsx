@@ -50,7 +50,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
-import { GUEST_USER_ID } from "@/lib/guest";
+import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useUserId } from "@/hooks/useUserId";
 import { FILM_FORMATS, FILM_PROCESSES } from "@/lib/constants";
 import { FilmForm } from "./film-form";
 import type { Film as FilmType, FilmStock, FilmFormat } from "@/lib/types";
@@ -61,6 +62,7 @@ import { toast } from "sonner";
 export function FilmCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
+  const userId = useUserId();
   const [showAdd, setShowAdd] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [formatFilter, setFormatFilter] = useState<string>("all");
@@ -71,10 +73,10 @@ export function FilmCatalog() {
     () =>
       db.films
         .where("user_id")
-        .equals(GUEST_USER_ID)
+        .equals(userId)
         .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
         .sortBy("created_at"),
-    [],
+    [userId],
   );
 
   const filteredStocks = useMemo(() => {
@@ -89,7 +91,7 @@ export function FilmCatalog() {
   }, [filmStocks, formatFilter, processFilter]);
 
   async function handleDeleteCustom(film: FilmType) {
-    await db.films.update(film.id, {
+    await syncUpdate("films", film.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });
@@ -98,9 +100,9 @@ export function FilmCatalog() {
 
   async function handleAddFromCatalog(stock: FilmStock) {
     const now = Date.now();
-    await db.films.add({
+    await syncAdd("films", {
       id: ulid(),
-      user_id: GUEST_USER_ID,
+      user_id: userId,
       brand: stock.brand,
       name: stock.name,
       iso: stock.iso,

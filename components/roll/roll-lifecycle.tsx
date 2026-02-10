@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { db } from "@/lib/db";
+import { syncUpdate } from "@/lib/sync-write";
 import type { Roll, RollStatus } from "@/lib/types";
 import {
   STATUS_ORDER,
@@ -55,13 +55,13 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
     if (nextStatus === "finished") updates.finish_date = now;
     if (nextStatus === "scanned") updates.scan_date = now;
 
-    await db.rolls.update(roll.id, updates);
+    await syncUpdate("rolls", roll.id, updates);
     toast.success(t("statusUpdated"));
   }
 
   async function confirmDeveloped() {
     const now = Date.now();
-    await db.rolls.update(roll.id, {
+    await syncUpdate("rolls", roll.id, {
       status: "developed" as RollStatus,
       develop_date: now,
       lab_name: labName.trim() || null,
@@ -89,7 +89,7 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
     }
     if (roll.status === "scanned") updates.scan_date = null;
 
-    await db.rolls.update(roll.id, updates);
+    await syncUpdate("rolls", roll.id, updates);
     toast.success(t("statusUpdated"));
   }
 
