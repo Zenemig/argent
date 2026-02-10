@@ -12,9 +12,15 @@ import { signIn, signUp, resetPassword } from "@/app/(auth)/actions";
 
 type Mode = "login" | "signup" | "reset";
 
-export function LoginForm() {
+interface LoginFormProps {
+  defaultMode?: Mode;
+  next?: string;
+  interest?: string;
+}
+
+export function LoginForm({ defaultMode = "login", next, interest }: LoginFormProps) {
   const t = useTranslations("auth");
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(defaultMode);
   const [pending, startTransition] = useTransition();
 
   async function handleSubmit(formData: FormData) {
@@ -48,6 +54,8 @@ export function LoginForm() {
       </div>
 
       <form action={handleSubmit} className="space-y-4">
+        {next && <input type="hidden" name="next" value={next} />}
+        {interest && <input type="hidden" name="interest" value={interest} />}
         <div className="space-y-2">
           <Label htmlFor="email">{t("email")}</Label>
           <Input

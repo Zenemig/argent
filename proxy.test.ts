@@ -60,7 +60,7 @@ describe("proxy", () => {
   });
 
   describe("marketing routes go through intl middleware", () => {
-    it.each(["/", "/pricing", "/es", "/es/pricing"])(
+    it.each(["/", "/es"])(
       "%s",
       async (path) => {
         mockIntlResponse();
@@ -89,18 +89,11 @@ describe("proxy", () => {
       await proxy(req);
       expect(mockIntlMiddleware).not.toHaveBeenCalled();
     });
-
-    it("still routes /pricing through intl middleware when authenticated", async () => {
-      mockIntlResponse();
-      const req = new NextRequest("http://localhost:3000/pricing");
-      await proxy(req);
-      expect(mockIntlMiddleware).toHaveBeenCalled();
-    });
   });
 
   it("carries Supabase cookies onto intl response", async () => {
     const intlResponse = mockIntlResponse();
-    const req = new NextRequest("http://localhost:3000/pricing");
+    const req = new NextRequest("http://localhost:3000/");
 
     // Simulate supabase setting a cookie via the createServerClient setAll callback
     const { createServerClient } = await import("@supabase/ssr");

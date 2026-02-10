@@ -75,6 +75,30 @@ describe("signIn", () => {
     await signIn(fd({ email: "a@b.com", password: "123456" }));
     expect(mockRedirect).toHaveBeenCalledWith("/");
   });
+
+  it("redirects to next param when valid", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    await signIn(fd({ email: "a@b.com", password: "123456", next: "/gear" }));
+    expect(mockRedirect).toHaveBeenCalledWith("/gear");
+  });
+
+  it("ignores next param with protocol-relative URL", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    await signIn(fd({ email: "a@b.com", password: "123456", next: "//evil.com" }));
+    expect(mockRedirect).toHaveBeenCalledWith("/");
+  });
+
+  it("ignores next param with absolute URL", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    await signIn(fd({ email: "a@b.com", password: "123456", next: "https://evil.com" }));
+    expect(mockRedirect).toHaveBeenCalledWith("/");
+  });
+
+  it("ignores next param with backslash", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    await signIn(fd({ email: "a@b.com", password: "123456", next: "/\\evil.com" }));
+    expect(mockRedirect).toHaveBeenCalledWith("/");
+  });
 });
 
 // ---------- signUp ----------

@@ -7,7 +7,7 @@ import { routing } from "./i18n/routing";
 const marketingMiddleware = createMiddleware(routing);
 
 // Paths served by the [locale] marketing route group
-const marketingPaths = ["/", "/pricing"];
+const marketingPaths = ["/"];
 
 function isMarketingRequest(pathname: string): boolean {
   if (marketingPaths.includes(pathname)) return true;
@@ -23,6 +23,12 @@ function isMarketingRequest(pathname: string): boolean {
     }
   }
 
+  return false;
+}
+
+/** Auth and public routes that don't require authentication */
+function isPublicRoute(pathname: string): boolean {
+  if (pathname === "/login" || pathname.startsWith("/auth/")) return true;
   return false;
 }
 
@@ -86,9 +92,27 @@ export default async function proxy(request: NextRequest) {
     return intlResponse;
   }
 
-  // App/auth routes: pass through without locale rewriting.
-  // next-intl resolves locale from NEXT_LOCALE cookie or Accept-Language
-  // header via getLocale() in server components.
+  // Public routes (login, auth callback) — no auth required
+  if (isPublicRoute(pathname)) {
+    return supabaseResponse;
+  }
+
+  // App routes — require authentication
+  // Unauthenticated users are redirected to /login with a ?next= param
+  if (!user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("next", pathname);
+
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    // Carry Supabase cookies onto the redirect
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
+  }
+
+  // Authenticated app routes: pass through
   return supabaseResponse;
 }
 

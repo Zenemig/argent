@@ -11,6 +11,7 @@ const passwordSchema = z.string().min(6);
 export async function signIn(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const next = formData.get("next") as string | null;
 
   const emailResult = emailSchema.safeParse(email);
   if (!emailResult.success) {
@@ -31,12 +32,22 @@ export async function signIn(formData: FormData) {
     return { error: "invalidCredentials" };
   }
 
-  redirect("/");
+  // Validate next param: prevent open redirect attacks
+  const destination =
+    next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.includes("://") &&
+    !next.includes("\\")
+      ? next
+      : "/";
+  redirect(destination);
 }
 
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const interest = formData.get("interest") as string | null;
 
   const emailResult = emailSchema.safeParse(email);
   if (!emailResult.success) {
@@ -61,6 +72,14 @@ export async function signUp(formData: FormData) {
 
   if (error) {
     return { error: "signupFailed" };
+  }
+
+  // Record Pro interest in waitlist for future outreach
+  if (interest === "pro") {
+    await supabase.from("waitlist").upsert(
+      { email },
+      { onConflict: "email" },
+    );
   }
 
   return { success: "confirmationSent" };
