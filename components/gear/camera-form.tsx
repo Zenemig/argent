@@ -66,7 +66,7 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
     } else {
       await syncAdd("cameras", {
         id: ulid(),
-        user_id: userId,
+        user_id: userId!,
         name: name.trim(),
         make: make.trim(),
         format,

@@ -45,7 +45,7 @@ describe("CRUD operations", () => {
     const now = Date.now();
     const camera = {
       id: ulid(),
-      user_id: "guest",
+      user_id: "test-user",
       name: "Nikon FM2",
       make: "Nikon",
       format: "35mm" as const,
@@ -121,7 +121,7 @@ describe("CRUD operations", () => {
     const now = Date.now();
     const camera = {
       id: ulid(),
-      user_id: "guest",
+      user_id: "test-user",
       name: "To Delete",
       make: "Test",
       format: "35mm" as const,

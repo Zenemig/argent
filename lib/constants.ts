@@ -75,7 +75,7 @@ export const DEFAULT_FRAME_COUNTS: Record<FilmFormat, number> = {
 };
 
 /** User tiers */
-export const USER_TIERS = ["guest", "free", "pro"] as const;
+export const USER_TIERS = ["free", "pro"] as const;
 export type UserTier = (typeof USER_TIERS)[number];
 
 /** Lens mount types */

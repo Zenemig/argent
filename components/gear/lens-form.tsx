@@ -56,7 +56,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
     } else {
       await syncAdd("lenses", {
         id: ulid(),
-        user_id: userId,
+        user_id: userId!,
         name: name.trim(),
         make: make.trim(),
         focal_length: focalLength,

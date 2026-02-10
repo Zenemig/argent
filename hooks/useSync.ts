@@ -5,7 +5,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { processDownloadSync, processUploadQueue } from "@/lib/sync-engine";
 import { createClient } from "@/lib/supabase/client";
-import { GUEST_USER_ID } from "@/lib/guest";
 
 export type SyncState = "synced" | "syncing" | "offline" | "error" | "local-only";
 
@@ -24,7 +23,7 @@ interface UseSyncResult {
  * Orchestrates upload sync: monitors connectivity, processes the queue
  * on online/foreground events, and exposes reactive sync state.
  */
-export function useSync(userId: string, options?: UseSyncOptions): UseSyncResult {
+export function useSync(userId: string | null, options?: UseSyncOptions): UseSyncResult {
   const enabled = options?.enabled ?? true;
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
@@ -48,8 +47,7 @@ export function useSync(userId: string, options?: UseSyncOptions): UseSyncResult
   const pendingCount = queueStats?.pending ?? 0;
   const failedCount = queueStats?.failed ?? 0;
 
-  const isGuest = userId === GUEST_USER_ID;
-  const shouldSkip = isGuest || !enabled;
+  const shouldSkip = !userId || !enabled;
 
   const runSync = useCallback(async () => {
     if (shouldSkip || syncInProgressRef.current || !navigator.onLine) return;

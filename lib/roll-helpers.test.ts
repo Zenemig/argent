@@ -87,7 +87,7 @@ describe("filterStocksByFormat", () => {
 const makeFilm = (
   overrides: Partial<Film> & { id: string; brand: string; name: string },
 ): Film => ({
-  user_id: "guest",
+  user_id: "test-user",
   iso: 400,
   format: "35mm",
   process: "C-41",

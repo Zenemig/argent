@@ -319,7 +319,6 @@ describe("processImageUpload", () => {
       "frames",
       "01HTEST0000000000000000001",
       { image_url: "user-1/01HTEST0000000000000ROLL01/01HTEST0000000000000000001.jpg" },
-      "user-1",
     );
   });
 

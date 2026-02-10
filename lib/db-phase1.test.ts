@@ -15,7 +15,7 @@ beforeEach(async () => {
 
 describe("Camera queries", () => {
   const now = Date.now();
-  const userId = "guest";
+  const userId = "test-user";
 
   it("creates a camera", async () => {
     const id = ulid();
@@ -72,7 +72,7 @@ describe("Camera queries", () => {
 
 describe("Lens queries", () => {
   const now = Date.now();
-  const userId = "guest";
+  const userId = "test-user";
 
   it("creates a lens linked to a camera", async () => {
     const camId = ulid();
@@ -122,7 +122,7 @@ describe("Lens queries", () => {
 
 describe("Custom film queries", () => {
   const now = Date.now();
-  const userId = "guest";
+  const userId = "test-user";
 
   it("creates a custom film with is_custom=true", async () => {
     const filmId = ulid();
@@ -153,7 +153,7 @@ describe("Custom film queries", () => {
 
 describe("Roll queries", () => {
   const now = Date.now();
-  const userId = "guest";
+  const userId = "test-user";
 
   it("creates a roll with loaded status", async () => {
     const rollId = ulid();

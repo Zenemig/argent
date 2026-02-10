@@ -5,14 +5,10 @@ import { UserTierProvider, useUserTier } from "./useUserTier";
 // Track the mock tier value returned by Supabase
 let mockTier: string | null = "free";
 let mockError: boolean = false;
-let mockUserId = "guest";
+let mockUserId: string | null = null;
 
 vi.mock("@/hooks/useUserId", () => ({
   useUserId: () => mockUserId,
-}));
-
-vi.mock("@/lib/guest", () => ({
-  GUEST_USER_ID: "guest",
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -47,11 +43,11 @@ describe("useUserTier", () => {
   beforeEach(() => {
     mockTier = "free";
     mockError = false;
-    mockUserId = "guest";
+    mockUserId = null;
   });
 
-  it("returns guest tier when user is not authenticated", async () => {
-    mockUserId = "guest";
+  it("returns free tier with unauthenticated when no user", async () => {
+    mockUserId = null;
 
     await act(async () => {
       render(
@@ -61,7 +57,7 @@ describe("useUserTier", () => {
       );
     });
 
-    expect(screen.getByTestId("tier").textContent).toBe("guest");
+    expect(screen.getByTestId("tier").textContent).toBe("free");
     expect(screen.getByTestId("isPro").textContent).toBe("false");
     expect(screen.getByTestId("isAuth").textContent).toBe("false");
   });

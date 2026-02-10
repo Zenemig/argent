@@ -43,7 +43,7 @@ export function FilmForm({ onDone }: FilmFormProps) {
 
     await syncAdd("films", {
       id: ulid(),
-      user_id: userId,
+      user_id: userId!,
       brand: brand.trim(),
       name: name.trim(),
       iso,

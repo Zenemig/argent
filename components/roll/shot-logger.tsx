@@ -207,7 +207,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   async function handleAddImageToFrame(frameId: string) {
     const blob = await captureWithErrorHandling();
     if (!blob) return;
-    await syncUpdate("frames", frameId, { thumbnail: blob }, roll.user_id);
+    await syncUpdate("frames", frameId, { thumbnail: blob });
     toast.success(t("imageAdded"));
   }
 
@@ -251,7 +251,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       captured_at: now,
       updated_at: now,
       created_at: now,
-    }, roll.user_id);
+    });
 
     // Update roll status to active if it's loaded
     if (roll.status === "loaded") {

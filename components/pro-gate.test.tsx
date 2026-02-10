@@ -7,7 +7,7 @@ vi.mock("@/hooks/useUserTier", () => ({
   useUserTier: () => ({
     tier: mockTier,
     isProUser: mockTier === "pro",
-    isAuthenticated: mockTier !== "guest",
+    isAuthenticated: true,
   }),
 }));
 
@@ -44,16 +44,6 @@ describe("ProGate", () => {
     mockTier = "free";
     const { container } = render(
       <ProGate hidePrompt>
-        <span data-testid="child">Pro content</span>
-      </ProGate>,
-    );
-    expect(container.innerHTML).toBe("");
-  });
-
-  it("renders nothing for guest users", () => {
-    mockTier = "guest";
-    const { container } = render(
-      <ProGate>
         <span data-testid="child">Pro content</span>
       </ProGate>,
     );

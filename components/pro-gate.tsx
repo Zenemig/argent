@@ -12,13 +12,11 @@ interface ProGateProps {
 
 /**
  * Renders children for Pro users. Shows UpgradePrompt for Free users.
- * Returns null for Guest users (no upgrade nag for local-only mode).
  */
 export function ProGate({ children, hidePrompt }: ProGateProps) {
   const { tier } = useUserTier();
 
   if (tier === "pro") return <>{children}</>;
-  if (tier === "guest") return null;
 
   // Free user
   if (hidePrompt) return null;
