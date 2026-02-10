@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -13,11 +12,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { LogOut } from "lucide-react";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { GUEST_USER_ID } from "@/lib/guest";
 import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
+import { createClient } from "@/lib/supabase/client";
+import { signOut } from "@/app/(app)/settings/actions";
 import { toast } from "sonner";
 
 export function SettingsContent() {
@@ -27,6 +31,15 @@ export function SettingsContent() {
   const [displayName, setDisplayName] = useState("");
   const [copyright, setCopyright] = useState("");
   const [defaultMetering, setDefaultMetering] = useState("__none__");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Check auth state on mount
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserEmail(user?.email ?? null);
+    });
+  }, []);
 
   // Load settings
   useEffect(() => {
@@ -87,6 +100,26 @@ export function SettingsContent() {
 
   return (
     <div className="space-y-6">
+      {userEmail && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("account")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">{userEmail}</p>
+            <div>
+              <Badge variant="secondary">{t("tierFree")}</Badge>
+            </div>
+            <form action={signOut}>
+              <Button variant="outline" size="sm" type="submit">
+                <LogOut className="mr-2 h-4 w-4" />
+                {t("signOut")}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("language")}</CardTitle>

@@ -234,7 +234,13 @@
     "saved": "Ajustes guardados",
     "english": "English",
     "spanish": "Español",
-    "none": "Ninguno"
+    "none": "Ninguno",
+    "account": "Cuenta",
+    "tier": "Plan",
+    "tierFree": "Gratis",
+    "tierPro": "Pro",
+    "signOut": "Cerrar Sesión",
+    "signedOut": "Has cerrado sesión."
   },
   "export": {
     "title": "Exportar",
@@ -267,7 +273,18 @@
     "email": "Correo Electrónico",
     "password": "Contraseña",
     "forgotPassword": "¿Olvidaste tu Contraseña?",
-    "orContinueWith": "O continuar con",
-    "google": "Google"
+    "createAccount": "Crear Cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "backToLogin": "Volver a Iniciar Sesión",
+    "checkEmail": "Revisa tu correo",
+    "confirmationSent": "Revisa tu correo para un enlace de confirmación.",
+    "resetSent": "Revisa tu correo para un enlace de restablecimiento.",
+    "resetPassword": "Restablecer Contraseña",
+    "invalidCredentials": "Correo o contraseña inválidos.",
+    "invalidEmail": "Por favor ingresa un correo electrónico válido.",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres.",
+    "signupFailed": "No se pudo crear la cuenta. Intenta de nuevo.",
+    "resetFailed": "No se pudo enviar el correo de restablecimiento. Intenta de nuevo."
   }
 }

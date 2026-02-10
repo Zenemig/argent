@@ -234,7 +234,13 @@
     "saved": "Settings saved",
     "english": "English",
     "spanish": "Spanish",
-    "none": "None"
+    "none": "None",
+    "account": "Account",
+    "tier": "Tier",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "signOut": "Sign Out",
+    "signedOut": "You have been signed out."
   },
   "export": {
     "title": "Export",
@@ -267,7 +273,18 @@
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot Password?",
-    "orContinueWith": "Or continue with",
-    "google": "Google"
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "backToLogin": "Back to Log In",
+    "checkEmail": "Check your email",
+    "confirmationSent": "Check your email for a confirmation link.",
+    "resetSent": "Check your email for a password reset link.",
+    "resetPassword": "Reset Password",
+    "invalidCredentials": "Invalid email or password.",
+    "invalidEmail": "Please enter a valid email address.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "signupFailed": "Could not create account. Please try again.",
+    "resetFailed": "Could not send reset email. Please try again."
   }
 }
