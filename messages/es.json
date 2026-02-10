@@ -266,11 +266,12 @@
     "fileListHint": "Pega un nombre de archivo por línea. Debe coincidir con el número de cuadros ({count}).",
     "fileListMismatch": "Se esperaban {expected} nombres pero se recibieron {actual}",
     "preview": "Vista Previa",
-    "download": "Descargar ZIP",
+    "download": "Descargar",
     "generating": "Generando...",
+    "cancel": "Cancelar",
     "noFrames": "No hay cuadros para exportar",
-    "success": "Archivos XMP descargados",
-    "error": "Error al generar archivos XMP"
+    "success": "Exportación descargada exitosamente",
+    "error": "Error al generar la exportación"
   },
   "stats": {
     "title": "Estadísticas",

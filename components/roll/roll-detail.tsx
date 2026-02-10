@@ -17,7 +17,10 @@ import {
 import { db } from "@/lib/db";
 import { ShotLogger } from "./shot-logger";
 import { RollLifecycle } from "./roll-lifecycle";
-import { XMPExportDialog } from "@/components/export/xmp-export-dialog";
+import {
+  ExportDialog,
+  type ExportFormat,
+} from "@/components/export/xmp-export-dialog";
 import { format } from "date-fns";
 
 interface RollDetailProps {
@@ -28,7 +31,7 @@ export function RollDetail({ rollId }: RollDetailProps) {
   const t = useTranslations("roll");
   const tExport = useTranslations("export");
 
-  const [xmpDialogOpen, setXmpDialogOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
 
   const roll = useLiveQuery(() => db.rolls.get(rollId), [rollId]);
   const camera = useLiveQuery(
@@ -84,8 +87,17 @@ export function RollDetail({ rollId }: RollDetailProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setXmpDialogOpen(true)}>
+              <DropdownMenuItem onClick={() => setExportFormat("xmp")}>
                 {tExport("xmp")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setExportFormat("csv")}>
+                {tExport("csv")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setExportFormat("script")}>
+                {tExport("script")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setExportFormat("json")}>
+                {tExport("json")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -98,12 +110,17 @@ export function RollDetail({ rollId }: RollDetailProps) {
 
       <ShotLogger roll={roll} />
 
-      <XMPExportDialog
-        rollId={roll.id}
-        frameCount={roll.frame_count}
-        open={xmpDialogOpen}
-        onOpenChange={setXmpDialogOpen}
-      />
+      {exportFormat && (
+        <ExportDialog
+          rollId={roll.id}
+          frameCount={roll.frame_count}
+          format={exportFormat}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setExportFormat(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -266,11 +266,12 @@
     "fileListHint": "Paste one scan filename per line. Must match the number of frames ({count}).",
     "fileListMismatch": "Expected {expected} filenames but got {actual}",
     "preview": "Preview",
-    "download": "Download ZIP",
+    "download": "Download",
     "generating": "Generating...",
+    "cancel": "Cancel",
     "noFrames": "No frames to export",
-    "success": "XMP files downloaded",
-    "error": "Failed to generate XMP files"
+    "success": "Export downloaded successfully",
+    "error": "Failed to generate export"
   },
   "stats": {
     "title": "Statistics",

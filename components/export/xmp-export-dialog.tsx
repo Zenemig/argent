@@ -19,18 +19,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { db } from "@/lib/db";
 import { getSetting } from "@/lib/settings-helpers";
-import type {
-  XMPExportInput,
-  XMPCameraData,
-  XMPLensData,
-  XMPFilmData,
-  XMPRollData,
-  XMPFrameData,
-} from "@/lib/exporters/xmp";
+import type { ExportInput, ExportOptions } from "@/lib/exporters/types";
 
-interface XMPExportDialogProps {
+export type ExportFormat = "xmp" | "csv" | "script" | "json";
+
+interface ExportDialogProps {
   rollId: string;
   frameCount: number;
+  format: ExportFormat;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -65,12 +61,170 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export function XMPExportDialog({
+const FORMAT_TITLES: Record<ExportFormat, string> = {
+  xmp: "xmp",
+  csv: "csv",
+  script: "script",
+  json: "json",
+};
+
+/** Fetch all data needed for export from Dexie. */
+async function fetchExportData(
+  rollId: string,
+  mode: "pattern" | "list",
+  pattern: string,
+  fileList: string,
+): Promise<{ inputs: ExportInput[]; options: ExportOptions; filmLabel: string }> {
+  const roll = await db.rolls.get(rollId);
+  if (!roll) throw new Error("Roll not found");
+
+  const frames = await db.frames
+    .where("roll_id")
+    .equals(rollId)
+    .sortBy("frame_number");
+
+  if (frames.length === 0) throw new Error("NO_FRAMES");
+
+  const filenames = resolveFilenames(mode, pattern, fileList, frames.length);
+
+  const camera = await db.cameras.get(roll.camera_id);
+  if (!camera) throw new Error("Camera not found");
+
+  const customFilm = await db.films.get(roll.film_id);
+  const seedFilm = customFilm ? null : await db.filmStock.get(roll.film_id);
+  const filmSource = customFilm ?? seedFilm;
+  if (!filmSource) throw new Error("Film not found");
+
+  // Batch-fetch lenses
+  const lensIds = new Set<string>();
+  if (roll.lens_id) lensIds.add(roll.lens_id);
+  for (const f of frames) {
+    if (f.lens_id) lensIds.add(f.lens_id);
+  }
+  const lensRecords = await db.lenses.bulkGet([...lensIds]);
+  const lensMap = new Map(
+    lensRecords
+      .filter((l): l is NonNullable<typeof l> => l != null)
+      .map((l) => [l.id, l]),
+  );
+
+  const displayName = await getSetting("displayName");
+  const copyright = await getSetting("copyright");
+
+  const inputs: ExportInput[] = frames.map((frame, i) => {
+    const lensRecord =
+      lensMap.get(frame.lens_id ?? "") ??
+      lensMap.get(roll.lens_id ?? "") ??
+      null;
+
+    return {
+      frame: {
+        frameNumber: frame.frame_number,
+        shutterSpeed: frame.shutter_speed,
+        aperture: frame.aperture,
+        focalLength: lensRecord?.focal_length ?? null,
+        latitude: frame.latitude,
+        longitude: frame.longitude,
+        locationName: frame.location_name,
+        notes: frame.notes,
+        capturedAt: frame.captured_at,
+      },
+      roll: {
+        id: roll.id,
+        ei: roll.ei,
+        pushPull: roll.push_pull,
+        status: roll.status,
+        frameCount: roll.frame_count,
+        startDate: roll.start_date,
+        finishDate: roll.finish_date,
+        developDate: roll.develop_date,
+        scanDate: roll.scan_date,
+        labName: roll.lab_name,
+        devNotes: roll.dev_notes,
+        notes: roll.notes,
+      },
+      camera: {
+        make: camera.make,
+        name: camera.name,
+        format: camera.format,
+      },
+      lens: lensRecord
+        ? {
+            name: lensRecord.name,
+            make: lensRecord.make,
+            focalLength: lensRecord.focal_length,
+            maxAperture: lensRecord.max_aperture,
+          }
+        : null,
+      film: {
+        brand: filmSource.brand,
+        name: filmSource.name,
+        iso: filmSource.iso,
+      },
+      filename: filenames[i],
+    };
+  });
+
+  return {
+    inputs,
+    options: { creatorName: displayName, copyright },
+    filmLabel: `${filmSource.brand}_${filmSource.name}`.replace(/\s+/g, "_"),
+  };
+}
+
+/** Generate the export file(s) and trigger download based on format. */
+async function generateAndDownload(
+  format: ExportFormat,
+  inputs: ExportInput[],
+  options: ExportOptions,
+  filmLabel: string,
+): Promise<void> {
+  if (format === "xmp") {
+    const [{ generateXMPBatch }, JSZip] = await Promise.all([
+      import("@/lib/exporters/xmp"),
+      import("jszip").then((m) => m.default),
+    ]);
+    const xmpFiles = generateXMPBatch(inputs, options);
+    const zip = new JSZip();
+    for (const [filename, content] of xmpFiles) {
+      zip.file(filename, content);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    triggerDownload(blob, `${filmLabel}_xmp.zip`);
+  } else if (format === "csv") {
+    const { generateCSV } = await import("@/lib/exporters/csv");
+    const csv = generateCSV(inputs, options);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    triggerDownload(blob, `${filmLabel}_exiftool.csv`);
+  } else if (format === "script") {
+    const { generateShellScript, generateBatchScript } = await import(
+      "@/lib/exporters/exiftool-script"
+    );
+    const [JSZip] = await Promise.all([
+      import("jszip").then((m) => m.default),
+    ]);
+    const sh = generateShellScript(inputs, options);
+    const bat = generateBatchScript(inputs, options);
+    const zip = new JSZip();
+    zip.file("export.sh", sh);
+    zip.file("export.bat", bat);
+    const blob = await zip.generateAsync({ type: "blob" });
+    triggerDownload(blob, `${filmLabel}_exiftool.zip`);
+  } else if (format === "json") {
+    const { generateJSON } = await import("@/lib/exporters/json");
+    const json = generateJSON(inputs, options);
+    const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+    triggerDownload(blob, `${filmLabel}_export.json`);
+  }
+}
+
+export function ExportDialog({
   rollId,
   frameCount,
+  format,
   open,
   onOpenChange,
-}: XMPExportDialogProps) {
+}: ExportDialogProps) {
   const t = useTranslations("export");
 
   const [mode, setMode] = useState<"pattern" | "list">("pattern");
@@ -91,10 +245,11 @@ export function XMPExportDialog({
     frameCount,
   ).slice(0, 3);
 
+  const previewExtension = format === "xmp" ? ".xmp" : "";
+
   const handleDownload = useCallback(async () => {
     setIsGenerating(true);
     try {
-      // Validate file list mode
       if (mode === "list" && !fileListValid) {
         toast.error(
           t("fileListMismatch", {
@@ -105,135 +260,30 @@ export function XMPExportDialog({
         return;
       }
 
-      // Query data from Dexie
-      const roll = await db.rolls.get(rollId);
-      if (!roll) throw new Error("Roll not found");
-
-      const frames = await db.frames
-        .where("roll_id")
-        .equals(rollId)
-        .sortBy("frame_number");
-
-      if (frames.length === 0) {
-        toast.error(t("noFrames"));
-        return;
-      }
-
-      const camera = await db.cameras.get(roll.camera_id);
-      if (!camera) throw new Error("Camera not found");
-
-      // Film: check custom first, then seed
-      const customFilm = await db.films.get(roll.film_id);
-      const seedFilm = customFilm ? null : await db.filmStock.get(roll.film_id);
-      const filmSource = customFilm ?? seedFilm;
-      if (!filmSource) throw new Error("Film not found");
-
-      // Batch-fetch lenses
-      const lensIds = new Set<string>();
-      if (roll.lens_id) lensIds.add(roll.lens_id);
-      for (const f of frames) {
-        if (f.lens_id) lensIds.add(f.lens_id);
-      }
-      const lensRecords = await db.lenses.bulkGet([...lensIds]);
-      const lensMap = new Map(
-        lensRecords
-          .filter((l): l is NonNullable<typeof l> => l != null)
-          .map((l) => [l.id, l]),
-      );
-
-      // User settings
-      const displayName = await getSetting("displayName");
-      const copyright = await getSetting("copyright");
-
-      // Resolve filenames
-      const filenames = resolveFilenames(
+      const { inputs, options, filmLabel } = await fetchExportData(
+        rollId,
         mode,
         pattern,
         fileList,
-        frames.length,
       );
 
-      // Build export inputs
-      const cameraData: XMPCameraData = {
-        make: camera.make,
-        name: camera.name,
-      };
-      const rollData: XMPRollData = { ei: roll.ei, pushPull: roll.push_pull };
-      const filmData: XMPFilmData = {
-        brand: filmSource.brand,
-        name: filmSource.name,
-        iso: filmSource.iso,
-      };
-
-      const inputs: XMPExportInput[] = frames.map((frame, i) => {
-        const lensRecord =
-          lensMap.get(frame.lens_id ?? "") ??
-          lensMap.get(roll.lens_id ?? "") ??
-          null;
-
-        const lensData: XMPLensData | null = lensRecord
-          ? {
-              name: lensRecord.name,
-              focalLength: lensRecord.focal_length,
-            }
-          : null;
-
-        const frameData: XMPFrameData = {
-          frameNumber: frame.frame_number,
-          shutterSpeed: frame.shutter_speed,
-          aperture: frame.aperture,
-          focalLength: lensRecord?.focal_length ?? null,
-          latitude: frame.latitude,
-          longitude: frame.longitude,
-          locationName: frame.location_name,
-          notes: frame.notes,
-          capturedAt: frame.captured_at,
-        };
-
-        return {
-          frame: frameData,
-          roll: rollData,
-          camera: cameraData,
-          lens: lensData,
-          film: filmData,
-          filename: filenames[i],
-        };
-      });
-
-      // Dynamic imports for heavy modules
-      const [{ generateXMPBatch }, JSZip] = await Promise.all([
-        import("@/lib/exporters/xmp"),
-        import("jszip").then((m) => m.default),
-      ]);
-
-      const xmpFiles = generateXMPBatch(inputs, {
-        creatorName: displayName,
-        copyright,
-      });
-
-      // Build ZIP
-      const zip = new JSZip();
-      for (const [filename, content] of xmpFiles) {
-        zip.file(filename, content);
-      }
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      const zipName = `${filmSource.brand}_${filmSource.name}_xmp`.replace(
-        /\s+/g,
-        "_",
-      );
-      triggerDownload(blob, `${zipName}.zip`);
+      await generateAndDownload(format, inputs, options, filmLabel);
 
       toast.success(t("success"));
       onOpenChange(false);
     } catch (error) {
-      console.error("XMP export failed:", error);
-      toast.error(t("error"));
+      if (error instanceof Error && error.message === "NO_FRAMES") {
+        toast.error(t("noFrames"));
+      } else {
+        console.error("Export failed:", error);
+        toast.error(t("error"));
+      }
     } finally {
       setIsGenerating(false);
     }
   }, [
     rollId,
+    format,
     mode,
     pattern,
     fileList,
@@ -248,10 +298,8 @@ export function XMPExportDialog({
     <Dialog open={open} onOpenChange={isGenerating ? undefined : onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("xmp")}</DialogTitle>
-          <DialogDescription>
-            {t("patternHint")}
-          </DialogDescription>
+          <DialogTitle>{t(FORMAT_TITLES[format])}</DialogTitle>
+          <DialogDescription>{t("patternHint")}</DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -265,9 +313,9 @@ export function XMPExportDialog({
 
           <TabsContent value="pattern" className="space-y-3 pt-3">
             <div className="space-y-2">
-              <Label htmlFor="xmp-pattern">{t("filenamePattern")}</Label>
+              <Label htmlFor="export-pattern">{t("filenamePattern")}</Label>
               <Input
-                id="xmp-pattern"
+                id="export-pattern"
                 value={pattern}
                 onChange={(e) => setPattern(e.target.value)}
                 placeholder="scan_{frame_number}.tif"
@@ -277,9 +325,9 @@ export function XMPExportDialog({
 
           <TabsContent value="list" className="space-y-3 pt-3">
             <div className="space-y-2">
-              <Label htmlFor="xmp-filelist">{t("fileList")}</Label>
+              <Label htmlFor="export-filelist">{t("fileList")}</Label>
               <Textarea
-                id="xmp-filelist"
+                id="export-filelist"
                 value={fileList}
                 onChange={(e) => setFileList(e.target.value)}
                 placeholder={`scan_001.tif\nscan_002.tif\nscan_003.tif`}
@@ -313,7 +361,9 @@ export function XMPExportDialog({
             <div className="rounded-md bg-muted p-2 font-mono text-xs">
               {previewFilenames.map((name, i) => (
                 <div key={i} className="truncate">
-                  {name.replace(/\.[^.]+$/, ".xmp")}
+                  {previewExtension
+                    ? name.replace(/\.[^.]+$/, previewExtension)
+                    : name}
                 </div>
               ))}
               {frameCount > 3 && (
@@ -331,13 +381,11 @@ export function XMPExportDialog({
             onClick={() => onOpenChange(false)}
             disabled={isGenerating}
           >
-            {t("cancel", { ns: "common" })}
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleDownload}
-            disabled={
-              isGenerating || (mode === "list" && !fileListValid)
-            }
+            disabled={isGenerating || (mode === "list" && !fileListValid)}
           >
             {isGenerating ? (
               <>
@@ -353,3 +401,10 @@ export function XMPExportDialog({
     </Dialog>
   );
 }
+
+/**
+ * @deprecated Use ExportDialog instead. Kept for backwards compatibility.
+ */
+export const XMPExportDialog = (
+  props: Omit<ExportDialogProps, "format">,
+) => <ExportDialog {...props} format="xmp" />;
