@@ -240,7 +240,19 @@
     "tierFree": "Gratis",
     "tierPro": "Pro",
     "signOut": "Cerrar Sesión",
-    "signedOut": "Has cerrado sesión."
+    "signedOut": "Has cerrado sesión.",
+    "subscription": "Suscripción"
+  },
+  "upgrade": {
+    "title": "Mejora a Pro",
+    "description": "Desbloquea sincronización en la nube, acceso multi-dispositivo y respaldo de imágenes.",
+    "featureSync": "Sincronización en la nube entre dispositivos",
+    "featureMultiDevice": "Acceso multi-dispositivo",
+    "featureBackup": "Respaldo de imágenes de referencia en la nube",
+    "cta": "Unirse a la Lista de Espera",
+    "syncTeaser": "Mejora a Pro para activar la sincronización en la nube",
+    "proActive": "Pro",
+    "proManageHint": "Tienes acceso Pro. Gestionado desde tu cuenta."
   },
   "export": {
     "title": "Exportar",

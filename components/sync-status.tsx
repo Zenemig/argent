@@ -3,16 +3,39 @@
 import { useTranslations } from "next-intl";
 import { useSync } from "@/hooks/useSync";
 import { useUserId } from "@/hooks/useUserId";
+import { useUserTier } from "@/hooks/useUserTier";
 import { toast } from "sonner";
 
 export function SyncStatus() {
   const t = useTranslations("sync");
+  const tUpgrade = useTranslations("upgrade");
   const userId = useUserId();
-  const { syncState, failedCount, syncNow } = useSync(userId);
+  const { isProUser, isAuthenticated } = useUserTier();
+  const { syncState, failedCount, syncNow } = useSync(userId, {
+    enabled: isProUser,
+  });
 
   // Guest users see nothing
-  if (syncState === "local-only") return null;
+  if (!isAuthenticated) return null;
 
+  // Free users: show muted "Local only" label
+  if (!isProUser) {
+    return (
+      <button
+        type="button"
+        onClick={() => toast.info(tUpgrade("syncTeaser"))}
+        className="flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        aria-label={t("localOnly")}
+      >
+        <span className="relative flex h-2 w-2">
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-zinc-500" />
+        </span>
+        <span>{t("localOnly")}</span>
+      </button>
+    );
+  }
+
+  // Pro users: existing colored-dot indicator
   function handleClick() {
     if (syncState === "error") {
       toast.error(

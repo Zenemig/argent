@@ -9,6 +9,11 @@ import { GUEST_USER_ID } from "@/lib/guest";
 
 export type SyncState = "synced" | "syncing" | "offline" | "error" | "local-only";
 
+interface UseSyncOptions {
+  /** When false, skip all sync activity and return "local-only". Defaults to true. */
+  enabled?: boolean;
+}
+
 interface UseSyncResult {
   syncState: SyncState;
   failedCount: number;
@@ -19,7 +24,8 @@ interface UseSyncResult {
  * Orchestrates upload sync: monitors connectivity, processes the queue
  * on online/foreground events, and exposes reactive sync state.
  */
-export function useSync(userId: string): UseSyncResult {
+export function useSync(userId: string, options?: UseSyncOptions): UseSyncResult {
+  const enabled = options?.enabled ?? true;
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
@@ -43,9 +49,10 @@ export function useSync(userId: string): UseSyncResult {
   const failedCount = queueStats?.failed ?? 0;
 
   const isGuest = userId === GUEST_USER_ID;
+  const shouldSkip = isGuest || !enabled;
 
   const runSync = useCallback(async () => {
-    if (isGuest || syncInProgressRef.current || !navigator.onLine) return;
+    if (shouldSkip || syncInProgressRef.current || !navigator.onLine) return;
 
     syncInProgressRef.current = true;
     setIsSyncing(true);
@@ -70,7 +77,7 @@ export function useSync(userId: string): UseSyncResult {
       syncInProgressRef.current = false;
       setIsSyncing(false);
     }
-  }, [isGuest, userId]);
+  }, [shouldSkip, userId]);
 
   // Online/offline listeners
   useEffect(() => {
@@ -112,7 +119,7 @@ export function useSync(userId: string): UseSyncResult {
 
   // Derive sync state
   let syncState: SyncState;
-  if (isGuest) {
+  if (shouldSkip) {
     syncState = "local-only";
   } else if (!isOnline) {
     syncState = "offline";

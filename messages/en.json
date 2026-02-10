@@ -240,7 +240,19 @@
     "tierFree": "Free",
     "tierPro": "Pro",
     "signOut": "Sign Out",
-    "signedOut": "You have been signed out."
+    "signedOut": "You have been signed out.",
+    "subscription": "Subscription"
+  },
+  "upgrade": {
+    "title": "Upgrade to Pro",
+    "description": "Unlock cloud sync, multi-device access, and image backup.",
+    "featureSync": "Cloud sync across devices",
+    "featureMultiDevice": "Multi-device access",
+    "featureBackup": "Reference image cloud backup",
+    "cta": "Join Waitlist",
+    "syncTeaser": "Upgrade to Pro to enable cloud sync",
+    "proActive": "Pro",
+    "proManageHint": "You have Pro access. Managed via your account."
   },
   "export": {
     "title": "Export",

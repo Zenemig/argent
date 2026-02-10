@@ -19,14 +19,18 @@ import { LogOut } from "lucide-react";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
+import { useUserTier } from "@/hooks/useUserTier";
 import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/app/(app)/settings/actions";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { toast } from "sonner";
 
 export function SettingsContent() {
   const t = useTranslations("settings");
+  const tUpgrade = useTranslations("upgrade");
   const userId = useUserId();
+  const { tier, isProUser, isAuthenticated } = useUserTier();
 
   const [theme, setTheme] = useState("dark");
   const [displayName, setDisplayName] = useState("");
@@ -102,23 +106,42 @@ export function SettingsContent() {
   return (
     <div className="space-y-6">
       {userEmail && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("account")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">{userEmail}</p>
-            <div>
-              <Badge variant="secondary">{t("tierFree")}</Badge>
-            </div>
-            <form action={signOut}>
-              <Button variant="outline" size="sm" type="submit">
-                <LogOut className="mr-2 h-4 w-4" />
-                {t("signOut")}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("account")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">{userEmail}</p>
+              <div>
+                <Badge variant={isProUser ? "default" : "secondary"}>
+                  {isProUser ? t("tierPro") : t("tierFree")}
+                </Badge>
+              </div>
+              <form action={signOut}>
+                <Button variant="outline" size="sm" type="submit">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t("signOut")}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t("subscription")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isProUser ? (
+                <p className="text-sm text-muted-foreground">
+                  {tUpgrade("proManageHint")}
+                </p>
+              ) : (
+                <UpgradePrompt />
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <Card>

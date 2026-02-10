@@ -88,6 +88,11 @@ Three tiers with feature gating via `useUserTier()` hook and `<ProGate>` wrapper
 | Free | Email/Google | Local only | Account for future sync |
 | Pro | Invitation (MVP) | Cloud sync + image backup | Manual via Supabase dashboard |
 
+**Admin: Grant Pro access** (via Supabase SQL editor or dashboard):
+```sql
+UPDATE user_profiles SET tier = 'pro' WHERE id = '<user-uuid>';
+```
+
 ## Domain Terms
 
 - **Roll** -- A roll of film loaded into a camera (lifecycle: loaded -> active -> finished -> developed -> scanned -> archived)

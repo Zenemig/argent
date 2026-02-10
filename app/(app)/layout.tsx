@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { DbProvider } from "@/components/db-provider";
+import { UserTierProvider } from "@/hooks/useUserTier";
 import { BottomNav } from "@/components/bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/logo";
@@ -17,15 +18,17 @@ export default async function AppLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DbProvider>
-        <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Logo className="h-5 text-muted-foreground" />
-            <SyncStatus />
+        <UserTierProvider>
+          <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Logo className="h-5 text-muted-foreground" />
+              <SyncStatus />
+            </div>
+            {children}
           </div>
-          {children}
-        </div>
-        <BottomNav />
-        <Toaster />
+          <BottomNav />
+          <Toaster />
+        </UserTierProvider>
       </DbProvider>
     </NextIntlClientProvider>
   );
