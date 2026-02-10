@@ -8,6 +8,8 @@ import {
   SYNC_STATUSES,
   SYNCABLE_TABLES,
   USER_TIERS,
+  LENS_MOUNTS,
+  CAMERA_TYPES,
 } from "./constants";
 
 // ---------------------------------------------------------------------------
@@ -145,6 +147,37 @@ export const filmStockSchema = z.object({
 });
 
 export type FilmStock = z.infer<typeof filmStockSchema>;
+
+// ---------------------------------------------------------------------------
+// Camera Stock (seed data, read-only catalog)
+// ---------------------------------------------------------------------------
+
+export const cameraStockSchema = z.object({
+  id: z.string().min(1),
+  make: z.string().min(1),
+  name: z.string().min(1),
+  mount: z.enum(LENS_MOUNTS),
+  format: z.enum(FILM_FORMATS),
+  default_frame_count: z.number().int().positive(),
+  type: z.enum(CAMERA_TYPES),
+});
+
+export type CameraStock = z.infer<typeof cameraStockSchema>;
+
+// ---------------------------------------------------------------------------
+// Lens Stock (seed data, read-only catalog)
+// ---------------------------------------------------------------------------
+
+export const lensStockSchema = z.object({
+  id: z.string().min(1),
+  make: z.string().min(1),
+  name: z.string().min(1),
+  mount: z.enum(LENS_MOUNTS),
+  focal_length: z.number().positive(),
+  max_aperture: z.number().positive(),
+});
+
+export type LensStock = z.infer<typeof lensStockSchema>;
 
 // ---------------------------------------------------------------------------
 // Sync Queue

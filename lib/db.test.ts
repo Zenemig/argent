@@ -26,10 +26,12 @@ describe("ArgentDb", () => {
       [
         "_syncMeta",
         "_syncQueue",
+        "cameraStock",
         "cameras",
         "films",
         "filmStock",
         "frames",
+        "lensStock",
         "lenses",
         "rolls",
       ].sort(),

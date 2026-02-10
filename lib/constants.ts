@@ -78,6 +78,44 @@ export const DEFAULT_FRAME_COUNTS: Record<FilmFormat, number> = {
 export const USER_TIERS = ["guest", "free", "pro"] as const;
 export type UserTier = (typeof USER_TIERS)[number];
 
+/** Lens mount types */
+export const LENS_MOUNTS = [
+  "Nikon F",
+  "Canon FD",
+  "Canon EF",
+  "Pentax K",
+  "M42",
+  "Olympus OM",
+  "Minolta MD/MC",
+  "Leica M",
+  "Leica R",
+  "Contax/Yashica",
+  "Contax G",
+  "Hasselblad V",
+  "Mamiya RB/RZ67",
+  "Mamiya 645",
+  "Mamiya 7",
+  "Pentax 67",
+  "Pentax 645",
+  "Voigtlander VM",
+  "Fuji GX",
+  "fixed",
+  "other",
+] as const;
+export type LensMount = (typeof LENS_MOUNTS)[number];
+
+/** Camera body types */
+export const CAMERA_TYPES = [
+  "slr",
+  "rangefinder",
+  "tlr",
+  "point-and-shoot",
+  "view",
+  "medium-format-slr",
+  "other",
+] as const;
+export type CameraType = (typeof CAMERA_TYPES)[number];
+
 /** Sync queue operation types */
 export const SYNC_OPERATIONS = ["create", "update", "delete"] as const;
 export type SyncOperation = (typeof SYNC_OPERATIONS)[number];

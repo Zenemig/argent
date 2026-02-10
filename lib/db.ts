@@ -6,6 +6,8 @@ import type {
   Roll,
   Frame,
   FilmStock,
+  CameraStock,
+  LensStock,
   SyncQueueItem,
   SyncMeta,
 } from "./types";
@@ -17,6 +19,8 @@ export class ArgentDb extends Dexie {
   rolls!: EntityTable<Roll, "id">;
   frames!: EntityTable<Frame, "id">;
   filmStock!: EntityTable<FilmStock, "id">;
+  cameraStock!: EntityTable<CameraStock, "id">;
+  lensStock!: EntityTable<LensStock, "id">;
   _syncQueue!: EntityTable<SyncQueueItem, "id">;
   _syncMeta!: EntityTable<SyncMeta, "key">;
 
@@ -39,6 +43,11 @@ export class ArgentDb extends Dexie {
       _syncQueue:
         "++id, table, entity_id, operation, status, retry_count, last_attempt",
       _syncMeta: "&key",
+    });
+
+    this.version(2).stores({
+      cameraStock: "&id, make, name, mount, format, type",
+      lensStock: "&id, make, name, mount, focal_length, max_aperture",
     });
   }
 }

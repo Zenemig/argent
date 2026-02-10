@@ -3,8 +3,9 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useTranslations } from "next-intl";
 import {
-  Film,
+  Camera as CameraIcon,
   Plus,
+  Pencil,
   Trash2,
   ChevronsUpDown,
   Search,
@@ -51,150 +52,155 @@ import {
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
 import { GUEST_USER_ID } from "@/lib/guest";
-import { FILM_FORMATS, FILM_PROCESSES } from "@/lib/constants";
-import { FilmForm } from "./film-form";
-import type { Film as FilmType, FilmStock, FilmFormat } from "@/lib/types";
+import { FILM_FORMATS, LENS_MOUNTS, CAMERA_TYPES } from "@/lib/constants";
+import { CameraForm } from "./camera-form";
+import type { Camera, CameraStock } from "@/lib/types";
 import { useState, useMemo } from "react";
 import { ulid } from "ulid";
 import { toast } from "sonner";
 
-export function FilmCatalog() {
+export function CameraCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const [showAdd, setShowAdd] = useState(false);
+  const [editCamera, setEditCamera] = useState<Camera | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [formatFilter, setFormatFilter] = useState<string>("all");
-  const [processFilter, setProcessFilter] = useState<string>("all");
+  const [mountFilter, setMountFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const filmStocks = useLiveQuery(() => db.filmStock.toArray(), []);
-  const customFilms = useLiveQuery(
+  const cameras = useLiveQuery(
     () =>
-      db.films
+      db.cameras
         .where("user_id")
         .equals(GUEST_USER_ID)
-        .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
+        .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .sortBy("created_at"),
     [],
   );
 
+  const cameraStocks = useLiveQuery(() => db.cameraStock.toArray(), []);
+
   const filteredStocks = useMemo(() => {
-    if (!filmStocks) return [];
-    return filmStocks.filter((stock) => {
-      if (formatFilter !== "all" && !stock.format.includes(formatFilter as FilmFormat))
-        return false;
-      if (processFilter !== "all" && stock.process !== processFilter)
-        return false;
+    if (!cameraStocks) return [];
+    return cameraStocks.filter((stock) => {
+      if (formatFilter !== "all" && stock.format !== formatFilter) return false;
+      if (mountFilter !== "all" && stock.mount !== mountFilter) return false;
+      if (typeFilter !== "all" && stock.type !== typeFilter) return false;
       return true;
     });
-  }, [filmStocks, formatFilter, processFilter]);
+  }, [cameraStocks, formatFilter, mountFilter, typeFilter]);
 
-  async function handleDeleteCustom(film: FilmType) {
-    await db.films.update(film.id, {
+  async function handleDelete(camera: Camera) {
+    await db.cameras.update(camera.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });
-    toast.success(t("filmDeleted"));
+    toast.success(t("cameraDeleted"));
   }
 
-  async function handleAddFromCatalog(stock: FilmStock) {
+  async function handleAddFromCatalog(stock: CameraStock) {
     const now = Date.now();
-    await db.films.add({
+    await db.cameras.add({
       id: ulid(),
       user_id: GUEST_USER_ID,
-      brand: stock.brand,
-      name: stock.name,
-      iso: stock.iso,
-      format: stock.format[0],
-      process: stock.process,
-      is_custom: false,
+      name: `${stock.make} ${stock.name}`,
+      make: stock.make,
+      format: stock.format,
+      default_frame_count: stock.default_frame_count,
+      notes: null,
       deleted_at: null,
       updated_at: now,
       created_at: now,
     });
-    toast.success(t("filmAdded"));
+    toast.success(t("cameraAdded"));
     setCatalogOpen(false);
   }
 
-  if (!filmStocks || !customFilms) return null;
+  if (!cameras || !cameraStocks) return null;
 
   return (
     <div className="space-y-4">
-      {/* User's films */}
+      {/* User's cameras */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("yourFilms")}</h2>
+        <h2 className="text-lg font-semibold">{t("yourCameras")}</h2>
         <Button size="sm" variant="outline" onClick={() => setShowAdd(true)}>
           <Plus className="mr-1 h-4 w-4" />
-          {t("addCustomFilm")}
+          {t("addCustomCamera")}
         </Button>
       </div>
 
-      {customFilms.length === 0 ? (
+      {cameras.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
-            <Film className="h-10 w-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{t("emptyFilm")}</p>
+            <CameraIcon className="h-10 w-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{t("emptyCamera")}</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
-          {customFilms.map((film) => (
-            <Card key={film.id}>
+          {cameras.map((camera) => (
+            <Card key={camera.id}>
               <CardContent className="flex items-center gap-3 py-3">
-                <Film className="h-5 w-5 shrink-0 text-muted-foreground" />
+                <CameraIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {film.brand} {film.name}
-                  </p>
+                  <p className="truncate font-medium">{camera.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    ISO {film.iso} &middot; {film.format} &middot;{" "}
-                    {film.process}
+                    {camera.make}
                   </p>
                 </div>
-                {film.is_custom && (
-                  <Badge variant="secondary" className="shrink-0">
-                    {t("custom")}
-                  </Badge>
-                )}
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive"
-                      aria-label={tc("delete")}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{tc("confirm")}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("deleteConfirm", {
-                          name: `${film.brand} ${film.name}`,
-                        })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteCustom(film)}
+                <Badge variant="secondary" className="shrink-0">
+                  {camera.format}
+                </Badge>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setEditCamera(camera)}
+                    aria-label={tc("edit")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        aria-label={tc("delete")}
                       >
-                        {tc("delete")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{tc("confirm")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t("deleteConfirm", { name: camera.name })}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(camera)}
+                        >
+                          {tc("delete")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Film catalog — filters then searchable dropdown */}
+      {/* Camera catalog — filters then searchable dropdown */}
       <div className="space-y-2">
         <h3 className="text-sm font-medium text-muted-foreground">
-          {t("filmCatalog")}
+          {t("cameraCatalog")}
         </h3>
 
         <div className="flex gap-2">
@@ -212,15 +218,29 @@ export function FilmCatalog() {
             </SelectContent>
           </Select>
 
-          <Select value={processFilter} onValueChange={setProcessFilter}>
+          <Select value={mountFilter} onValueChange={setMountFilter}>
             <SelectTrigger className="flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("allProcesses")}</SelectItem>
-              {FILM_PROCESSES.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+              <SelectItem value="all">{t("allMounts")}</SelectItem>
+              {LENS_MOUNTS.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("allTypes")}</SelectItem>
+              {CAMERA_TYPES.map((ct) => (
+                <SelectItem key={ct} value={ct}>
+                  {ct}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -254,17 +274,17 @@ export function FilmCatalog() {
                   {filteredStocks.map((stock) => (
                     <CommandItem
                       key={stock.id}
-                      value={`${stock.brand} ${stock.name}`}
+                      value={`${stock.make} ${stock.name}`}
                       onSelect={() => handleAddFromCatalog(stock)}
                     >
                       <div className="flex w-full items-center justify-between gap-2">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">
-                            {stock.brand} {stock.name}
+                            {stock.make} {stock.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            ISO {stock.iso} &middot; {stock.format.join(", ")}{" "}
-                            &middot; {stock.process}
+                            {stock.format} &middot; {stock.mount} &middot;{" "}
+                            {stock.type}
                           </p>
                         </div>
                         <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -278,13 +298,28 @@ export function FilmCatalog() {
         </Popover>
       </div>
 
-      {/* Add custom film dialog */}
+      {/* Add custom camera dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("addCustomFilm")}</DialogTitle>
+            <DialogTitle>{t("addCustomCamera")}</DialogTitle>
           </DialogHeader>
-          <FilmForm onDone={() => setShowAdd(false)} />
+          <CameraForm onDone={() => setShowAdd(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit camera dialog */}
+      <Dialog open={!!editCamera} onOpenChange={() => setEditCamera(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tc("edit")}</DialogTitle>
+          </DialogHeader>
+          {editCamera && (
+            <CameraForm
+              camera={editCamera}
+              onDone={() => setEditCamera(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

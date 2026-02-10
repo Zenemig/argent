@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CameraList } from "./camera-list";
-import { LensList } from "./lens-list";
+import { CameraCatalog } from "./camera-catalog";
+import { LensCatalog } from "./lens-catalog";
 import { FilmCatalog } from "./film-catalog";
 
 export function GearTabs() {
@@ -23,10 +23,10 @@ export function GearTabs() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="cameras">
-        <CameraList />
+        <CameraCatalog />
       </TabsContent>
       <TabsContent value="lenses">
-        <LensList />
+        <LensCatalog />
       </TabsContent>
       <TabsContent value="films">
         <FilmCatalog />

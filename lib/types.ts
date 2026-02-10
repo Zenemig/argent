@@ -10,6 +10,8 @@ export type {
   Roll,
   Frame,
   FilmStock,
+  CameraStock,
+  LensStock,
   SyncQueueItem,
   SyncMeta,
   UserProfile,
@@ -26,6 +28,8 @@ export type {
   SyncOperation,
   SyncStatus,
   SyncableTable,
+  LensMount,
+  CameraType,
 } from "./constants";
 
 /** Create-input type: omits server-managed fields */

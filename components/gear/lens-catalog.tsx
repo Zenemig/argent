@@ -2,10 +2,37 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { useTranslations } from "next-intl";
-import { Focus, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  Focus,
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronsUpDown,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,16 +52,20 @@ import {
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
 import { GUEST_USER_ID } from "@/lib/guest";
+import { LENS_MOUNTS } from "@/lib/constants";
 import { LensForm } from "./lens-form";
-import type { Lens, Camera } from "@/lib/types";
-import { useState } from "react";
+import type { Lens, Camera, LensStock } from "@/lib/types";
+import { useState, useMemo } from "react";
+import { ulid } from "ulid";
 import { toast } from "sonner";
 
-export function LensList() {
+export function LensCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const [showAdd, setShowAdd] = useState(false);
   const [editLens, setEditLens] = useState<Lens | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [mountFilter, setMountFilter] = useState<string>("all");
 
   const lenses = useLiveQuery(
     () =>
@@ -56,6 +87,16 @@ export function LensList() {
     [],
   );
 
+  const lensStocks = useLiveQuery(() => db.lensStock.toArray(), []);
+
+  const filteredStocks = useMemo(() => {
+    if (!lensStocks) return [];
+    return lensStocks.filter((stock) => {
+      if (mountFilter !== "all" && stock.mount !== mountFilter) return false;
+      return true;
+    });
+  }, [lensStocks, mountFilter]);
+
   async function handleDelete(lens: Lens) {
     await db.lenses.update(lens.id, {
       deleted_at: Date.now(),
@@ -64,21 +105,40 @@ export function LensList() {
     toast.success(t("lensDeleted"));
   }
 
+  async function handleAddFromCatalog(stock: LensStock) {
+    const now = Date.now();
+    await db.lenses.add({
+      id: ulid(),
+      user_id: GUEST_USER_ID,
+      name: `${stock.make} ${stock.name}`,
+      make: stock.make,
+      focal_length: stock.focal_length,
+      max_aperture: stock.max_aperture,
+      camera_id: null,
+      deleted_at: null,
+      updated_at: now,
+      created_at: now,
+    });
+    toast.success(t("lensAdded"));
+    setCatalogOpen(false);
+  }
+
   function getCameraName(cameraId: string | null | undefined): string {
     if (!cameraId || !cameras) return t("universal");
     const cam = cameras.find((c: Camera) => c.id === cameraId);
     return cam ? cam.name : t("universal");
   }
 
-  if (!lenses || !cameras) return null;
+  if (!lenses || !cameras || !lensStocks) return null;
 
   return (
     <div className="space-y-4">
+      {/* User's lenses */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("lenses")}</h2>
-        <Button size="sm" onClick={() => setShowAdd(true)}>
+        <h2 className="text-lg font-semibold">{t("yourLenses")}</h2>
+        <Button size="sm" variant="outline" onClick={() => setShowAdd(true)}>
           <Plus className="mr-1 h-4 w-4" />
-          {t("addLens")}
+          {t("addCustomLens")}
         </Button>
       </div>
 
@@ -87,10 +147,6 @@ export function LensList() {
           <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
             <Focus className="h-10 w-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">{t("emptyLens")}</p>
-            <Button size="sm" onClick={() => setShowAdd(true)}>
-              <Plus className="mr-1 h-4 w-4" />
-              {t("addLens")}
-            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -152,15 +208,90 @@ export function LensList() {
         </div>
       )}
 
+      {/* Lens catalog — filter then searchable dropdown */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-muted-foreground">
+          {t("lensCatalog")}
+        </h3>
+
+        <div className="flex gap-2">
+          <Select value={mountFilter} onValueChange={setMountFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("allMounts")}</SelectItem>
+              {LENS_MOUNTS.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Popover open={catalogOpen} onOpenChange={setCatalogOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={catalogOpen}
+              className="w-full justify-between"
+            >
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <Search className="h-4 w-4" />
+                {t("addFromCatalog")}
+              </span>
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+            <Command filter={(value, search) => {
+              if (!search) return 1;
+              return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+            }}>
+              <CommandInput placeholder={tc("search")} />
+              <CommandList>
+                <CommandEmpty>{tc("noResults")}</CommandEmpty>
+                <CommandGroup>
+                  {filteredStocks.map((stock) => (
+                    <CommandItem
+                      key={stock.id}
+                      value={`${stock.make} ${stock.name}`}
+                      onSelect={() => handleAddFromCatalog(stock)}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {stock.make} {stock.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {stock.focal_length}mm f/{stock.max_aperture}{" "}
+                            &middot; {stock.mount}
+                          </p>
+                        </div>
+                        <Plus className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Add custom lens dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("addLens")}</DialogTitle>
+            <DialogTitle>{t("addCustomLens")}</DialogTitle>
           </DialogHeader>
           <LensForm cameras={cameras} onDone={() => setShowAdd(false)} />
         </DialogContent>
       </Dialog>
 
+      {/* Edit lens dialog */}
       <Dialog open={!!editLens} onOpenChange={() => setEditLens(null)}>
         <DialogContent>
           <DialogHeader>
