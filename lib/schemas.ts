@@ -125,7 +125,7 @@ export const frameSchema = z.object({
   location_name: z.string().max(200).nullable().optional(),
   notes: z.string().max(500).nullable().optional(),
   thumbnail: z.any().nullable().optional(),
-  image_url: z.string().url().nullable().optional(),
+  image_url: z.string().nullable().optional(),
   captured_at: timestamp,
   updated_at: timestamp,
   created_at: timestamp,

@@ -55,11 +55,22 @@ export function useSync(userId: string): UseSyncResult {
       // Download first: resolve server-wins conflicts before uploading
       await processDownloadSync(supabase);
       await processUploadQueue(supabase);
+
+      // Image sync (dynamic import to keep out of initial bundle)
+      try {
+        const { processImageUpload, processImageDownload } = await import(
+          "@/lib/image-sync"
+        );
+        await processImageUpload(supabase, userId);
+        await processImageDownload(supabase);
+      } catch {
+        // Image sync failure should not break data sync state
+      }
     } finally {
       syncInProgressRef.current = false;
       setIsSyncing(false);
     }
-  }, [isGuest]);
+  }, [isGuest, userId]);
 
   // Online/offline listeners
   useEffect(() => {
