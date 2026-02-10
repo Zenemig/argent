@@ -6,6 +6,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Plus, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
 import { useUserId } from "@/hooks/useUserId";
 import { filterAndSortRolls, buildFilmMap } from "@/lib/filter-rolls";
@@ -26,33 +27,41 @@ export function DashboardContent() {
   const [sortBy, setSortBy] = useState("date");
 
   // Data queries
+  // Return undefined (as never for TS) when userId is still loading so
+  // useLiveQuery never produces a stale [] from querying with equals("").
   const rolls = useLiveQuery(
-    () =>
-      db.rolls
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.rolls
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((r) => r.deleted_at === null || r.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
   const cameras = useLiveQuery(
-    () =>
-      db.cameras
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.cameras
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
   const customFilms = useLiveQuery(
-    () =>
-      db.films
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.films
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
@@ -88,7 +97,33 @@ export function DashboardContent() {
     });
   }, [rolls, cameras, filmMap, searchQuery, statusFilter, cameraFilter, filmFilter, sortBy]);
 
-  if (!rolls) return null;
+  if (!rolls || userId === undefined) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-8 w-28" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="space-y-3 py-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-2 w-full rounded-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const hasRolls = rolls.length > 0;
   const hasResults = filteredRolls.length > 0;

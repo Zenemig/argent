@@ -62,12 +62,14 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   const [notes, setNotes] = useState("");
 
   const cameras = useLiveQuery(
-    () =>
-      db.cameras
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.cameras
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
@@ -77,10 +79,11 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   );
 
   const lenses = useLiveQuery(
-    () =>
-      db.lenses
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.lenses
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter(
           (l) =>
             (l.deleted_at === null || l.deleted_at === undefined) &&
@@ -88,12 +91,13 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
               l.camera_id === undefined ||
               l.camera_id === cameraId),
         )
-        .toArray(),
+        .toArray();
+    },
     [userId, cameraId],
   );
 
   const filmOptions = useLiveQuery(async (): Promise<FilmOption[]> => {
-    if (!selectedCamera) return [];
+    if (!selectedCamera || userId === undefined) return [];
     const format = selectedCamera.format;
 
     const stocks = await db.filmStock
@@ -102,7 +106,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
 
     const customs = await db.films
       .where("user_id")
-      .equals(userId)
+      .equals(userId!)
       .filter(
         (f) =>
           (f.deleted_at === null || f.deleted_at === undefined) &&
@@ -158,7 +162,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
 
     await syncAdd("rolls", {
       id,
-      user_id: userId,
+      user_id: userId!,
       camera_id: cameraId,
       film_id: filmId,
       lens_id: lensId === "__none__" ? null : lensId,

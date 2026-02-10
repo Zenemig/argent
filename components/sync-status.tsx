@@ -11,11 +11,11 @@ export function SyncStatus() {
   const tUpgrade = useTranslations("upgrade");
   const userId = useUserId();
   const { isProUser, isAuthenticated } = useUserTier();
-  const { syncState, failedCount, syncNow } = useSync(userId, {
+  const { syncState, failedCount, syncNow } = useSync(userId ?? null, {
     enabled: isProUser,
   });
 
-  // Guest users see nothing
+  // Unauthenticated users see nothing (shouldn't happen behind route protection)
   if (!isAuthenticated) return null;
 
   // Free users: show muted "Local only" label

@@ -13,16 +13,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { LogOut } from "lucide-react";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
 import { useUserTier } from "@/hooks/useUserTier";
 import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
 import { createClient } from "@/lib/supabase/client";
-import { signOut } from "@/app/(app)/settings/actions";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { toast } from "sonner";
 
@@ -62,12 +59,14 @@ export function SettingsContent() {
   }, []);
 
   const cameras = useLiveQuery(
-    () =>
-      db.cameras
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.cameras
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
@@ -118,12 +117,6 @@ export function SettingsContent() {
                   {isProUser ? t("tierPro") : t("tierFree")}
                 </Badge>
               </div>
-              <form action={signOut}>
-                <Button variant="outline" size="sm" type="submit">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t("signOut")}
-                </Button>
-              </form>
             </CardContent>
           </Card>
 

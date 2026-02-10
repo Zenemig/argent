@@ -2,31 +2,37 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { GUEST_USER_ID } from "@/lib/guest";
 
 /**
- * Returns the current Supabase user UUID, or GUEST_USER_ID if unauthenticated.
+ * Returns the current Supabase user UUID, or null if unauthenticated.
  * Subscribes to auth state changes so the value updates on sign-in/sign-out.
  */
-export function useUserId(): string {
-  const [userId, setUserId] = useState<string>(GUEST_USER_ID);
+export function useUserId(): string | null | undefined {
+  const [userId, setUserId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
 
     // Read initial auth state
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserId(user?.id ?? GUEST_USER_ID);
-    });
+    supabase.auth
+      .getUser()
+      .then(({ data: { user } }) => {
+        if (!cancelled) setUserId(user?.id ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUserId(null);
+      });
 
     // Subscribe to auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? GUEST_USER_ID);
+      if (!cancelled) setUserId(session?.user?.id ?? null);
     });
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
     };
   }, []);

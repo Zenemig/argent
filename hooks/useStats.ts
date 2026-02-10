@@ -16,12 +16,14 @@ export function useStats() {
   const userId = useUserId();
 
   const rolls = useLiveQuery(
-    () =>
-      db.rolls
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.rolls
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((r) => r.deleted_at === null || r.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
@@ -32,39 +34,45 @@ export function useStats() {
   }, [rolls]);
 
   const cameras = useLiveQuery(
-    () =>
-      db.cameras
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.cameras
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
   const lenses = useLiveQuery(
-    () =>
-      db.lenses
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.lenses
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((l) => l.deleted_at === null || l.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
   const customFilms = useLiveQuery(
-    () =>
-      db.films
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.films
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
-        .toArray(),
+        .toArray();
+    },
     [userId],
   );
 
   const seedFilms = useLiveQuery(() => db.filmStock.toArray(), []);
 
   const isLoading =
-    !rolls || !frames || !cameras || !lenses || !customFilms || !seedFilms;
+    userId === undefined || !rolls || !frames || !cameras || !lenses || !customFilms || !seedFilms;
 
   const filmUsage = useMemo(() => {
     if (isLoading) return undefined;

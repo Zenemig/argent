@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -72,12 +73,14 @@ export function CameraCatalog() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const cameras = useLiveQuery(
-    () =>
-      db.cameras
+    () => {
+      if (userId === undefined) return undefined as never;
+      return db.cameras
         .where("user_id")
-        .equals(userId)
+        .equals(userId!)
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
-        .sortBy("created_at"),
+        .sortBy("created_at");
+    },
     [userId],
   );
 
@@ -105,7 +108,7 @@ export function CameraCatalog() {
     const now = Date.now();
     await syncAdd("cameras", {
       id: ulid(),
-      user_id: userId,
+      user_id: userId!,
       name: `${stock.make} ${stock.name}`,
       make: stock.make,
       format: stock.format,
@@ -119,7 +122,30 @@ export function CameraCatalog() {
     setCatalogOpen(false);
   }
 
-  if (!cameras || !cameraStocks) return null;
+  if (!cameras || !cameraStocks || userId === undefined) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="h-8 w-40" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-center gap-3 py-3">
+                <Skeleton className="h-5 w-5 shrink-0 rounded" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-5 w-12 rounded-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
