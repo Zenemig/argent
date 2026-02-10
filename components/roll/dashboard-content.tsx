@@ -1,50 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Plus, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { db } from "@/lib/db";
 import { useUserId } from "@/hooks/useUserId";
-import { ROLL_STATUSES } from "@/lib/constants";
+import { filterAndSortRolls, buildFilmMap } from "@/lib/filter-rolls";
 import { RollCard } from "./roll-card";
+import { DashboardFilters } from "./dashboard-filters";
 import { LoadRollWizard } from "./load-roll-wizard";
-import type { RollStatus } from "@/lib/types";
 
 export function DashboardContent() {
   const t = useTranslations("roll");
   const userId = useUserId();
   const [showWizard, setShowWizard] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cameraFilter, setCameraFilter] = useState("all");
+  const [filmFilter, setFilmFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+
+  // Data queries
   const rolls = useLiveQuery(
     () =>
       db.rolls
         .where("user_id")
         .equals(userId)
-        .filter((r) => {
-          if (r.deleted_at !== null && r.deleted_at !== undefined) return false;
-          if (statusFilter !== "all" && r.status !== statusFilter) return false;
-          return true;
-        })
-        .reverse()
-        .sortBy("created_at"),
-    [userId, statusFilter],
+        .filter((r) => r.deleted_at === null || r.deleted_at === undefined)
+        .toArray(),
+    [userId],
   );
+
+  const cameras = useLiveQuery(
+    () =>
+      db.cameras
+        .where("user_id")
+        .equals(userId)
+        .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
+        .toArray(),
+    [userId],
+  );
+
+  const customFilms = useLiveQuery(
+    () =>
+      db.films
+        .where("user_id")
+        .equals(userId)
+        .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
+        .toArray(),
+    [userId],
+  );
+
+  const seedFilms = useLiveQuery(() => db.filmStock.toArray(), []);
+
+  // Build film lookup and options
+  const filmMap = useMemo(
+    () => buildFilmMap(customFilms ?? [], seedFilms ?? []),
+    [customFilms, seedFilms],
+  );
+
+  const filmOptions = useMemo(() => {
+    if (!rolls) return [];
+    const usedIds = new Set(rolls.map((r) => r.film_id));
+    return Array.from(usedIds)
+      .map((id) => {
+        const f = filmMap.get(id);
+        return f ? { id, label: `${f.brand} ${f.name}` } : null;
+      })
+      .filter((f): f is { id: string; label: string } => f !== null)
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [rolls, filmMap]);
+
+  // Filter and sort
+  const filteredRolls = useMemo(() => {
+    if (!rolls || !cameras) return [];
+    return filterAndSortRolls(rolls, cameras, filmMap, {
+      searchQuery,
+      statusFilter,
+      cameraFilter,
+      filmFilter,
+      sortBy: sortBy as "date" | "status" | "camera",
+    });
+  }, [rolls, cameras, filmMap, searchQuery, statusFilter, cameraFilter, filmFilter, sortBy]);
 
   if (!rolls) return null;
 
   const hasRolls = rolls.length > 0;
+  const hasResults = filteredRolls.length > 0;
+  const hasActiveFilters =
+    searchQuery || statusFilter !== "all" || cameraFilter !== "all" || filmFilter !== "all";
 
   return (
     <div className="space-y-4">
@@ -57,19 +106,20 @@ export function DashboardContent() {
       </div>
 
       {hasRolls && (
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("all")}</SelectItem>
-            {ROLL_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {t(`status.${s}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <DashboardFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          cameraFilter={cameraFilter}
+          onCameraFilterChange={setCameraFilter}
+          filmFilter={filmFilter}
+          onFilmFilterChange={setFilmFilter}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
+          cameras={cameras ?? []}
+          films={filmOptions}
+        />
       )}
 
       {!hasRolls ? (
@@ -88,12 +138,20 @@ export function DashboardContent() {
             </Button>
           </CardContent>
         </Card>
-      ) : (
+      ) : hasResults ? (
         <div className="space-y-2">
-          {rolls.map((roll) => (
+          {filteredRolls.map((roll) => (
             <RollCard key={roll.id} roll={roll} />
           ))}
         </div>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              {hasActiveFilters ? t("noFilterResults") : t("noRolls")}
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       <LoadRollWizard open={showWizard} onOpenChange={setShowWizard} />

@@ -195,7 +195,13 @@
     "undoStatus": "Deshacer",
     "statusUpdated": "Estado actualizado",
     "filterByStatus": "Filtrar por estado",
-    "all": "Todos"
+    "all": "Todos",
+    "allCameras": "Todas las Cámaras",
+    "allFilms": "Todas las Películas",
+    "sortDate": "Más Recientes",
+    "sortStatus": "Por Estado",
+    "sortCamera": "Por Cámara",
+    "noFilterResults": "No hay rollos que coincidan con tus filtros"
   },
   "frame": {
     "log": "Registrar Foto",
@@ -292,7 +298,8 @@
     "shotsPerMonth": "Fotos Por Mes",
     "mostUsedCamera": "Cámaras Más Usadas",
     "mostUsedFocalLength": "Distancias Focales Más Usadas",
-    "avgFramesPerRoll": "Prom. Cuadros Por Rollo"
+    "avgFramesPerRoll": "Prom. Cuadros Por Rollo",
+    "noData": "Empieza a disparar para ver tus estadísticas"
   },
   "sync": {
     "synced": "Todo sincronizado",

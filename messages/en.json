@@ -195,7 +195,13 @@
     "undoStatus": "Undo",
     "statusUpdated": "Status updated",
     "filterByStatus": "Filter by status",
-    "all": "All"
+    "all": "All",
+    "allCameras": "All Cameras",
+    "allFilms": "All Films",
+    "sortDate": "Newest First",
+    "sortStatus": "By Status",
+    "sortCamera": "By Camera",
+    "noFilterResults": "No rolls match your filters"
   },
   "frame": {
     "log": "Log Shot",
@@ -292,7 +298,8 @@
     "shotsPerMonth": "Shots Per Month",
     "mostUsedCamera": "Most Used Cameras",
     "mostUsedFocalLength": "Most Used Focal Lengths",
-    "avgFramesPerRoll": "Avg. Frames Per Roll"
+    "avgFramesPerRoll": "Avg. Frames Per Roll",
+    "noData": "Start shooting to see your statistics"
   },
   "sync": {
     "synced": "All synced",
