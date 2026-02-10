@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ulid } from "ulid";
-import { MapPin } from "lucide-react";
+import { Camera, ImageOff, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,20 +26,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { toBlob } from "@/lib/image-sync";
 import {
   SHUTTER_SPEEDS,
   APERTURES,
   METERING_MODES,
   EXPOSURE_COMP_VALUES,
 } from "@/lib/constants";
-import type { Roll, MeteringMode } from "@/lib/types";
+import type { Roll, Frame, MeteringMode } from "@/lib/types";
 import { toast } from "sonner";
 
 interface ShotLoggerProps {
   roll: Roll;
+}
+
+/** Create an object URL from a thumbnail value, or null if not possible. */
+function thumbnailUrl(thumbnail: Frame["thumbnail"]): string | null {
+  const blob = toBlob(thumbnail);
+  if (!blob) return null;
+  return URL.createObjectURL(blob);
 }
 
 export function ShotLogger({ roll }: ShotLoggerProps) {
@@ -54,6 +68,13 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   const [filter, setFilter] = useState("");
   const [note, setNote] = useState("");
   const [showExceedWarning, setShowExceedWarning] = useState(false);
+
+  // Image capture state
+  const [capturedThumbnail, setCapturedThumbnail] = useState<Blob | null>(null);
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    frameNumber?: number;
+  } | null>(null);
 
   const locationRef = useRef<{ lat: number; lon: number } | null>(null);
   const locationNameRef = useRef<string>("");
@@ -118,7 +139,94 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     };
   }, []);
 
+  // Build object URLs for frame thumbnails (revoke on change)
+  const frameThumbUrls = useMemo(() => {
+    if (!frames) return new Map<string, string>();
+    const map = new Map<string, string>();
+    for (const frame of frames) {
+      if (frame.thumbnail) {
+        const url = thumbnailUrl(frame.thumbnail);
+        if (url) map.set(frame.id, url);
+      }
+    }
+    return map;
+  }, [frames]);
+
+  // Revoke old thumbnail URLs when frames change
+  const prevUrlsRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    const prev = prevUrlsRef.current;
+    for (const [id, url] of prev) {
+      if (!frameThumbUrls.has(id) || frameThumbUrls.get(id) !== url) {
+        URL.revokeObjectURL(url);
+      }
+    }
+    prevUrlsRef.current = frameThumbUrls;
+    return () => {
+      for (const url of frameThumbUrls.values()) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [frameThumbUrls]);
+
+  // Preview URL for captured thumbnail (before save)
+  const capturedThumbUrl = useMemo(() => {
+    if (!capturedThumbnail) return null;
+    return URL.createObjectURL(capturedThumbnail);
+  }, [capturedThumbnail]);
+
+  useEffect(() => {
+    return () => {
+      if (capturedThumbUrl) URL.revokeObjectURL(capturedThumbUrl);
+    };
+  }, [capturedThumbUrl]);
+
   const nextFrameNumber = (frames?.length ?? 0) + 1;
+
+  // ----- Image capture handlers -----
+
+  async function captureWithErrorHandling(): Promise<Blob | null> {
+    const { captureImage } = await import("@/lib/image-capture");
+    const result = await captureImage();
+    if ("error" in result) {
+      if (result.error !== "no_file") {
+        toast.error(t(`captureError.${result.error}`));
+      }
+      return null;
+    }
+    return result.blob;
+  }
+
+  async function handleCaptureImage() {
+    const blob = await captureWithErrorHandling();
+    if (!blob) return;
+    setCapturedThumbnail(blob);
+    toast.success(t("imageReady"));
+  }
+
+  async function handleAddImageToFrame(frameId: string) {
+    const blob = await captureWithErrorHandling();
+    if (!blob) return;
+    await syncUpdate("frames", frameId, { thumbnail: blob }, roll.user_id);
+    toast.success(t("imageAdded"));
+  }
+
+  function handleViewThumbnail(url: string, frameNumber: number) {
+    setPreviewImage({ url, frameNumber });
+  }
+
+  function handleViewCaptured() {
+    if (capturedThumbUrl) {
+      setPreviewImage({ url: capturedThumbUrl, frameNumber: undefined });
+    }
+  }
+
+  function handleRemoveCaptured() {
+    setCapturedThumbnail(null);
+    toast.success(t("imageRemoved"));
+  }
+
+  // ----- Save frame -----
 
   const saveFrame = useCallback(async () => {
     const now = Date.now();
@@ -138,7 +246,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       longitude: loc?.lon ?? null,
       location_name: locationNameRef.current || null,
       notes: note.trim() || null,
-      thumbnail: null,
+      thumbnail: capturedThumbnail,
       image_url: null,
       captured_at: now,
       updated_at: now,
@@ -155,10 +263,12 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
     setNote("");
     setFilter("");
+    setCapturedThumbnail(null);
     toast.success(t("frameNumber", { number: nextFrameNumber }));
   }, [
     roll.id,
     roll.status,
+    roll.user_id,
     nextFrameNumber,
     shutterSpeed,
     aperture,
@@ -167,6 +277,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     exposureComp,
     filter,
     note,
+    capturedThumbnail,
     t,
   ]);
 
@@ -187,26 +298,56 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       {frames && frames.length > 0 && (
         <ScrollArea className="max-h-48">
           <div className="space-y-1">
-            {frames.map((frame) => (
-              <div
-                key={frame.id}
-                className="flex items-center gap-2 rounded border border-border px-3 py-1.5 text-sm"
-              >
-                <Badge variant="outline" className="shrink-0 tabular-nums">
-                  #{frame.frame_number}
-                </Badge>
-                <span className="tabular-nums">{frame.shutter_speed}</span>
-                <span className="text-muted-foreground">f/{frame.aperture}</span>
-                {frame.latitude && (
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                )}
-                {frame.notes && (
-                  <span className="truncate text-xs text-muted-foreground">
-                    {frame.notes}
-                  </span>
-                )}
-              </div>
-            ))}
+            {frames.map((frame) => {
+              const thumbUrl = frameThumbUrls.get(frame.id);
+              return (
+                <div
+                  key={frame.id}
+                  className="flex items-center gap-2 rounded border border-border px-3 py-1.5 text-sm"
+                >
+                  <Badge variant="outline" className="shrink-0 tabular-nums">
+                    #{frame.frame_number}
+                  </Badge>
+                  {thumbUrl ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleViewThumbnail(thumbUrl, frame.frame_number)
+                      }
+                      className="shrink-0 overflow-hidden rounded"
+                      aria-label={t("frameThumbnail", {
+                        number: frame.frame_number,
+                      })}
+                    >
+                      <img
+                        src={thumbUrl}
+                        alt=""
+                        className="h-8 w-8 object-cover"
+                      />
+                    </button>
+                  ) : canLog ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAddImageToFrame(frame.id)}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"
+                      aria-label={t("captureImage")}
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                  <span className="tabular-nums">{frame.shutter_speed}</span>
+                  <span className="text-muted-foreground">f/{frame.aperture}</span>
+                  {frame.latitude && (
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                  )}
+                  {frame.notes && (
+                    <span className="truncate text-xs text-muted-foreground">
+                      {frame.notes}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </ScrollArea>
       )}
@@ -333,13 +474,79 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               />
             </div>
 
-            <Button onClick={handleSaveClick} className="w-full">
-              {t("save")}
-            </Button>
+            {/* Camera capture + save row */}
+            <div className="flex gap-2">
+              {capturedThumbnail && capturedThumbUrl ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleViewCaptured}
+                    className="shrink-0 overflow-hidden rounded border border-primary"
+                    aria-label={t("imagePreview")}
+                  >
+                    <img
+                      src={capturedThumbUrl}
+                      alt=""
+                      className="h-9 w-9 object-cover"
+                    />
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={handleRemoveCaptured}
+                    aria-label={t("removeImage")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={handleCaptureImage}
+                  aria-label={t("captureImage")}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              )}
+              <Button onClick={handleSaveClick} className="w-full">
+                {t("save")}
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Image preview dialog */}
+      <Dialog
+        open={!!previewImage}
+        onOpenChange={(open) => {
+          if (!open) setPreviewImage(null);
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {previewImage?.frameNumber
+                ? t("frameImagePreview", { number: previewImage.frameNumber })
+                : t("imagePreview")}
+            </DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <img
+              src={previewImage.url}
+              alt=""
+              className="w-full rounded-md object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Frame count exceeded warning */}
       <AlertDialog
         open={showExceedWarning}
         onOpenChange={setShowExceedWarning}

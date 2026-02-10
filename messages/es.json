@@ -216,6 +216,19 @@
       "matrix": "Matricial",
       "incident": "Incidente",
       "sunny16": "Sunny 16"
+    },
+    "captureImage": "Foto de Referencia",
+    "removeImage": "Eliminar Foto",
+    "imageReady": "Foto lista — se guardará con este cuadro",
+    "imageAdded": "Foto añadida al cuadro",
+    "imageRemoved": "Foto eliminada",
+    "frameThumbnail": "Miniatura del cuadro {number}",
+    "imagePreview": "Foto de Referencia",
+    "frameImagePreview": "Cuadro {number}",
+    "captureError": {
+      "no_file": "No se seleccionó ninguna imagen",
+      "invalid_type": "Por favor selecciona un archivo de imagen válido",
+      "compression_failed": "Error al procesar la imagen. Prueba con otro archivo."
     }
   },
   "settings": {

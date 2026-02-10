@@ -216,6 +216,19 @@
       "matrix": "Matrix",
       "incident": "Incident",
       "sunny16": "Sunny 16"
+    },
+    "captureImage": "Reference Photo",
+    "removeImage": "Remove Photo",
+    "imageReady": "Photo ready — will be saved with this frame",
+    "imageAdded": "Photo added to frame",
+    "imageRemoved": "Photo removed",
+    "frameThumbnail": "Thumbnail for frame {number}",
+    "imagePreview": "Reference Photo",
+    "frameImagePreview": "Frame {number}",
+    "captureError": {
+      "no_file": "No image selected",
+      "invalid_type": "Please select a valid image file",
+      "compression_failed": "Failed to process image. Try a different file."
     }
   },
   "settings": {
