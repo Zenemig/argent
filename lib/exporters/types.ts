@@ -43,6 +43,8 @@ export interface ExportLensData {
   make: string;
   focalLength: number;
   maxAperture: number;
+  focalLengthMax?: number | null;
+  minAperture?: number | null;
 }
 
 export interface ExportFilmData {

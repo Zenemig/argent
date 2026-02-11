@@ -35,6 +35,14 @@ vi.mock("@/lib/image-sync", () => ({
   toBlob: () => null,
 }));
 
+vi.mock("@/lib/lens-utils", () => ({
+  isZoomLens: (lens: { focal_length_max?: number | null }) => lens.focal_length_max != null,
+  formatFocalLength: (lens: { focal_length: number; focal_length_max?: number | null }) =>
+    lens.focal_length_max ? `${lens.focal_length}-${lens.focal_length_max}mm` : `${lens.focal_length}mm`,
+  defaultFrameFocalLength: (lens: { focal_length: number; focal_length_max?: number | null }) =>
+    lens.focal_length_max ? Math.round((lens.focal_length + lens.focal_length_max) / 2) : lens.focal_length,
+}));
+
 vi.mock("ulid", () => ({
   ulid: () => "test-ulid-001",
 }));
@@ -154,4 +162,40 @@ describe("ShotLogger", () => {
     expect(screen.getByPlaceholderText("note")).toBeDefined();
     expect(screen.getByPlaceholderText("filterUsed")).toBeDefined();
   });
+
+  it("shows focal length input when zoom lens is selected", () => {
+    const lenses = [
+      {
+        id: "lens-z",
+        focal_length: 24,
+        max_aperture: 2.8,
+        focal_length_max: 70,
+        min_aperture: null,
+        camera_id: null,
+        deleted_at: null,
+      },
+    ];
+    // frames, lenses — push extra for re-renders
+    mockQueryResults.push([], lenses, [], lenses);
+    render(<ShotLogger roll={makeRoll({ lens_id: "lens-z" })} />);
+    expect(screen.getByLabelText("focalLengthUsed")).toBeDefined();
+  });
+
+  it("does not show focal length input for prime lens", () => {
+    const lenses = [
+      {
+        id: "lens-p",
+        focal_length: 50,
+        max_aperture: 1.4,
+        focal_length_max: null,
+        min_aperture: null,
+        camera_id: null,
+        deleted_at: null,
+      },
+    ];
+    mockQueryResults.push([], lenses, [], lenses);
+    render(<ShotLogger roll={makeRoll({ lens_id: "lens-p" })} />);
+    expect(screen.queryByLabelText("focalLengthUsed")).toBeNull();
+  });
+
 });

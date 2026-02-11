@@ -6,6 +6,7 @@ import {
   rollSchema,
   frameSchema,
   filmStockSchema,
+  lensStockSchema,
   syncQueueItemSchema,
 } from "./schemas";
 
@@ -64,6 +65,42 @@ describe("lensSchema", () => {
     expect(
       lensSchema.safeParse({ ...valid, camera_id: ULID2 }).success,
     ).toBe(true);
+  });
+
+  it("accepts zoom lens fields", () => {
+    expect(
+      lensSchema.safeParse({
+        ...valid,
+        focal_length_max: 135,
+        min_aperture: 4.5,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null zoom lens fields (prime lens)", () => {
+    expect(
+      lensSchema.safeParse({
+        ...valid,
+        focal_length_max: null,
+        min_aperture: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("validates without zoom fields (backward compat)", () => {
+    expect(lensSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects non-positive focal_length_max", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, focal_length_max: 0 }).success,
+    ).toBe(false);
+  });
+
+  it("rejects non-positive min_aperture", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, min_aperture: -1 }).success,
+    ).toBe(false);
   });
 });
 
@@ -173,6 +210,28 @@ describe("frameSchema", () => {
       frameSchema.safeParse({ ...valid, longitude: -181 }).success,
     ).toBe(false);
   });
+
+  it("accepts focal_length for per-frame focal length", () => {
+    expect(
+      frameSchema.safeParse({ ...valid, focal_length: 85 }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null focal_length (prime lens or not set)", () => {
+    expect(
+      frameSchema.safeParse({ ...valid, focal_length: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without focal_length (backward compat)", () => {
+    expect(frameSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects non-positive focal_length", () => {
+    expect(
+      frameSchema.safeParse({ ...valid, focal_length: 0 }).success,
+    ).toBe(false);
+  });
 });
 
 describe("filmStockSchema", () => {
@@ -186,6 +245,60 @@ describe("filmStockSchema", () => {
       process: "C-41",
     };
     expect(filmStockSchema.safeParse(valid).success).toBe(true);
+  });
+});
+
+describe("lensStockSchema", () => {
+  it("validates a prime lens stock", () => {
+    const valid = {
+      id: "nikon-50-1.4-ais",
+      make: "Nikon",
+      name: "Nikkor 50mm f/1.4 AI-S",
+      mount: "Nikon F",
+      focal_length: 50,
+      max_aperture: 1.4,
+    };
+    expect(lensStockSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("validates a zoom lens stock with range fields", () => {
+    const valid = {
+      id: "nikon-24-70-2.8",
+      make: "Nikon",
+      name: "AF-S Nikkor 24-70mm f/2.8G ED",
+      mount: "Nikon F",
+      focal_length: 24,
+      max_aperture: 2.8,
+      focal_length_max: 70,
+      min_aperture: null,
+    };
+    expect(lensStockSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("validates a variable aperture zoom lens stock", () => {
+    const valid = {
+      id: "sigma-35-135-3.5-4.5",
+      make: "Sigma",
+      name: "35-135mm f/3.5-4.5",
+      mount: "Nikon F",
+      focal_length: 35,
+      max_aperture: 3.5,
+      focal_length_max: 135,
+      min_aperture: 4.5,
+    };
+    expect(lensStockSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("validates without zoom fields (backward compat)", () => {
+    const valid = {
+      id: "nikon-50-1.4-ais",
+      make: "Nikon",
+      name: "Nikkor 50mm f/1.4 AI-S",
+      mount: "Nikon F",
+      focal_length: 50,
+      max_aperture: 1.4,
+    };
+    expect(lensStockSchema.safeParse(valid).success).toBe(true);
   });
 });
 

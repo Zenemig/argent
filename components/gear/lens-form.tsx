@@ -5,6 +5,7 @@ import { ulid } from "ulid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,9 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
   const [make, setMake] = useState(lens?.make ?? "");
   const [focalLength, setFocalLength] = useState(lens?.focal_length ?? 50);
   const [maxAperture, setMaxAperture] = useState(lens?.max_aperture ?? 1.8);
+  const [isZoom, setIsZoom] = useState(lens?.focal_length_max != null);
+  const [focalLengthMax, setFocalLengthMax] = useState(lens?.focal_length_max ?? 100);
+  const [minAperture, setMinAperture] = useState(lens?.min_aperture ?? maxAperture);
   const [cameraId, setCameraId] = useState(lens?.camera_id ?? "__none__");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,6 +46,9 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
     if (!name.trim() || !make.trim()) return;
 
     const now = Date.now();
+    const zoomFields = isZoom
+      ? { focal_length_max: focalLengthMax, min_aperture: minAperture }
+      : { focal_length_max: null, min_aperture: null };
 
     if (isEdit && lens) {
       await syncUpdate("lenses", lens.id, {
@@ -49,6 +56,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
         make: make.trim(),
         focal_length: focalLength,
         max_aperture: maxAperture,
+        ...zoomFields,
         camera_id: cameraId === "__none__" ? null : cameraId,
         updated_at: now,
       });
@@ -61,6 +69,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
         make: make.trim(),
         focal_length: focalLength,
         max_aperture: maxAperture,
+        ...zoomFields,
         camera_id: cameraId === "__none__" ? null : cameraId,
         deleted_at: null,
         updated_at: now,
@@ -125,6 +134,48 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
           />
         </div>
       </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="lens-zoom"
+          checked={isZoom}
+          onCheckedChange={(checked) => setIsZoom(checked === true)}
+          aria-label={t("zoomLens")}
+        />
+        <Label htmlFor="lens-zoom" className="cursor-pointer">
+          {t("zoomLens")}
+        </Label>
+      </div>
+
+      {isZoom && (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="lens-focal-max">{t("focalLengthMax")}</Label>
+            <Input
+              id="lens-focal-max"
+              type="number"
+              min={focalLength + 1}
+              max={2000}
+              value={focalLengthMax}
+              onChange={(e) => setFocalLengthMax(Number(e.target.value))}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lens-min-aperture">{t("minAperture")}</Label>
+            <Input
+              id="lens-min-aperture"
+              type="number"
+              min={maxAperture}
+              max={64}
+              step={0.1}
+              value={minAperture}
+              onChange={(e) => setMinAperture(Number(e.target.value))}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="lens-camera">{t("linkedCamera")}</Label>

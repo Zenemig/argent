@@ -158,7 +158,10 @@
     "yourLenses": "Your Lenses",
     "yourFilms": "Your Films",
     "addCustomFilm": "Add Custom Film",
-    "filmCatalog": "Film Catalog"
+    "filmCatalog": "Film Catalog",
+    "zoomLens": "Zoom Lens",
+    "focalLengthMax": "Max Focal Length",
+    "minAperture": "Min Aperture (tele)"
   },
   "roll": {
     "loadNew": "Load New Roll",
@@ -175,7 +178,8 @@
       "finished": "Finished",
       "developed": "Developed",
       "scanned": "Scanned",
-      "archived": "Archived"
+      "archived": "Archived",
+      "discarded": "Discarded"
     },
     "actions": {
       "finish": "Finish Roll",
@@ -205,7 +209,22 @@
     "sortDate": "Newest First",
     "sortStatus": "By Status",
     "sortCamera": "By Camera",
-    "noFilterResults": "No rolls match your filters"
+    "noFilterResults": "No rolls match your filters",
+    "deleteRoll": "Delete Roll",
+    "discardRoll": "Discard Roll",
+    "deleteConfirm": "Delete this roll?",
+    "deleteWarning": "This roll and its {count, plural, one {# frame} other {# frames}} will be permanently hidden.",
+    "rollDeleted": "Roll deleted",
+    "rollDiscarded": "Roll discarded",
+    "discardReasonLabel": "Reason",
+    "discardNotesLabel": "Notes (optional)",
+    "discardReason": {
+      "lost_stolen": "Lost / Stolen",
+      "light_leak": "Light leak / Veiled",
+      "damaged": "Damaged",
+      "lab_error": "Lab error",
+      "other": "Other"
+    }
   },
   "frame": {
     "log": "Log Shot",
@@ -219,6 +238,7 @@
     "note": "Quick Note",
     "location": "Location",
     "frameNumber": "Frame {number}",
+    "focalLengthUsed": "Focal Length",
     "exceedWarning": "This exceeds the roll's frame count. Continue anyway?",
     "metering": {
       "spot": "Spot",

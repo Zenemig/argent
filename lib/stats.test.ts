@@ -220,6 +220,39 @@ describe("computeFocalLengthUsage", () => {
   it("returns empty array for no frames", () => {
     expect(computeFocalLengthUsage([], [])).toEqual([]);
   });
+
+  it("prefers frame focal_length over lens focal_length", () => {
+    const frames = [
+      makeFrame({ id: "f1", lens_id: "l1", focal_length: 35 }),
+      makeFrame({ id: "f2", lens_id: "l1", focal_length: 70 }),
+      makeFrame({ id: "f3", lens_id: "l1", focal_length: 35 }),
+    ];
+    const lenses = [
+      { id: "l1", focal_length: 24 },
+    ] as Lens[];
+
+    const result = computeFocalLengthUsage(frames, lenses);
+    expect(result).toEqual([
+      { focalLength: "35mm", count: 2 },
+      { focalLength: "70mm", count: 1 },
+    ]);
+  });
+
+  it("falls back to lens focal_length when frame has no focal_length", () => {
+    const frames = [
+      makeFrame({ id: "f1", lens_id: "l1" }),
+      makeFrame({ id: "f2", lens_id: "l1", focal_length: 50 }),
+    ];
+    const lenses = [
+      { id: "l1", focal_length: 24 },
+    ] as Lens[];
+
+    const result = computeFocalLengthUsage(frames, lenses);
+    expect(result).toEqual([
+      { focalLength: "24mm", count: 1 },
+      { focalLength: "50mm", count: 1 },
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------------

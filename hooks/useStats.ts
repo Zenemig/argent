@@ -21,7 +21,11 @@ export function useStats() {
       return db.rolls
         .where("user_id")
         .equals(userId!)
-        .filter((r) => r.deleted_at === null || r.deleted_at === undefined)
+        .filter(
+          (r) =>
+            (r.deleted_at === null || r.deleted_at === undefined) &&
+            r.status !== "discarded",
+        )
         .toArray();
     },
     [userId],

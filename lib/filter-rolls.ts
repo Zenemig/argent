@@ -41,9 +41,12 @@ export function filterAndSortRolls(
   const query = filters.searchQuery.toLowerCase().trim();
 
   let result = rolls.filter((roll) => {
-    // Status filter
-    if (filters.statusFilter !== "all" && roll.status !== filters.statusFilter)
+    // Status filter — "all" hides discarded rolls by default
+    if (filters.statusFilter === "all") {
+      if (roll.status === "discarded") return false;
+    } else if (roll.status !== filters.statusFilter) {
       return false;
+    }
 
     // Camera filter
     if (filters.cameraFilter !== "all" && roll.camera_id !== filters.cameraFilter)
@@ -78,10 +81,14 @@ export function filterAndSortRolls(
   // Sort
   switch (filters.sortBy) {
     case "status":
-      result = [...result].sort(
-        (a, b) =>
-          STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status),
-      );
+      result = [...result].sort((a, b) => {
+        const idxA = STATUS_ORDER.indexOf(a.status);
+        const idxB = STATUS_ORDER.indexOf(b.status);
+        return (
+          (idxA === -1 ? STATUS_ORDER.length : idxA) -
+          (idxB === -1 ? STATUS_ORDER.length : idxB)
+        );
+      });
       break;
     case "camera":
       result = [...result].sort((a, b) => {

@@ -25,6 +25,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 :root {
@@ -77,9 +79,27 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth transitions on all interactive elements */
+  a {
+    transition: color 0.2s ease, background-color 0.2s ease,
+                border-color 0.2s ease, opacity 0.2s ease,
+                box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  button,
+  [role="button"] {
+    transition: color 0.2s ease, background-color 0.2s ease,
+                border-color 0.2s ease, opacity 0.2s ease,
+                box-shadow 0.2s ease, transform 0.15s ease;
   }
 }
 
@@ -99,6 +119,18 @@
   background-repeat: repeat;
   background-size: 512px 512px;
   z-index: 1;
+}
+
+/* Marketing page animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

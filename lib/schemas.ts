@@ -51,6 +51,8 @@ export const lensSchema = z.object({
   make: z.string().min(1).max(100),
   focal_length: z.number().positive(),
   max_aperture: z.number().positive(),
+  focal_length_max: z.number().positive().nullable().optional(),
+  min_aperture: z.number().positive().nullable().optional(),
   deleted_at: optionalTimestamp,
   updated_at: timestamp,
   created_at: timestamp,
@@ -94,6 +96,8 @@ export const rollSchema = z.object({
   push_pull: z.number(),
   lab_name: z.string().max(200).nullable().optional(),
   dev_notes: z.string().max(500).nullable().optional(),
+  discard_reason: z.string().max(100).nullable().optional(),
+  discard_notes: z.string().max(500).nullable().optional(),
   start_date: timestamp,
   finish_date: optionalTimestamp,
   develop_date: optionalTimestamp,
@@ -120,6 +124,7 @@ export const frameSchema = z.object({
   metering_mode: z.enum(METERING_MODES).nullable().optional(),
   exposure_comp: z.number().nullable().optional(),
   filter: z.string().max(100).nullable().optional(),
+  focal_length: z.number().positive().nullable().optional(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
   location_name: z.string().max(200).nullable().optional(),
@@ -175,6 +180,8 @@ export const lensStockSchema = z.object({
   mount: z.enum(LENS_MOUNTS),
   focal_length: z.number().positive(),
   max_aperture: z.number().positive(),
+  focal_length_max: z.number().positive().nullable().optional(),
+  min_aperture: z.number().positive().nullable().optional(),
 });
 
 export type LensStock = z.infer<typeof lensStockSchema>;

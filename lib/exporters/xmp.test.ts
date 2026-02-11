@@ -270,6 +270,47 @@ describe("generateXMP", () => {
     expect(xml).toContain("R&amp;D Corp");
     expect(xml).toContain("Model &quot;X&quot;");
   });
+
+  it("prefers frame focalLength over lens focalLength for zooms", () => {
+    const xml = generateXMP(
+      makeInput({
+        lens: makeLens({ focalLength: 24, focalLengthMax: 70, maxAperture: 2.8 }),
+        frame: makeFrame({ focalLength: 50 }),
+      }),
+    );
+    expect(xml).toContain("<exif:FocalLength>50</exif:FocalLength>");
+  });
+
+  it("falls back to lens focalLength when frame focalLength is null", () => {
+    const xml = generateXMP(
+      makeInput({
+        lens: makeLens({ focalLength: 24, focalLengthMax: 70 }),
+        frame: makeFrame({ focalLength: null }),
+      }),
+    );
+    expect(xml).toContain("<exif:FocalLength>24</exif:FocalLength>");
+  });
+
+  it("includes LensSpecification for zoom lenses", () => {
+    const xml = generateXMP(
+      makeInput({
+        lens: makeLens({
+          focalLength: 24,
+          focalLengthMax: 70,
+          maxAperture: 2.8,
+          minAperture: null,
+        }),
+      }),
+    );
+    expect(xml).toContain("<exifEX:LensSpecification>");
+    expect(xml).toContain("<rdf:li>24</rdf:li>");
+    expect(xml).toContain("<rdf:li>70</rdf:li>");
+  });
+
+  it("omits LensSpecification for prime lenses", () => {
+    const xml = generateXMP(makeInput());
+    expect(xml).not.toContain("<exifEX:LensSpecification>");
+  });
 });
 
 describe("generateXMPBatch", () => {

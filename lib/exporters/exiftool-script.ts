@@ -75,7 +75,9 @@ function buildArgs(input: ExportInput, options: ExportOptions): ExifToolArgs {
 
   if (lens) {
     flags.push(`-LensModel=${lens.name}`);
-    flags.push(`-FocalLength=${lens.focalLength}`);
+    // Prefer per-frame focal length (zoom lens) over lens default
+    const fl = frame.focalLength ?? lens.focalLength;
+    flags.push(`-FocalLength=${fl}`);
   }
 
   flags.push(`-FNumber=${frame.aperture}`);

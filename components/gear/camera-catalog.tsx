@@ -54,7 +54,7 @@ import {
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
-import { FILM_FORMATS, LENS_MOUNTS, CAMERA_TYPES } from "@/lib/constants";
+import { FILM_FORMATS, LENS_MOUNTS, CAMERA_TYPES, formatLabel } from "@/lib/constants";
 import { CameraForm } from "./camera-form";
 import type { Camera, CameraStock } from "@/lib/types";
 import { useState, useMemo } from "react";
@@ -240,7 +240,7 @@ export function CameraCatalog() {
               <SelectItem value="all">{t("allFormats")}</SelectItem>
               {FILM_FORMATS.map((f) => (
                 <SelectItem key={f} value={f}>
-                  {f}
+                  {formatLabel(f)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -254,7 +254,7 @@ export function CameraCatalog() {
               <SelectItem value="all">{t("allMounts")}</SelectItem>
               {LENS_MOUNTS.map((m) => (
                 <SelectItem key={m} value={m}>
-                  {m}
+                  {formatLabel(m)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -268,7 +268,7 @@ export function CameraCatalog() {
               <SelectItem value="all">{t("allTypes")}</SelectItem>
               {CAMERA_TYPES.map((ct) => (
                 <SelectItem key={ct} value={ct}>
-                  {ct}
+                  {formatLabel(ct)}
                 </SelectItem>
               ))}
             </SelectContent>

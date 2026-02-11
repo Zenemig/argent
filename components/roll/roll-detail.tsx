@@ -18,6 +18,7 @@ import {
 import { db } from "@/lib/db";
 import { ShotLogger } from "./shot-logger";
 import { RollLifecycle } from "./roll-lifecycle";
+import { RollActionsMenu } from "./roll-actions-menu";
 import {
   ExportDialog,
   type ExportFormat,
@@ -39,6 +40,11 @@ export function RollDetail({ rollId }: RollDetailProps) {
     () => (roll ? db.cameras.get(roll.camera_id) : undefined),
     [roll?.camera_id],
   );
+  const frameCount = useLiveQuery(
+    () => db.frames.where("roll_id").equals(rollId).count(),
+    [rollId],
+  );
+
   const film = useLiveQuery(async () => {
     if (!roll) return undefined;
     const custom = await db.films.get(roll.film_id);
@@ -100,6 +106,8 @@ export function RollDetail({ rollId }: RollDetailProps) {
               ` (${roll.push_pull > 0 ? "+" : ""}${roll.push_pull})`}
           </p>
         </div>
+        <RollActionsMenu roll={roll} frameCount={frameCount ?? 0} />
+
         <Badge variant="outline">
           {format(roll.start_date, "MMM d, yyyy")}
         </Badge>

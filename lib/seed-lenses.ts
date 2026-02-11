@@ -8,8 +8,19 @@ function lens(
   mount: LensMount,
   focalLength: number,
   maxAperture: number,
+  focalLengthMax?: number | null,
+  minAperture?: number | null,
 ): LensStock {
-  return { id, make, name, mount, focal_length: focalLength, max_aperture: maxAperture };
+  return {
+    id,
+    make,
+    name,
+    mount,
+    focal_length: focalLength,
+    max_aperture: maxAperture,
+    ...(focalLengthMax != null ? { focal_length_max: focalLengthMax } : {}),
+    ...(minAperture != null ? { min_aperture: minAperture } : {}),
+  };
 }
 
 /**
@@ -47,10 +58,10 @@ export const lensStocks: LensStock[] = [
   lens("nikon-85-1.8d", "Nikon", "AF Nikkor 85mm f/1.8D", "Nikon F", 85, 1.8),
   lens("nikon-105-2d-dc", "Nikon", "AF DC-Nikkor 105mm f/2D", "Nikon F", 105, 2),
   lens("nikon-135-2d-dc", "Nikon", "AF DC-Nikkor 135mm f/2D", "Nikon F", 135, 2),
-  lens("nikon-24-70-2.8", "Nikon", "AF-S Nikkor 24-70mm f/2.8G ED", "Nikon F", 24, 2.8),
-  lens("nikon-70-200-2.8", "Nikon", "AF-S Nikkor 70-200mm f/2.8G VR", "Nikon F", 70, 2.8),
-  lens("nikon-28-70-2.8d", "Nikon", "AF-S Nikkor 28-70mm f/2.8D", "Nikon F", 28, 2.8),
-  lens("nikon-80-200-2.8d", "Nikon", "AF Nikkor 80-200mm f/2.8D ED", "Nikon F", 80, 2.8),
+  lens("nikon-24-70-2.8", "Nikon", "AF-S Nikkor 24-70mm f/2.8G ED", "Nikon F", 24, 2.8, 70),
+  lens("nikon-70-200-2.8", "Nikon", "AF-S Nikkor 70-200mm f/2.8G VR", "Nikon F", 70, 2.8, 200),
+  lens("nikon-28-70-2.8d", "Nikon", "AF-S Nikkor 28-70mm f/2.8D", "Nikon F", 28, 2.8, 70),
+  lens("nikon-80-200-2.8d", "Nikon", "AF Nikkor 80-200mm f/2.8D ED", "Nikon F", 80, 2.8, 200),
 
   // ---------------------------------------------------------------------------
   // Canon FD
@@ -84,9 +95,9 @@ export const lensStocks: LensStock[] = [
   lens("canon-ef-85-1.8", "Canon", "EF 85mm f/1.8 USM", "Canon EF", 85, 1.8),
   lens("canon-ef-100-2", "Canon", "EF 100mm f/2 USM", "Canon EF", 100, 2),
   lens("canon-ef-135-2l", "Canon", "EF 135mm f/2L USM", "Canon EF", 135, 2),
-  lens("canon-ef-24-70-2.8l", "Canon", "EF 24-70mm f/2.8L USM", "Canon EF", 24, 2.8),
-  lens("canon-ef-70-200-2.8l", "Canon", "EF 70-200mm f/2.8L USM", "Canon EF", 70, 2.8),
-  lens("canon-ef-16-35-2.8l", "Canon", "EF 16-35mm f/2.8L USM", "Canon EF", 16, 2.8),
+  lens("canon-ef-24-70-2.8l", "Canon", "EF 24-70mm f/2.8L USM", "Canon EF", 24, 2.8, 70),
+  lens("canon-ef-70-200-2.8l", "Canon", "EF 70-200mm f/2.8L USM", "Canon EF", 70, 2.8, 200),
+  lens("canon-ef-16-35-2.8l", "Canon", "EF 16-35mm f/2.8L USM", "Canon EF", 16, 2.8, 35),
 
   // ---------------------------------------------------------------------------
   // Pentax K
@@ -296,6 +307,106 @@ export const lensStocks: LensStock[] = [
   lens("m42-pancolar-50-1.8", "Carl Zeiss Jena", "Pancolar 50mm f/1.8", "M42", 50, 1.8),
   lens("m42-biotar-58-2", "Carl Zeiss Jena", "Biotar 58mm f/2", "M42", 58, 2),
   lens("m42-sonnar-135-3.5", "Carl Zeiss Jena", "Sonnar 135mm f/3.5", "M42", 135, 3.5),
+
+  // ---------------------------------------------------------------------------
+  // Sigma — Nikon F
+  // ---------------------------------------------------------------------------
+  lens("sigma-nf-24-2.8", "Sigma", "24mm f/2.8 Super Wide II", "Nikon F", 24, 2.8),
+  lens("sigma-nf-28-1.8", "Sigma", "28mm f/1.8 EX DG", "Nikon F", 28, 1.8),
+  lens("sigma-nf-35-1.4-art", "Sigma", "35mm f/1.4 DG HSM Art", "Nikon F", 35, 1.4),
+  lens("sigma-nf-50-1.4-art", "Sigma", "50mm f/1.4 DG HSM Art", "Nikon F", 50, 1.4),
+  lens("sigma-nf-85-1.4-art", "Sigma", "85mm f/1.4 DG HSM Art", "Nikon F", 85, 1.4),
+  lens("sigma-nf-24-70-2.8-art", "Sigma", "24-70mm f/2.8 DG OS HSM Art", "Nikon F", 24, 2.8, 70),
+  lens("sigma-nf-70-200-2.8", "Sigma", "70-200mm f/2.8 DG OS HSM Sport", "Nikon F", 70, 2.8, 200),
+  lens("sigma-nf-35-135-3.5-4.5", "Sigma", "35-135mm f/3.5-4.5", "Nikon F", 35, 3.5, 135, 4.5),
+  lens("sigma-nf-28-70-2.8", "Sigma", "28-70mm f/2.8 DG DN Art", "Nikon F", 28, 2.8, 70),
+  lens("sigma-nf-100-300-4.5-6.7", "Sigma", "100-300mm f/4.5-6.7 DL", "Nikon F", 100, 4.5, 300, 6.7),
+
+  // ---------------------------------------------------------------------------
+  // Sigma — Canon EF
+  // ---------------------------------------------------------------------------
+  lens("sigma-ef-35-1.4-art", "Sigma", "35mm f/1.4 DG HSM Art", "Canon EF", 35, 1.4),
+  lens("sigma-ef-50-1.4-art", "Sigma", "50mm f/1.4 DG HSM Art", "Canon EF", 50, 1.4),
+  lens("sigma-ef-24-70-2.8-art", "Sigma", "24-70mm f/2.8 DG OS HSM Art", "Canon EF", 24, 2.8, 70),
+  lens("sigma-ef-70-200-2.8", "Sigma", "70-200mm f/2.8 DG OS HSM Sport", "Canon EF", 70, 2.8, 200),
+  lens("sigma-ef-17-50-2.8", "Sigma", "17-50mm f/2.8 EX DC OS HSM", "Canon EF", 17, 2.8, 50),
+
+  // ---------------------------------------------------------------------------
+  // Tamron — Nikon F
+  // ---------------------------------------------------------------------------
+  lens("tamron-nf-28-75-2.8", "Tamron", "SP AF 28-75mm f/2.8 XR Di", "Nikon F", 28, 2.8, 75),
+  lens("tamron-nf-70-200-2.8", "Tamron", "SP 70-200mm f/2.8 Di VC USD", "Nikon F", 70, 2.8, 200),
+  lens("tamron-nf-90-2.8-macro", "Tamron", "SP 90mm f/2.8 Di Macro", "Nikon F", 90, 2.8),
+  lens("tamron-nf-17-50-2.8", "Tamron", "SP AF 17-50mm f/2.8 XR Di II", "Nikon F", 17, 2.8, 50),
+  lens("tamron-nf-35-150-2.8-4", "Tamron", "35-150mm f/2.8-4 Di VC OSD", "Nikon F", 35, 2.8, 150, 4),
+  lens("tamron-nf-28-200-3.5-5.6", "Tamron", "AF 28-200mm f/3.5-5.6 Di III", "Nikon F", 28, 3.5, 200, 5.6),
+
+  // ---------------------------------------------------------------------------
+  // Tamron — Canon EF
+  // ---------------------------------------------------------------------------
+  lens("tamron-ef-28-75-2.8", "Tamron", "SP AF 28-75mm f/2.8 XR Di", "Canon EF", 28, 2.8, 75),
+  lens("tamron-ef-70-200-2.8", "Tamron", "SP 70-200mm f/2.8 Di VC USD", "Canon EF", 70, 2.8, 200),
+  lens("tamron-ef-90-2.8-macro", "Tamron", "SP 90mm f/2.8 Di Macro", "Canon EF", 90, 2.8),
+  lens("tamron-ef-24-70-2.8", "Tamron", "SP 24-70mm f/2.8 Di VC USD G2", "Canon EF", 24, 2.8, 70),
+
+  // ---------------------------------------------------------------------------
+  // Tokina — Nikon F
+  // ---------------------------------------------------------------------------
+  lens("tokina-nf-11-16-2.8", "Tokina", "AT-X 11-16mm f/2.8 Pro DX II", "Nikon F", 11, 2.8, 16),
+  lens("tokina-nf-28-70-2.8", "Tokina", "AT-X 28-70mm f/2.8 Pro", "Nikon F", 28, 2.8, 70),
+  lens("tokina-nf-100-2.8-macro", "Tokina", "AT-X M100 PRO D 100mm f/2.8", "Nikon F", 100, 2.8),
+  lens("tokina-nf-17-35-4", "Tokina", "AT-X 17-35mm f/4 Pro FX", "Nikon F", 17, 4, 35),
+
+  // ---------------------------------------------------------------------------
+  // Tokina — Canon EF
+  // ---------------------------------------------------------------------------
+  lens("tokina-ef-11-16-2.8", "Tokina", "AT-X 11-16mm f/2.8 Pro DX II", "Canon EF", 11, 2.8, 16),
+
+  // ---------------------------------------------------------------------------
+  // Vivitar — Multi-mount (M42 / Nikon F / Canon FD)
+  // ---------------------------------------------------------------------------
+  lens("vivitar-m42-28-2.8", "Vivitar", "28mm f/2.8 Auto Wide-Angle", "M42", 28, 2.8),
+  lens("vivitar-m42-135-2.8", "Vivitar", "135mm f/2.8 Auto Telephoto", "M42", 135, 2.8),
+  lens("vivitar-nf-28-90-2.8-3.5", "Vivitar", "Series 1 28-90mm f/2.8-3.5", "Nikon F", 28, 2.8, 90, 3.5),
+  lens("vivitar-nf-70-210-2.8-4", "Vivitar", "Series 1 70-210mm f/2.8-4", "Nikon F", 70, 2.8, 210, 4),
+  lens("vivitar-fd-24-48-3.8", "Vivitar", "24-48mm f/3.8", "Canon FD", 24, 3.8, 48),
+  lens("vivitar-fd-70-150-3.8", "Vivitar", "Series 1 70-150mm f/3.8", "Canon FD", 70, 3.8, 150),
+
+  // ---------------------------------------------------------------------------
+  // Sigma — Pentax K
+  // ---------------------------------------------------------------------------
+  lens("sigma-pk-28-2.8-mini-wide", "Sigma", "Mini-Wide 28mm f/2.8", "Pentax K", 28, 2.8),
+  lens("sigma-pk-70-210-4-5.6", "Sigma", "70-210mm f/4-5.6 UC", "Pentax K", 70, 4, 210, 5.6),
+
+  // ---------------------------------------------------------------------------
+  // Sigma — Olympus OM
+  // ---------------------------------------------------------------------------
+  lens("sigma-om-24-2.8", "Sigma", "24mm f/2.8 Super Wide", "Olympus OM", 24, 2.8),
+  lens("sigma-om-35-70-2.8-4", "Sigma", "35-70mm f/2.8-4", "Olympus OM", 35, 2.8, 70, 4),
+
+  // ---------------------------------------------------------------------------
+  // Tamron — Pentax K
+  // ---------------------------------------------------------------------------
+  lens("tamron-pk-28-70-3.5-4.5", "Tamron", "SP 28-70mm f/3.5-4.5 Adaptall-2", "Pentax K", 28, 3.5, 70, 4.5),
+  lens("tamron-pk-90-2.5-macro", "Tamron", "SP 90mm f/2.5 Macro Adaptall-2", "Pentax K", 90, 2.5),
+
+  // ---------------------------------------------------------------------------
+  // Tamron — Minolta MD/MC
+  // ---------------------------------------------------------------------------
+  lens("tamron-md-28-70-3.5-4.5", "Tamron", "SP 28-70mm f/3.5-4.5 Adaptall-2", "Minolta MD/MC", 28, 3.5, 70, 4.5),
+
+  // ---------------------------------------------------------------------------
+  // Sigma — M42
+  // ---------------------------------------------------------------------------
+  lens("sigma-m42-28-2.8-mini-wide", "Sigma", "Mini-Wide 28mm f/2.8", "M42", 28, 2.8),
+  lens("sigma-m42-135-3.5", "Sigma", "135mm f/3.5", "M42", 135, 3.5),
+  lens("sigma-m42-39-80-3.5", "Sigma", "39-80mm f/3.5", "M42", 39, 3.5, 80),
+
+  // ---------------------------------------------------------------------------
+  // Tokina — Pentax K
+  // ---------------------------------------------------------------------------
+  lens("tokina-pk-28-2.8", "Tokina", "RMC 28mm f/2.8", "Pentax K", 28, 2.8),
+  lens("tokina-pk-80-200-4", "Tokina", "AT-X 80-200mm f/4", "Pentax K", 80, 4, 200),
 ];
 
 /** Populate the lensStock table with seed data (idempotent via bulkPut) */

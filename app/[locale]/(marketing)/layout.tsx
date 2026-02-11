@@ -20,8 +20,8 @@ export default async function MarketingLayout({
       <link rel="alternate" hrefLang="x-default" href="/" />
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          <Link href={locale === "en" ? "/" : `/${locale}`} className="text-foreground">
-            <Logo className="h-5" />
+          <Link href={locale === "en" ? "/" : `/${locale}`} className="text-foreground hover:opacity-80">
+            <Logo className="h-7" />
           </Link>
           <div className="flex items-center gap-4">
             <a
@@ -40,7 +40,7 @@ export default async function MarketingLayout({
             </Link>
             <Link
               href="/login?mode=signup"
-              className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+              className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 active:scale-[0.97]"
             >
               {t("nav.signup")}
             </Link>

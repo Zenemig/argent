@@ -122,7 +122,7 @@ async function fetchExportData(
         frameNumber: frame.frame_number,
         shutterSpeed: frame.shutter_speed,
         aperture: frame.aperture,
-        focalLength: lensRecord?.focal_length ?? null,
+        focalLength: frame.focal_length ?? lensRecord?.focal_length ?? null,
         latitude: frame.latitude,
         longitude: frame.longitude,
         locationName: frame.location_name,
@@ -154,6 +154,8 @@ async function fetchExportData(
             make: lensRecord.make,
             focalLength: lensRecord.focal_length,
             maxAperture: lensRecord.max_aperture,
+            focalLengthMax: lensRecord.focal_length_max ?? null,
+            minAperture: lensRecord.min_aperture ?? null,
           }
         : null,
       film: {

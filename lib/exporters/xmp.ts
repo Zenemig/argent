@@ -38,6 +38,9 @@ export interface XMPCameraData {
 export interface XMPLensData {
   name: string;
   focalLength: number;
+  focalLengthMax?: number | null;
+  maxAperture?: number;
+  minAperture?: number | null;
 }
 
 export interface XMPFilmData {
@@ -175,7 +178,19 @@ export function generateXMP(
   // Lens
   if (lens) {
     lines.push(tag("exifEX:LensModel", lens.name));
-    lines.push(tag("exif:FocalLength", lens.focalLength));
+    // Prefer per-frame focal length (zoom lens) over lens default
+    const fl = frame.focalLength ?? lens.focalLength;
+    lines.push(tag("exif:FocalLength", fl));
+    // LensSpecification for zoom lenses: [fMin, fMax, apertureMin, apertureMax]
+    if (lens.focalLengthMax != null) {
+      const fMin = lens.focalLength;
+      const fMax = lens.focalLengthMax;
+      const aMax = lens.maxAperture ?? 0;
+      const aMin = lens.minAperture ?? aMax;
+      lines.push(
+        rdfSeq("exifEX:LensSpecification", [fMin, fMax, aMax, aMin]),
+      );
+    }
   } else if (frame.focalLength != null) {
     lines.push(tag("exif:FocalLength", frame.focalLength));
   }

@@ -36,6 +36,7 @@ export const STATUS_COLORS: Record<string, string> = {
   developed: "bg-purple-500/20 text-purple-400",
   scanned: "bg-cyan-500/20 text-cyan-400",
   archived: "bg-muted text-muted-foreground",
+  discarded: "bg-destructive/20 text-destructive",
 };
 
 /**

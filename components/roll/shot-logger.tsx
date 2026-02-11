@@ -43,7 +43,8 @@ import {
   EXPOSURE_COMP_VALUES,
 } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { Roll, Frame, MeteringMode } from "@/lib/types";
+import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
+import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
 import { toast } from "sonner";
 
 interface ShotLoggerProps {
@@ -69,6 +70,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   const [filter, setFilter] = useState("");
   const [note, setNote] = useState("");
   const [showExceedWarning, setShowExceedWarning] = useState(false);
+  const [frameFocalLength, setFrameFocalLength] = useState<number | null>(null);
 
   // Image capture state
   const [capturedThumbnail, setCapturedThumbnail] = useState<Blob | null>(null);
@@ -182,6 +184,21 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     };
   }, [capturedThumbUrl]);
 
+  // Derive selected lens for zoom detection
+  const selectedLens: Lens | null = useMemo(() => {
+    if (!lenses || lensId === "__none__") return null;
+    return lenses.find((l) => l.id === lensId) ?? null;
+  }, [lenses, lensId]);
+
+  // Update focal length default when lens changes
+  useEffect(() => {
+    if (selectedLens && isZoomLens(selectedLens)) {
+      setFrameFocalLength(defaultFrameFocalLength(selectedLens));
+    } else {
+      setFrameFocalLength(null);
+    }
+  }, [selectedLens]);
+
   const nextFrameNumber = (frames?.length ?? 0) + 1;
 
   // ----- Image capture handlers -----
@@ -240,6 +257,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       shutter_speed: shutterSpeed,
       aperture,
       lens_id: lensId === "__none__" ? null : lensId,
+      focal_length: frameFocalLength,
       metering_mode: meteringMode === "__none__" ? null : (meteringMode as MeteringMode),
       exposure_comp: exposureComp,
       filter: filter.trim() || null,
@@ -274,6 +292,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     shutterSpeed,
     aperture,
     lensId,
+    frameFocalLength,
     meteringMode,
     exposureComp,
     filter,
@@ -359,9 +378,9 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       {canLog && (
         <div className={cn(
           "fixed inset-x-0 bottom-16 z-40 border-t border-border bg-background p-4",
-          "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:self-start lg:sticky lg:top-8 lg:rounded-lg lg:border lg:bg-card lg:p-4"
+          "lg:static lg:inset-auto lg:z-auto lg:w-[28rem] lg:shrink-0 lg:self-start lg:sticky lg:top-8 lg:rounded-lg lg:border lg:bg-card lg:p-6"
         )}>
-          <div className="mx-auto max-w-lg space-y-3 lg:mx-0 lg:max-w-none">
+          <div className="mx-auto max-w-lg space-y-3 lg:mx-0 lg:max-w-none lg:space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
                 {t("frameNumber", { number: nextFrameNumber })}
@@ -371,7 +390,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 lg:gap-3">
               <div>
                 <Label className="text-xs">{t("shutterSpeed")}</Label>
                 <Select value={shutterSpeed} onValueChange={setShutterSpeed}>
@@ -408,7 +427,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 lg:gap-3">
               {lenses && lenses.length > 0 && (
                 <div>
                   <Label className="text-xs">{t("lens")}</Label>
@@ -420,7 +439,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                       <SelectItem value="__none__">—</SelectItem>
                       {lenses.map((l) => (
                         <SelectItem key={l.id} value={l.id}>
-                          {l.focal_length}mm
+                          {formatFocalLength(l)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -465,7 +484,25 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            {selectedLens && isZoomLens(selectedLens) && (
+              <div className="w-32">
+                <Label htmlFor="frame-focal-length" className="text-xs">
+                  {t("focalLengthUsed")}
+                </Label>
+                <Input
+                  id="frame-focal-length"
+                  type="number"
+                  min={selectedLens.focal_length}
+                  max={selectedLens.focal_length_max ?? undefined}
+                  value={frameFocalLength ?? ""}
+                  onChange={(e) => setFrameFocalLength(Number(e.target.value))}
+                  className="h-9"
+                  aria-label={t("focalLengthUsed")}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2 lg:gap-3">
               <Input
                 placeholder={t("note")}
                 value={note}
@@ -481,7 +518,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
             </div>
 
             {/* Camera capture + save row */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 lg:gap-3">
               {capturedThumbnail && capturedThumbUrl ? (
                 <div className="flex items-center gap-1">
                   <button
@@ -519,7 +556,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   <Camera className="h-4 w-4" />
                 </Button>
               )}
-              <Button onClick={handleSaveClick} className="w-full">
+              <Button onClick={handleSaveClick} className="min-w-0 flex-1">
                 {t("save")}
               </Button>
             </div>
@@ -534,8 +571,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
           if (!open) setPreviewImage(null);
         }}
       >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="flex h-[80vh] w-[80vw] sm:max-w-none flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>
               {previewImage?.frameNumber
                 ? t("frameImagePreview", { number: previewImage.frameNumber })
@@ -546,7 +583,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
             <img
               src={previewImage.url}
               alt=""
-              className="w-full rounded-md object-contain"
+              className="min-h-0 flex-1 rounded-md object-contain"
             />
           )}
         </DialogContent>

@@ -54,8 +54,9 @@ import {
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
-import { LENS_MOUNTS } from "@/lib/constants";
+import { LENS_MOUNTS, formatLabel } from "@/lib/constants";
 import { LensForm } from "./lens-form";
+import { formatLensSpec } from "@/lib/lens-utils";
 import type { Lens, Camera, LensStock } from "@/lib/types";
 import { useState, useMemo } from "react";
 import { ulid } from "ulid";
@@ -121,6 +122,8 @@ export function LensCatalog() {
       make: stock.make,
       focal_length: stock.focal_length,
       max_aperture: stock.max_aperture,
+      focal_length_max: stock.focal_length_max ?? null,
+      min_aperture: stock.min_aperture ?? null,
       camera_id: null,
       deleted_at: null,
       updated_at: now,
@@ -188,8 +191,7 @@ export function LensCatalog() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{lens.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {lens.make} &middot; {lens.focal_length}mm f/
-                    {lens.max_aperture}
+                    {lens.make} &middot; {formatLensSpec(lens)}
                   </p>
                 </div>
                 <Badge variant="outline" className="shrink-0 text-xs">
@@ -253,7 +255,7 @@ export function LensCatalog() {
               <SelectItem value="all">{t("allMounts")}</SelectItem>
               {LENS_MOUNTS.map((m) => (
                 <SelectItem key={m} value={m}>
-                  {m}
+                  {formatLabel(m)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -296,7 +298,7 @@ export function LensCatalog() {
                             {stock.make} {stock.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {stock.focal_length}mm f/{stock.max_aperture}{" "}
+                            {formatLensSpec(stock)}{" "}
                             &middot; {stock.mount}
                           </p>
                         </div>

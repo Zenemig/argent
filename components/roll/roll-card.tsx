@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Film, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -34,7 +35,12 @@ export function RollCard({ roll }: { roll: Roll }) {
 
   return (
     <Link href={`/roll/${roll.id}`}>
-      <Card className="transition-colors hover:bg-accent/50">
+      <Card
+        className={cn(
+          "transition-colors hover:bg-accent/50",
+          roll.status === "discarded" && "opacity-60",
+        )}
+      >
         <CardContent className="flex items-center gap-3 py-3">
           <Film className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">

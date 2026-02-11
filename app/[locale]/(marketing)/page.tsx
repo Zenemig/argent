@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { WifiOff, FileCode, Globe, FolderOpen, Check } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { Reveal } from "@/components/marketing/reveal";
 
 export async function generateMetadata({
   params,
@@ -90,25 +91,25 @@ function LandingPage({ locale }: { locale: string }) {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-background/80 via-background/70 to-background" />
         <div className="relative z-10">
-          <Logo className="mx-auto mb-8 h-10 text-zinc-300 sm:h-14" />
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
+          <Logo className="mx-auto mb-8 h-14 text-zinc-300 sm:h-20 animate-fade-up" />
+          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl animate-fade-up [animation-delay:150ms]">
             {t("hero.title")}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground animate-fade-up [animation-delay:300ms]">
             {t("hero.subtitle")}
           </p>
-          <div className="mt-10 flex justify-center gap-4">
+          <div className="mt-10 flex justify-center gap-4 animate-fade-up [animation-delay:450ms]">
             <Link
               href="/login?mode=signup"
-              className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
             >
               {t("hero.cta")}
             </Link>
             <a
               href="#how-it-works"
-              className="rounded-xl border border-border bg-background/50 px-6 py-3 text-sm font-semibold backdrop-blur hover:bg-accent"
+              className="rounded-xl border border-border bg-background/50 px-6 py-3 text-sm font-semibold backdrop-blur transition-all duration-200 hover:bg-accent hover:border-zinc-600 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
             >
               {t("hero.learnMore")}
             </a>
@@ -119,7 +120,7 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Problem Statement */}
       <section className="leatherette relative overflow-hidden bg-muted/50 px-4 py-24">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
-        <div className="relative z-10 mx-auto max-w-3xl text-center">
+        <Reveal className="relative z-10 mx-auto max-w-3xl text-center">
           <span className="text-6xl font-serif text-amber-500/20 leading-none select-none">&ldquo;</span>
           <h2 className="mt-2 text-3xl font-bold tracking-tight">
             {t("problem.title")}
@@ -127,7 +128,7 @@ function LandingPage({ locale }: { locale: string }) {
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
             {t("problem.description")}
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* Features */}
@@ -138,29 +139,28 @@ function LandingPage({ locale }: { locale: string }) {
           fill
           className="object-cover opacity-10"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-background via-transparent to-background" />
         <div className="relative z-10 mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
           {(["offline", "xmp", "crossPlatform", "openData"] as const).map(
-            (key) => {
+            (key, i) => {
               const Icon = FEATURE_ICONS[key];
               return (
-                <div
-                  key={key}
-                  className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-zinc-600 hover:shadow-md"
-                >
-                  <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-amber-500/5 blur-2xl transition-all group-hover:bg-amber-500/10" />
-                  <div className="relative">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
-                      <Icon className="h-5 w-5 text-amber-500" />
+                <Reveal key={key} delay={i * 100}>
+                  <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-zinc-600 hover:shadow-lg hover:-translate-y-1">
+                    <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-amber-500/5 blur-2xl transition-all group-hover:bg-amber-500/10" />
+                    <div className="relative">
+                      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                        <Icon className="h-5 w-5 text-amber-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold">
+                        {t(`features.${key}.title`)}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {t(`features.${key}.description`)}
+                      </p>
                     </div>
-                    <h3 className="text-lg font-semibold">
-                      {t(`features.${key}.title`)}
-                    </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t(`features.${key}.description`)}
-                    </p>
                   </div>
-                </div>
+                </Reveal>
               );
             },
           )}
@@ -170,30 +170,34 @@ function LandingPage({ locale }: { locale: string }) {
       {/* How It Works */}
       <section id="how-it-works" className="leatherette bg-muted/50 px-4 py-24">
         <div className="relative z-10 mx-auto max-w-5xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight">
-            {t("howItWorks.title")}
-          </h2>
+          <Reveal>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {t("howItWorks.title")}
+            </h2>
+          </Reveal>
           <div className="mt-12 grid gap-8 sm:grid-cols-3">
             {(["step1", "step2", "step3"] as const).map((step, i) => (
-              <div key={step} className="flex flex-col items-center">
-                <div className="relative mb-6 aspect-square w-48 overflow-hidden rounded-2xl">
-                  <Image
-                    src={HOW_IT_WORKS_IMAGES[step]}
-                    alt={t(`howItWorks.${step}.title`)}
-                    fill
-                    className="object-cover"
-                  />
+              <Reveal key={step} delay={i * 150}>
+                <div className="group flex flex-col items-center">
+                  <div className="relative mb-6 aspect-square w-48 overflow-hidden rounded-2xl">
+                    <Image
+                      src={HOW_IT_WORKS_IMAGES[step]}
+                      alt={t(`howItWorks.${step}.title`)}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-transform duration-300 group-hover:scale-110">
+                    {i + 1}
+                  </div>
+                  <h3 className="mt-3 text-lg font-semibold">
+                    {t(`howItWorks.${step}.title`)}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t(`howItWorks.${step}.description`)}
+                  </p>
                 </div>
-                <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                  {i + 1}
-                </div>
-                <h3 className="mt-3 text-lg font-semibold">
-                  {t(`howItWorks.${step}.title`)}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t(`howItWorks.${step}.description`)}
-                </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -207,14 +211,17 @@ function LandingPage({ locale }: { locale: string }) {
           fill
           className="object-cover opacity-10"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-background via-transparent to-background" />
         <div className="relative z-10 mx-auto max-w-5xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight">
-            {t("pricing.title")}
-          </h2>
+          <Reveal>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {t("pricing.title")}
+            </h2>
+          </Reveal>
           <div className="mx-auto mt-12 grid max-w-4xl gap-8 sm:grid-cols-2">
             {/* Free Tier */}
-            <div className="flex flex-col gap-8 rounded-xl border border-border bg-card p-8 text-left shadow-sm">
+            <Reveal>
+            <div className="flex h-full flex-col gap-8 rounded-xl border border-border bg-card p-8 text-left shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
               <div>
                 <h3 className="text-2xl font-bold">{t("pricing.free")}</h3>
                 <p className="mt-2 text-3xl font-bold">$0</p>
@@ -229,13 +236,15 @@ function LandingPage({ locale }: { locale: string }) {
               </ul>
               <Link
                 href="/login"
-                className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
               >
                 {t("pricing.getStarted")}
               </Link>
             </div>
+            </Reveal>
             {/* Pro Tier */}
-            <div className="flex flex-col gap-8 rounded-xl border border-amber-500/40 bg-card p-8 text-left shadow-sm">
+            <Reveal delay={150}>
+            <div className="flex h-full flex-col gap-8 rounded-xl border border-amber-500/40 bg-card p-8 text-left shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 hover:-translate-y-1 hover:border-amber-500/60">
               <div>
                 <div className="flex items-center gap-3">
                   <h3 className="text-2xl font-bold">{t("pricing.pro")}</h3>
@@ -257,11 +266,12 @@ function LandingPage({ locale }: { locale: string }) {
               </ul>
               <Link
                 href="/login?mode=signup&interest=pro"
-                className="mt-auto block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold hover:bg-accent"
+                className="mt-auto block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold transition-all duration-200 hover:bg-accent hover:border-zinc-600 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
               >
                 {t("pricing.joinWaitlist")}
               </Link>
             </div>
+            </Reveal>
           </div>
         </div>
       </section>

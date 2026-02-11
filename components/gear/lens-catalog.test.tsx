@@ -46,6 +46,18 @@ vi.mock("./lens-form", () => ({
   LensForm: () => <div data-testid="lens-form" />,
 }));
 
+vi.mock("@/lib/lens-utils", () => ({
+  formatLensSpec: (lens: { focal_length: number; max_aperture: number; focal_length_max?: number | null; min_aperture?: number | null }) => {
+    const fl = lens.focal_length_max
+      ? `${lens.focal_length}-${lens.focal_length_max}mm`
+      : `${lens.focal_length}mm`;
+    const ap = lens.min_aperture
+      ? `f/${lens.max_aperture}-${lens.min_aperture}`
+      : `f/${lens.max_aperture}`;
+    return `${fl} ${ap}`;
+  },
+}));
+
 import { LensCatalog } from "./lens-catalog";
 
 describe("LensCatalog", () => {
@@ -161,5 +173,41 @@ describe("LensCatalog", () => {
     render(<LensCatalog />);
     expect(screen.getByLabelText("edit")).toBeDefined();
     expect(screen.getByLabelText("delete")).toBeDefined();
+  });
+
+  it("displays zoom lens spec with range", () => {
+    const lenses = [
+      {
+        id: "lens-z",
+        name: "Nikkor 24-70mm f/2.8",
+        make: "Nikon",
+        focal_length: 24,
+        max_aperture: 2.8,
+        focal_length_max: 70,
+        min_aperture: null,
+        camera_id: null,
+      },
+    ];
+    mockQueryResults.push(lenses, [], []);
+    render(<LensCatalog />);
+    // The spec line uses formatLensSpec: "Nikon · 24-70mm f/2.8"
+    expect(screen.getByText(/Nikon · 24-70mm f\/2\.8/)).toBeDefined();
+  });
+
+  it("displays prime lens spec without range", () => {
+    const lenses = [
+      {
+        id: "lens-1",
+        name: "Nikkor 50mm f/1.4",
+        make: "Nikon",
+        focal_length: 50,
+        max_aperture: 1.4,
+        camera_id: null,
+      },
+    ];
+    mockQueryResults.push(lenses, [], []);
+    render(<LensCatalog />);
+    // The spec line uses formatLensSpec, producing "Nikon · 50mm f/1.4"
+    expect(screen.getByText(/Nikon · 50mm f\/1\.4/)).toBeDefined();
   });
 });

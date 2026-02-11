@@ -158,7 +158,10 @@
     "yourLenses": "Tus Lentes",
     "yourFilms": "Tus Películas",
     "addCustomFilm": "Agregar Película Personalizada",
-    "filmCatalog": "Catálogo de Películas"
+    "filmCatalog": "Catálogo de Películas",
+    "zoomLens": "Lente Zoom",
+    "focalLengthMax": "Distancia Focal Máxima",
+    "minAperture": "Apertura Mínima (tele)"
   },
   "roll": {
     "loadNew": "Cargar Nuevo Rollo",
@@ -175,7 +178,8 @@
       "finished": "Terminado",
       "developed": "Revelado",
       "scanned": "Escaneado",
-      "archived": "Archivado"
+      "archived": "Archivado",
+      "discarded": "Descartado"
     },
     "actions": {
       "finish": "Terminar Rollo",
@@ -205,7 +209,22 @@
     "sortDate": "Más Recientes",
     "sortStatus": "Por Estado",
     "sortCamera": "Por Cámara",
-    "noFilterResults": "No hay rollos que coincidan con tus filtros"
+    "noFilterResults": "No hay rollos que coincidan con tus filtros",
+    "deleteRoll": "Eliminar Rollo",
+    "discardRoll": "Descartar Rollo",
+    "deleteConfirm": "¿Eliminar este rollo?",
+    "deleteWarning": "Este rollo y sus {count, plural, one {# cuadro} other {# cuadros}} se ocultarán permanentemente.",
+    "rollDeleted": "Rollo eliminado",
+    "rollDiscarded": "Rollo descartado",
+    "discardReasonLabel": "Motivo",
+    "discardNotesLabel": "Notas (opcional)",
+    "discardReason": {
+      "lost_stolen": "Perdido / Robado",
+      "light_leak": "Fuga de luz / Velado",
+      "damaged": "Dañado",
+      "lab_error": "Error de laboratorio",
+      "other": "Otro"
+    }
   },
   "frame": {
     "log": "Registrar Foto",
@@ -219,6 +238,7 @@
     "note": "Nota Rápida",
     "location": "Ubicación",
     "frameNumber": "Cuadro {number}",
+    "focalLengthUsed": "Distancia Focal",
     "exceedWarning": "Esto excede el número de cuadros del rollo. ¿Continuar de todos modos?",
     "metering": {
       "spot": "Puntual",

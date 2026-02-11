@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Undo2 } from "lucide-react";
+import { Undo2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,8 @@ import {
   STATUS_ORDER,
   getNextStatus,
   getPrevStatus,
+  getAdvanceFields,
+  getUndoFields,
   ACTION_KEYS,
 } from "@/lib/roll-lifecycle";
 import { toast } from "sonner";
@@ -34,6 +36,32 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
   const [labName, setLabName] = useState(roll.lab_name ?? "");
   const [devNotes, setDevNotes] = useState(roll.dev_notes ?? "");
 
+  // Discarded rolls show a banner instead of the lifecycle timeline
+  if (roll.status === "discarded") {
+    return (
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
+          <div>
+            <p className="font-medium text-destructive">
+              {t("status.discarded")}
+            </p>
+            {roll.discard_reason && (
+              <p className="text-sm text-muted-foreground">
+                {t(`discardReason.${roll.discard_reason}`)}
+              </p>
+            )}
+            {roll.discard_notes && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {roll.discard_notes}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const nextStatus = getNextStatus(roll.status);
   const prevStatus = getPrevStatus(roll.status);
 
@@ -46,16 +74,7 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
       return;
     }
 
-    const now = Date.now();
-    const updates: Partial<Roll> = {
-      status: nextStatus,
-      updated_at: now,
-    };
-
-    if (nextStatus === "finished") updates.finish_date = now;
-    if (nextStatus === "scanned") updates.scan_date = now;
-
-    await syncUpdate("rolls", roll.id, updates);
+    await syncUpdate("rolls", roll.id, getAdvanceFields(nextStatus));
     toast.success(t("statusUpdated"));
   }
 
@@ -74,22 +93,7 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
 
   async function undoStatus() {
     if (!prevStatus) return;
-    const now = Date.now();
-    const updates: Partial<Roll> = {
-      status: prevStatus,
-      updated_at: now,
-    };
-
-    // Clear the date for the status we're undoing
-    if (roll.status === "finished") updates.finish_date = null;
-    if (roll.status === "developed") {
-      updates.develop_date = null;
-      updates.lab_name = null;
-      updates.dev_notes = null;
-    }
-    if (roll.status === "scanned") updates.scan_date = null;
-
-    await syncUpdate("rolls", roll.id, updates);
+    await syncUpdate("rolls", roll.id, getUndoFields(roll.status, prevStatus));
     toast.success(t("statusUpdated"));
   }
 
@@ -129,9 +133,9 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 lg:w-fit">
         {nextStatus && ACTION_KEYS[nextStatus] && (
-          <Button onClick={advanceStatus} className="flex-1">
+          <Button onClick={advanceStatus} className="flex-1 lg:flex-initial lg:px-8">
             {t(`actions.${ACTION_KEYS[nextStatus]}`)}
           </Button>
         )}

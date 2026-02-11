@@ -104,9 +104,8 @@ export function computeFocalLengthUsage(
 
   const counts = new Map<number, number>();
   for (const frame of frames) {
-    const lensId = frame.lens_id;
-    if (!lensId) continue;
-    const fl = lensMap.get(lensId);
+    // Prefer per-frame focal length (zoom lenses) over lens default
+    const fl = frame.focal_length ?? (frame.lens_id ? lensMap.get(frame.lens_id) : undefined);
     if (fl === undefined) continue;
     counts.set(fl, (counts.get(fl) ?? 0) + 1);
   }

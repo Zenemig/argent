@@ -6,7 +6,7 @@ export type FilmFormat = (typeof FILM_FORMATS)[number];
 export const FILM_PROCESSES = ["C-41", "E-6", "BW", "BW-C41", "other"] as const;
 export type FilmProcess = (typeof FILM_PROCESSES)[number];
 
-/** Roll lifecycle statuses (ordered) */
+/** Roll lifecycle statuses (ordered). "discarded" is a terminal status reachable from any status. */
 export const ROLL_STATUSES = [
   "loaded",
   "active",
@@ -14,6 +14,7 @@ export const ROLL_STATUSES = [
   "developed",
   "scanned",
   "archived",
+  "discarded",
 ] as const;
 export type RollStatus = (typeof ROLL_STATUSES)[number];
 
@@ -115,6 +116,20 @@ export const CAMERA_TYPES = [
   "other",
 ] as const;
 export type CameraType = (typeof CAMERA_TYPES)[number];
+
+/** Display labels for constant values (acronyms, capitalization) */
+const LABEL_OVERRIDES: Record<string, string> = {
+  slr: "SLR",
+  tlr: "TLR",
+  "point-and-shoot": "Point & Shoot",
+  "medium-format-slr": "Medium Format SLR",
+  "BW-C41": "BW-C41",
+};
+
+export function formatLabel(value: string): string {
+  if (LABEL_OVERRIDES[value]) return LABEL_OVERRIDES[value];
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 /** Sync queue operation types */
 export const SYNC_OPERATIONS = ["create", "update", "delete"] as const;

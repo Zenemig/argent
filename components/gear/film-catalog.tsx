@@ -53,7 +53,7 @@ import {
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
-import { FILM_FORMATS, FILM_PROCESSES } from "@/lib/constants";
+import { FILM_FORMATS, FILM_PROCESSES, formatLabel } from "@/lib/constants";
 import { FilmForm } from "./film-form";
 import type { Film as FilmType, FilmStock, FilmFormat } from "@/lib/types";
 import { useState, useMemo } from "react";
@@ -234,7 +234,7 @@ export function FilmCatalog() {
               <SelectItem value="all">{t("allFormats")}</SelectItem>
               {FILM_FORMATS.map((f) => (
                 <SelectItem key={f} value={f}>
-                  {f}
+                  {formatLabel(f)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -248,7 +248,7 @@ export function FilmCatalog() {
               <SelectItem value="all">{t("allProcesses")}</SelectItem>
               {FILM_PROCESSES.map((p) => (
                 <SelectItem key={p} value={p}>
-                  {p}
+                  {formatLabel(p)}
                 </SelectItem>
               ))}
             </SelectContent>
