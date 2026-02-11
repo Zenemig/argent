@@ -104,7 +104,7 @@ export function DashboardContent() {
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-8 w-28" />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="space-y-3 py-3">
@@ -174,7 +174,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
       ) : hasResults ? (
-        <div className="space-y-2">
+        <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 xl:grid-cols-3">
           {filteredRolls.map((roll) => (
             <RollCard key={roll.id} roll={roll} />
           ))}

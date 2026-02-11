@@ -103,7 +103,7 @@ export function SettingsContent() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 lg:max-w-2xl">
       {userEmail && (
         <>
           <Card>

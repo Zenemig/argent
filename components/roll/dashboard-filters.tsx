@@ -51,8 +51,8 @@ export function DashboardFilters({
   const tc = useTranslations("common");
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
+    <div className="space-y-2 lg:flex lg:items-end lg:gap-3 lg:space-y-0">
+      <div className="relative lg:w-64">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchQuery}
@@ -63,7 +63,7 @@ export function DashboardFilters({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-1 lg:gap-3">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger>
             <SelectValue />

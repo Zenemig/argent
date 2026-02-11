@@ -3,6 +3,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { DbProvider } from "@/components/db-provider";
 import { UserTierProvider } from "@/hooks/useUserTier";
 import { BottomNav } from "@/components/bottom-nav";
+import { SidebarNav } from "@/components/sidebar-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/logo";
 import { SyncStatus } from "@/components/sync-status";
@@ -38,25 +39,30 @@ export default async function AppLayout({
     }
   }
 
+  const userMenu = user ? (
+    <UserMenu
+      userId={user.id}
+      email={user.email ?? ""}
+      tier={tier}
+      displayName={displayName}
+    />
+  ) : null;
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DbProvider>
         <UserTierProvider>
-          <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6">
-            <div className="mb-4 flex items-center gap-2">
-              <Logo className="h-5 text-muted-foreground" />
-              <div className="flex-1" />
-              <SyncStatus />
-              {user && (
-                <UserMenu
-                  userId={user.id}
-                  email={user.email ?? ""}
-                  tier={tier}
-                  displayName={displayName}
-                />
-              )}
+          <SidebarNav userMenu={userMenu} />
+          <div className="lg:pl-60">
+            <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6 lg:max-w-5xl lg:px-8 lg:pb-8 lg:pt-8">
+              <div className="mb-4 flex items-center gap-2 lg:hidden">
+                <Logo className="h-5 text-muted-foreground" />
+                <div className="flex-1" />
+                <SyncStatus />
+                {userMenu}
+              </div>
+              {children}
             </div>
-            {children}
           </div>
           <BottomNav />
           <Toaster />

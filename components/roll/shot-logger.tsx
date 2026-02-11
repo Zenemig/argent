@@ -42,6 +42,7 @@ import {
   METERING_MODES,
   EXPOSURE_COMP_VALUES,
 } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import type { Roll, Frame, MeteringMode } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -293,10 +294,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     roll.status === "loaded" || roll.status === "active";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:flex lg:gap-6 lg:space-y-0">
       {/* Frame timeline */}
+      <div className="lg:flex-1 lg:min-w-0">
       {frames && frames.length > 0 && (
-        <ScrollArea className="max-h-48">
+        <ScrollArea className="max-h-48 lg:max-h-[calc(100vh-16rem)]">
           <div className="space-y-1">
             {frames.map((frame) => {
               const thumbUrl = frameThumbUrls.get(frame.id);
@@ -351,11 +353,15 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
           </div>
         </ScrollArea>
       )}
+      </div>
 
       {/* Log controls */}
       {canLog && (
-        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-border bg-background p-4">
-          <div className="mx-auto max-w-lg space-y-3">
+        <div className={cn(
+          "fixed inset-x-0 bottom-16 z-40 border-t border-border bg-background p-4",
+          "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:self-start lg:sticky lg:top-8 lg:rounded-lg lg:border lg:bg-card lg:p-4"
+        )}>
+          <div className="mx-auto max-w-lg space-y-3 lg:mx-0 lg:max-w-none">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
                 {t("frameNumber", { number: nextFrameNumber })}

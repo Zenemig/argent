@@ -43,7 +43,7 @@ export function StatsContent() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <div className="space-y-4">
+        <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
           {Array.from({ length: 5 }, (_, i) => (
             <Card key={i}>
               <CardHeader>
@@ -79,6 +79,7 @@ export function StatsContent() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("title")}</h1>
 
+      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
       {/* Most Used Film Stocks */}
       {filmUsage && filmUsage.length > 0 && (
         <Card>
@@ -273,6 +274,7 @@ export function StatsContent() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
