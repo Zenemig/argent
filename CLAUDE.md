@@ -63,6 +63,39 @@ supabase/migrations/               -- SQL migrations (timestamped, never modify 
 - Compound components with `{ state, actions, meta }` context interface for complex UI (Roll editor, Gear bag).
 - Use `useLiveQuery` from `dexie-react-hooks` for reactive IndexedDB queries.
 
+## TDD Workflow
+
+All development follows strict Red-Green-Refactor:
+
+1. **Red** -- Write or update tests first based on the spec. Run them, confirm they fail.
+2. **Green** -- Implement or update the minimum code needed to make tests pass.
+3. **Refactor** -- Clean up for readability, performance, and maintainability. Tests must stay green.
+
+### Rules
+
+- **Tests before code.** Never write implementation without a failing test first.
+- **New features:** Write tests for the expected behavior, then implement.
+- **Bug fixes:** Write a test that reproduces the bug (fails), then fix (passes).
+- **Refactors:** Ensure existing tests pass before and after. Add tests if coverage gaps exist.
+- **Run only the affected test file** during Red/Green (`npm test -- path/to/file.test.ts`). Run the full suite before committing.
+- **One assertion per concern.** Tests should fail for exactly one reason.
+
+### Test Conventions
+
+- **Framework:** Vitest + jsdom + @testing-library/react + @testing-library/jest-dom.
+- **File placement:** Co-located with source (`foo.tsx` → `foo.test.tsx`).
+- **Mock strategy:** Module-level `vi.mock()` with inline factories BEFORE component imports (vi.mock is hoisted). Never reference `const` variables inside mock factories.
+- **Standard mocks:**
+  - `next-intl`: `useTranslations: () => (key) => key` (returns translation keys).
+  - `sonner`: `toast: { error: vi.fn(), success: vi.fn() }`.
+  - `dexie-react-hooks`: `useLiveQuery` with `mockQueryResults[]` array and `queryCallIndex` counter. Push extra copies for components that re-render via useEffect.
+  - `@/lib/sync-write`: `syncAdd`/`syncUpdate` as `vi.fn().mockResolvedValue(undefined)`.
+  - `useUserId`/`useUserTier`: Mutable `let` variables reset in `beforeEach`.
+- **Per-test customization:** Mutable `let` variables at module scope, reset in `beforeEach`.
+- **SVG elements:** Use `getAttribute("class")` instead of `.className` (jsdom returns `SVGAnimatedString`).
+- **Radix components** (ScrollArea, Dialog): Mock with simple div wrappers when they don't render children in jsdom.
+- **No snapshot tests** for components. Prefer explicit assertions on rendered content.
+
 ## Gotchas
 
 - **Dexie.js, NOT Dexie Cloud.** We use Dexie for local IndexedDB only. Supabase is the cloud backend. Never import from `dexie-cloud-addon`.
