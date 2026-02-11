@@ -12,8 +12,21 @@ import { ROLL_STATUSES } from "./constants";
 import type { RollStatus } from "./types";
 
 describe("STATUS_ORDER", () => {
-  it("matches ROLL_STATUSES from constants", () => {
-    expect(STATUS_ORDER).toEqual([...ROLL_STATUSES]);
+  it("contains the linear lifecycle statuses (excludes discarded)", () => {
+    expect(STATUS_ORDER).toEqual([
+      "loaded",
+      "active",
+      "finished",
+      "developed",
+      "scanned",
+      "archived",
+    ]);
+  });
+
+  it("is a subset of ROLL_STATUSES", () => {
+    for (const s of STATUS_ORDER) {
+      expect(ROLL_STATUSES).toContain(s);
+    }
   });
 });
 
@@ -40,6 +53,10 @@ describe("getNextStatus", () => {
 
   it("archived -> null (terminal status)", () => {
     expect(getNextStatus("archived")).toBeNull();
+  });
+
+  it("discarded -> null (terminal, not in linear lifecycle)", () => {
+    expect(getNextStatus("discarded")).toBeNull();
   });
 
   it("unknown status -> null", () => {
@@ -70,6 +87,10 @@ describe("getPrevStatus", () => {
 
   it("archived -> scanned", () => {
     expect(getPrevStatus("archived")).toBe("scanned");
+  });
+
+  it("discarded -> null (terminal, not in linear lifecycle)", () => {
+    expect(getPrevStatus("discarded")).toBeNull();
   });
 
   it("unknown status -> null", () => {

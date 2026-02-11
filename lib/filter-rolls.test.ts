@@ -19,6 +19,8 @@ function makeRoll(overrides: Partial<Roll> = {}): Roll {
     push_pull: 0,
     lab_name: null,
     dev_notes: null,
+    discard_reason: null,
+    discard_notes: null,
     start_date: Date.now(),
     finish_date: null,
     develop_date: null,
@@ -227,5 +229,45 @@ describe("filterAndSortRolls", () => {
       statusFilter: "finished",
     });
     expect(result).toEqual([]);
+  });
+
+  it("hides discarded rolls when statusFilter is 'all'", () => {
+    const rolls = [
+      makeRoll({ id: "r1", status: "active" }),
+      makeRoll({ id: "r2", status: "discarded" }),
+      makeRoll({ id: "r3", status: "finished" }),
+    ];
+    const result = filterAndSortRolls(rolls, cameras, filmMap, defaultFilters);
+    expect(result.length).toBe(2);
+    expect(result.find((r) => r.status === "discarded")).toBeUndefined();
+  });
+
+  it("shows only discarded rolls when explicitly filtered", () => {
+    const rolls = [
+      makeRoll({ id: "r1", status: "active" }),
+      makeRoll({ id: "r2", status: "discarded" }),
+    ];
+    const result = filterAndSortRolls(rolls, cameras, filmMap, {
+      ...defaultFilters,
+      statusFilter: "discarded",
+    });
+    expect(result.length).toBe(1);
+    expect(result[0].status).toBe("discarded");
+  });
+
+  it("sorts discarded rolls after all lifecycle statuses", () => {
+    const rolls = [
+      makeRoll({ id: "r1", status: "discarded" }),
+      makeRoll({ id: "r2", status: "loaded" }),
+      makeRoll({ id: "r3", status: "archived" }),
+    ];
+    const result = filterAndSortRolls(rolls, cameras, filmMap, {
+      ...defaultFilters,
+      statusFilter: "discarded",
+      sortBy: "status",
+    });
+    // Only discarded rolls match the filter, so just one result
+    expect(result.length).toBe(1);
+    expect(result[0].status).toBe("discarded");
   });
 });

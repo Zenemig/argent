@@ -1,0 +1,100 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, act } from "@testing-library/react";
+
+const mockGet = vi.fn();
+const mockPut = vi.fn();
+const mockSeedFilmStocks = vi.fn().mockResolvedValue(undefined);
+const mockSeedCameraStocks = vi.fn().mockResolvedValue(undefined);
+const mockSeedLensStocks = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    _syncMeta: {
+      get: (...args: unknown[]) => mockGet(...args),
+      put: (...args: unknown[]) => mockPut(...args),
+    },
+    filmStock: {},
+    cameraStock: {},
+    lensStock: {},
+  },
+}));
+
+vi.mock("@/lib/seed", () => ({
+  seedFilmStocks: (...args: unknown[]) => mockSeedFilmStocks(...args),
+}));
+
+vi.mock("@/lib/seed-cameras", () => ({
+  seedCameraStocks: (...args: unknown[]) => mockSeedCameraStocks(...args),
+}));
+
+vi.mock("@/lib/seed-lenses", () => ({
+  seedLensStocks: (...args: unknown[]) => mockSeedLensStocks(...args),
+}));
+
+import { DbProvider } from "./db-provider";
+
+describe("DbProvider", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Default: nothing seeded yet
+    mockGet.mockResolvedValue(undefined);
+    mockPut.mockResolvedValue(undefined);
+  });
+
+  it("renders nothing while initializing", () => {
+    // Never resolve to keep in loading state
+    mockGet.mockReturnValue(new Promise(() => {}));
+    const { container } = render(
+      <DbProvider>
+        <div data-testid="child">Ready</div>
+      </DbProvider>,
+    );
+    expect(screen.queryByTestId("child")).toBeNull();
+  });
+
+  it("renders children after seeding completes", async () => {
+    await act(async () => {
+      render(
+        <DbProvider>
+          <div data-testid="child">Ready</div>
+        </DbProvider>,
+      );
+    });
+
+    expect(screen.getByTestId("child")).toBeDefined();
+  });
+
+  it("seeds film stocks on first run", async () => {
+    await act(async () => {
+      render(
+        <DbProvider>
+          <div>Ready</div>
+        </DbProvider>,
+      );
+    });
+
+    expect(mockSeedFilmStocks).toHaveBeenCalled();
+    expect(mockPut).toHaveBeenCalledWith({ key: "seeded", value: "true" });
+  });
+
+  it("skips seeding if already seeded", async () => {
+    mockGet.mockImplementation((key: string) => {
+      if (key === "seeded") return Promise.resolve({ key: "seeded", value: "true" });
+      if (key === "seeded_cameras") return Promise.resolve({ key: "seeded_cameras", value: "true" });
+      if (key === "seeded_lenses") return Promise.resolve({ key: "seeded_lenses", value: "true" });
+      return Promise.resolve(undefined);
+    });
+
+    await act(async () => {
+      render(
+        <DbProvider>
+          <div>Ready</div>
+        </DbProvider>,
+      );
+    });
+
+    expect(mockSeedFilmStocks).not.toHaveBeenCalled();
+    expect(mockSeedCameraStocks).not.toHaveBeenCalled();
+    expect(mockSeedLensStocks).not.toHaveBeenCalled();
+  });
+});
