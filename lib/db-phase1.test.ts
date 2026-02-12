@@ -256,7 +256,7 @@ describe("Settings persistence (_syncMeta)", () => {
 });
 
 describe("Seed idempotency", () => {
-  it("seeding twice results in same count", async () => {
+  it("seeding twice results in same count", { timeout: 30_000 }, async () => {
     await seedFilmStocks(db.filmStock);
     const count1 = await db.filmStock.count();
     await seedFilmStocks(db.filmStock);

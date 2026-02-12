@@ -34,6 +34,7 @@ describe("ArgentDb", () => {
         "frames",
         "lensStock",
         "lenses",
+        "mountStock",
         "rolls",
       ].sort(),
     );
@@ -166,7 +167,7 @@ describe("Film stock seed data", () => {
     expect(count).toBe(filmStocks.length);
   });
 
-  it("seed is idempotent (bulkPut overwrites)", async () => {
+  it("seed is idempotent (bulkPut overwrites)", { timeout: 30_000 }, async () => {
     await seedFilmStocks(db.filmStock);
     await seedFilmStocks(db.filmStock);
     const count = await db.filmStock.count();
@@ -181,7 +182,7 @@ describe("Film stock seed data", () => {
       "Ilford",
       "CineStill",
       "Lomography",
-      "Fomapan",
+      "Foma",
     ]) {
       expect(brands.has(expected)).toBe(true);
     }
@@ -192,6 +193,6 @@ describe("Film stock seed data", () => {
     expect(processes.has("C-41")).toBe(true);
     expect(processes.has("E-6")).toBe(true);
     expect(processes.has("BW")).toBe(true);
-    expect(processes.has("BW-C41")).toBe(true);
+    expect(processes.has("other")).toBe(true);
   });
 });

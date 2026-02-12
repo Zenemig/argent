@@ -13,7 +13,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "scrape": "tsx scrapers/index.ts",
+    "scrape:films": "tsx scrapers/index.ts films",
+    "scrape:lensfun": "tsx scrapers/index.ts lensfun",
+    "scrape:mounts": "tsx scrapers/index.ts mounts",
+    "scrape:codes": "tsx scrapers/index.ts codes",
+    "scrape:dx": "tsx scrapers/index.ts dx"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -49,13 +55,17 @@
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.3",
+    "cheerio": "^1.2.0",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "fake-indexeddb": "^6.2.5",
+    "fast-xml-parser": "^5.3.5",
     "jsdom": "^28.0.0",
+    "p-queue": "^9.1.0",
     "postcss": "^8.5.6",
     "supabase": "^2.76.6",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

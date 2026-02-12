@@ -149,6 +149,11 @@ export const filmStockSchema = z.object({
   iso: z.number().int().positive(),
   format: z.array(z.enum(FILM_FORMATS)),
   process: z.enum(FILM_PROCESSES),
+  discontinued: z.boolean().optional(),
+  edge_code: z.string().nullable().optional(),
+  notch_code: z.string().nullable().optional(),
+  dx_code: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
 });
 
 export type FilmStock = z.infer<typeof filmStockSchema>;
@@ -185,6 +190,22 @@ export const lensStockSchema = z.object({
 });
 
 export type LensStock = z.infer<typeof lensStockSchema>;
+
+// ---------------------------------------------------------------------------
+// Mount Stock (seed data, read-only catalog)
+// ---------------------------------------------------------------------------
+
+export const mountStockSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: z.enum(["bayonet", "breech-lock", "thread", "other"]),
+  register_distance: z.number().positive().nullable().optional(),
+  mount_diameter: z.number().positive().nullable().optional(),
+  compatible_mounts: z.array(z.string()).optional(),
+  format: z.enum(FILM_FORMATS),
+});
+
+export type MountStock = z.infer<typeof mountStockSchema>;
 
 // ---------------------------------------------------------------------------
 // Sync Queue

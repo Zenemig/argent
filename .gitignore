@@ -45,5 +45,8 @@ next-env.d.ts
 # claude code (keep skills and rules, exclude local settings)
 .claude/settings.local.json
 
+# scrapers
+/scrapers/cache/
+
 # mcp config (local dev tool)
 .mcp.json

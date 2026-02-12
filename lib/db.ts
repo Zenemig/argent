@@ -8,6 +8,7 @@ import type {
   FilmStock,
   CameraStock,
   LensStock,
+  MountStock,
   SyncQueueItem,
   SyncMeta,
   SyncConflict,
@@ -22,6 +23,7 @@ export class ArgentDb extends Dexie {
   filmStock!: EntityTable<FilmStock, "id">;
   cameraStock!: EntityTable<CameraStock, "id">;
   lensStock!: EntityTable<LensStock, "id">;
+  mountStock!: EntityTable<MountStock, "id">;
   _syncQueue!: EntityTable<SyncQueueItem, "id">;
   _syncMeta!: EntityTable<SyncMeta, "key">;
   _syncConflicts!: EntityTable<SyncConflict, "id">;
@@ -54,6 +56,10 @@ export class ArgentDb extends Dexie {
 
     this.version(3).stores({
       _syncConflicts: "++id, table, entity_id",
+    });
+
+    this.version(4).stores({
+      mountStock: "&id, name, format",
     });
   }
 }

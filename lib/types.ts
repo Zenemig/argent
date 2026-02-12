@@ -12,6 +12,7 @@ export type {
   FilmStock,
   CameraStock,
   LensStock,
+  MountStock,
   SyncQueueItem,
   SyncMeta,
   SyncConflict,
