@@ -61,6 +61,22 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Deliver a file via Web Share API if supported, otherwise fall back to download. */
+export async function deliverFile(blob: Blob, filename: string): Promise<void> {
+  const file = new File([blob], filename, { type: blob.type });
+
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+      return;
+    } catch {
+      // User cancelled or share failed — fall back to download
+    }
+  }
+
+  triggerDownload(blob, filename);
+}
+
 const FORMAT_TITLES: Record<ExportFormat, string> = {
   xmp: "xmp",
   csv: "csv",
@@ -192,12 +208,12 @@ async function generateAndDownload(
       zip.file(filename, content);
     }
     const blob = await zip.generateAsync({ type: "blob" });
-    triggerDownload(blob, `${filmLabel}_xmp.zip`);
+    await deliverFile(blob, `${filmLabel}_xmp.zip`);
   } else if (format === "csv") {
     const { generateCSV } = await import("@/lib/exporters/csv");
     const csv = generateCSV(inputs, options);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    triggerDownload(blob, `${filmLabel}_exiftool.csv`);
+    await deliverFile(blob, `${filmLabel}_exiftool.csv`);
   } else if (format === "script") {
     const { generateShellScript, generateBatchScript } = await import(
       "@/lib/exporters/exiftool-script"
@@ -211,12 +227,12 @@ async function generateAndDownload(
     zip.file("export.sh", sh);
     zip.file("export.bat", bat);
     const blob = await zip.generateAsync({ type: "blob" });
-    triggerDownload(blob, `${filmLabel}_exiftool.zip`);
+    await deliverFile(blob, `${filmLabel}_exiftool.zip`);
   } else if (format === "json") {
     const { generateJSON } = await import("@/lib/exporters/json");
     const json = generateJSON(inputs, options);
     const blob = new Blob([json], { type: "application/json;charset=utf-8" });
-    triggerDownload(blob, `${filmLabel}_export.json`);
+    await deliverFile(blob, `${filmLabel}_export.json`);
   }
 }
 
@@ -395,7 +411,7 @@ export function ExportDialog({
                 {t("generating")}
               </>
             ) : (
-              t("download")
+              t("export")
             )}
           </Button>
         </DialogFooter>

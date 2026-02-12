@@ -144,12 +144,7 @@
     "catalog": "Catalog",
     "stockCount": "{count} stocks",
     "addFromCatalog": "Add from Catalog",
-    "addCustomCamera": "Add Custom Camera",
-    "addCustomLens": "Add Custom Lens",
-    "cameraCatalog": "Camera Catalog",
-    "lensCatalog": "Lens Catalog",
-    "cameraCount": "{count} cameras",
-    "lensCount": "{count} lenses",
+    "allCameras": "All Cameras",
     "allMounts": "All Mounts",
     "allTypes": "All Types",
     "mount": "Mount",
@@ -161,7 +156,13 @@
     "filmCatalog": "Film Catalog",
     "zoomLens": "Zoom Lens",
     "focalLengthMax": "Max Focal Length",
-    "minAperture": "Min Aperture (tele)"
+    "minAperture": "Min Aperture (tele)",
+    "shutterSpeedMin": "Slowest Shutter Speed",
+    "shutterSpeedMax": "Fastest Shutter Speed",
+    "meteringModes": "Metering Modes",
+    "apertureMin": "Min Aperture (stopped down)",
+    "hasBulb": "Bulb (B)",
+    "none": "None"
   },
   "roll": {
     "loadNew": "Load New Roll",
@@ -311,11 +312,11 @@
     "fileListHint": "Paste one scan filename per line. Must match the number of frames ({count}).",
     "fileListMismatch": "Expected {expected} filenames but got {actual}",
     "preview": "Preview",
-    "download": "Download",
+    "export": "Export",
     "generating": "Generating...",
     "cancel": "Cancel",
     "noFrames": "No frames to export",
-    "success": "Export downloaded successfully",
+    "success": "Export completed successfully",
     "error": "Failed to generate export"
   },
   "stats": {

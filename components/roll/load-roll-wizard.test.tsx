@@ -60,7 +60,7 @@ describe("LoadRollWizard", () => {
     // cameras, lenses, filmOptions
     mockQueryResults.push([], [], []);
     render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
-    expect(screen.getByText("loadNew")).toBeDefined();
+    expect(screen.getAllByText("loadNew").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows camera selection step first", () => {

@@ -144,12 +144,7 @@
     "catalog": "Catálogo",
     "stockCount": "{count} stocks",
     "addFromCatalog": "Agregar del Catálogo",
-    "addCustomCamera": "Agregar Cámara Personalizada",
-    "addCustomLens": "Agregar Lente Personalizado",
-    "cameraCatalog": "Catálogo de Cámaras",
-    "lensCatalog": "Catálogo de Lentes",
-    "cameraCount": "{count} cámaras",
-    "lensCount": "{count} lentes",
+    "allCameras": "Todas las Cámaras",
     "allMounts": "Todas las Monturas",
     "allTypes": "Todos los Tipos",
     "mount": "Montura",
@@ -161,7 +156,13 @@
     "filmCatalog": "Catálogo de Películas",
     "zoomLens": "Lente Zoom",
     "focalLengthMax": "Distancia Focal Máxima",
-    "minAperture": "Apertura Mínima (tele)"
+    "minAperture": "Apertura Mínima (tele)",
+    "shutterSpeedMin": "Velocidad Más Lenta",
+    "shutterSpeedMax": "Velocidad Más Rápida",
+    "meteringModes": "Modos de Medición",
+    "apertureMin": "Apertura Mínima (cerrada)",
+    "hasBulb": "Bulb (B)",
+    "none": "Ninguno"
   },
   "roll": {
     "loadNew": "Cargar Nuevo Rollo",
@@ -311,11 +312,11 @@
     "fileListHint": "Pega un nombre de archivo por línea. Debe coincidir con el número de cuadros ({count}).",
     "fileListMismatch": "Se esperaban {expected} nombres pero se recibieron {actual}",
     "preview": "Vista Previa",
-    "download": "Descargar",
+    "export": "Exportar",
     "generating": "Generando...",
     "cancel": "Cancelar",
     "noFrames": "No hay cuadros para exportar",
-    "success": "Exportación descargada exitosamente",
+    "success": "Exportación completada exitosamente",
     "error": "Error al generar la exportación"
   },
   "stats": {

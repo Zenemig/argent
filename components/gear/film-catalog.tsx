@@ -47,6 +47,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -311,6 +312,9 @@ export function FilmCatalog() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("addCustomFilm")}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {t("addCustomFilm")}
+            </DialogDescription>
           </DialogHeader>
           <FilmForm onDone={() => setShowAdd(false)} />
         </DialogContent>

@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -56,6 +57,9 @@ export function DiscardRollDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("discardRoll")}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("discardRoll")}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-3">

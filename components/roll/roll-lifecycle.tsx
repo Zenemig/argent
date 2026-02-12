@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -151,6 +152,9 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("actions.develop")}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {t("actions.develop")}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

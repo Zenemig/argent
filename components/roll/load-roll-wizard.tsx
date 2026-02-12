@@ -19,6 +19,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -203,6 +204,9 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("loadNew")}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("loadNew")}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mb-4 flex items-center gap-2">
