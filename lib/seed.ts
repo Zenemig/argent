@@ -1,5 +1,5 @@
 import type { FilmStock } from "./types";
-import filmData from "../scrapers/output/films.json";
+import filmData from "./data/films.json";
 
 /**
  * Comprehensive film stock catalog (~990 stocks from scraped data).

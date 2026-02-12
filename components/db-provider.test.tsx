@@ -4,9 +4,6 @@ import { render, screen, act } from "@testing-library/react";
 const mockGet = vi.fn();
 const mockPut = vi.fn();
 const mockSeedFilmStocks = vi.fn().mockResolvedValue(undefined);
-const mockSeedCameraStocks = vi.fn().mockResolvedValue(undefined);
-const mockSeedLensStocks = vi.fn().mockResolvedValue(undefined);
-const mockSeedMountStocks = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -15,26 +12,11 @@ vi.mock("@/lib/db", () => ({
       put: (...args: unknown[]) => mockPut(...args),
     },
     filmStock: {},
-    cameraStock: {},
-    lensStock: {},
-    mountStock: {},
   },
 }));
 
 vi.mock("@/lib/seed", () => ({
   seedFilmStocks: (...args: unknown[]) => mockSeedFilmStocks(...args),
-}));
-
-vi.mock("@/lib/seed-cameras", () => ({
-  seedCameraStocks: (...args: unknown[]) => mockSeedCameraStocks(...args),
-}));
-
-vi.mock("@/lib/seed-lenses", () => ({
-  seedLensStocks: (...args: unknown[]) => mockSeedLensStocks(...args),
-}));
-
-vi.mock("@/lib/seed-mounts", () => ({
-  seedMountStocks: (...args: unknown[]) => mockSeedMountStocks(...args),
 }));
 
 import { DbProvider } from "./db-provider";
@@ -50,7 +32,7 @@ describe("DbProvider", () => {
   it("renders nothing while initializing", () => {
     // Never resolve to keep in loading state
     mockGet.mockReturnValue(new Promise(() => {}));
-    const { container } = render(
+    render(
       <DbProvider>
         <div data-testid="child">Ready</div>
       </DbProvider>,
@@ -86,9 +68,6 @@ describe("DbProvider", () => {
   it("skips seeding if already seeded", async () => {
     mockGet.mockImplementation((key: string) => {
       if (key === "seeded") return Promise.resolve({ key: "seeded", value: "true" });
-      if (key === "seeded_cameras") return Promise.resolve({ key: "seeded_cameras", value: "true" });
-      if (key === "seeded_lenses") return Promise.resolve({ key: "seeded_lenses", value: "true" });
-      if (key === "seeded_mounts") return Promise.resolve({ key: "seeded_mounts", value: "true" });
       return Promise.resolve(undefined);
     });
 
@@ -101,8 +80,5 @@ describe("DbProvider", () => {
     });
 
     expect(mockSeedFilmStocks).not.toHaveBeenCalled();
-    expect(mockSeedCameraStocks).not.toHaveBeenCalled();
-    expect(mockSeedLensStocks).not.toHaveBeenCalled();
-    expect(mockSeedMountStocks).not.toHaveBeenCalled();
   });
 });
