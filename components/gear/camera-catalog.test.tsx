@@ -26,21 +26,15 @@ vi.mock("dexie-react-hooks", () => ({
 
 vi.mock("@/lib/db", () => ({ db: {} }));
 
-vi.mock("ulid", () => ({
-  ulid: () => "test-cam-ulid",
-}));
-
-const mockSyncAdd = vi.fn().mockResolvedValue(undefined);
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
-  syncAdd: (...args: unknown[]) => mockSyncAdd(...args),
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),
 }));
 
 vi.mock("@/lib/constants", () => ({
   FILM_FORMATS: ["35mm", "120", "4x5"],
-  LENS_MOUNTS: ["F-mount", "M42"],
-  CAMERA_TYPES: ["SLR", "Rangefinder"],
+  LENS_MOUNTS: ["Nikon F", "M42"],
+  CAMERA_TYPES: ["slr", "rangefinder"],
   formatLabel: (v: string) => v,
 }));
 
@@ -60,15 +54,14 @@ describe("CameraCatalog", () => {
 
   it("renders skeleton when data is loading", () => {
     mockUserId = undefined;
-    mockQueryResults.push(undefined, undefined);
+    mockQueryResults.push(undefined);
     const { container } = render(<CameraCatalog />);
     const skeletons = container.querySelectorAll("[class*='animate-pulse']");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("renders empty state when no cameras", () => {
-    // cameras, cameraStocks
-    mockQueryResults.push([], []);
+    mockQueryResults.push([]);
     render(<CameraCatalog />);
     expect(screen.getByText("emptyCamera")).toBeDefined();
   });
@@ -81,9 +74,11 @@ describe("CameraCatalog", () => {
         make: "Nikon",
         format: "35mm",
         default_frame_count: 36,
+        mount: null,
+        type: null,
       },
     ];
-    mockQueryResults.push(cameras, []);
+    mockQueryResults.push(cameras);
     render(<CameraCatalog />);
     expect(screen.getByText("Nikon FM2")).toBeDefined();
     expect(screen.getByText("Nikon")).toBeDefined();
@@ -91,22 +86,23 @@ describe("CameraCatalog", () => {
   });
 
   it("renders your cameras heading", () => {
-    mockQueryResults.push([], []);
+    mockQueryResults.push([]);
     render(<CameraCatalog />);
     expect(screen.getByText("yourCameras")).toBeDefined();
   });
 
-  it("renders add custom camera button", () => {
-    mockQueryResults.push([], []);
+  it("renders add camera button", () => {
+    mockQueryResults.push([]);
     render(<CameraCatalog />);
-    expect(screen.getByText("addCustomCamera")).toBeDefined();
+    expect(screen.getByText("addCamera")).toBeDefined();
   });
 
-  it("renders camera catalog section", () => {
-    mockQueryResults.push([], []);
+  it("renders filter dropdowns", () => {
+    mockQueryResults.push([]);
     render(<CameraCatalog />);
-    expect(screen.getByText("cameraCatalog")).toBeDefined();
-    expect(screen.getByText("addFromCatalog")).toBeDefined();
+    expect(screen.getByText("allFormats")).toBeDefined();
+    expect(screen.getByText("allMounts")).toBeDefined();
+    expect(screen.getByText("allTypes")).toBeDefined();
   });
 
   it("renders edit and delete buttons for each camera", () => {
@@ -117,11 +113,31 @@ describe("CameraCatalog", () => {
         make: "Nikon",
         format: "35mm",
         default_frame_count: 36,
+        mount: null,
+        type: null,
       },
     ];
-    mockQueryResults.push(cameras, []);
+    mockQueryResults.push(cameras);
     render(<CameraCatalog />);
     expect(screen.getByLabelText("edit")).toBeDefined();
     expect(screen.getByLabelText("delete")).toBeDefined();
+  });
+
+  it("displays mount and type when set", () => {
+    const cameras = [
+      {
+        id: "cam-1",
+        name: "Nikon FM2",
+        make: "Nikon",
+        format: "35mm",
+        default_frame_count: 36,
+        mount: "Nikon F",
+        type: "slr",
+      },
+    ];
+    mockQueryResults.push(cameras);
+    render(<CameraCatalog />);
+    // The camera detail line shows "Nikon · Nikon F · slr" (middot = \u00B7)
+    expect(screen.getByText(/Nikon \u00B7 Nikon F \u00B7 slr/)).toBeDefined();
   });
 });

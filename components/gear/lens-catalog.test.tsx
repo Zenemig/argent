@@ -26,19 +26,13 @@ vi.mock("dexie-react-hooks", () => ({
 
 vi.mock("@/lib/db", () => ({ db: {} }));
 
-vi.mock("ulid", () => ({
-  ulid: () => "test-lens-ulid",
-}));
-
-const mockSyncAdd = vi.fn().mockResolvedValue(undefined);
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
-  syncAdd: (...args: unknown[]) => mockSyncAdd(...args),
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),
 }));
 
 vi.mock("@/lib/constants", () => ({
-  LENS_MOUNTS: ["F-mount", "M42"],
+  LENS_MOUNTS: ["Nikon F", "M42"],
   formatLabel: (v: string) => v,
 }));
 
@@ -70,15 +64,15 @@ describe("LensCatalog", () => {
 
   it("renders skeleton when data is loading", () => {
     mockUserId = undefined;
-    mockQueryResults.push(undefined, undefined, undefined);
+    mockQueryResults.push(undefined, undefined);
     const { container } = render(<LensCatalog />);
     const skeletons = container.querySelectorAll("[class*='animate-pulse']");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("renders empty state when no lenses", () => {
-    // lenses, cameras, lensStocks
-    mockQueryResults.push([], [], []);
+    // lenses, cameras
+    mockQueryResults.push([], []);
     render(<LensCatalog />);
     expect(screen.getByText("emptyLens")).toBeDefined();
   });
@@ -92,30 +86,31 @@ describe("LensCatalog", () => {
         focal_length: 50,
         max_aperture: 1.4,
         camera_id: null,
+        mount: null,
       },
     ];
-    mockQueryResults.push(lenses, [], []);
+    mockQueryResults.push(lenses, []);
     render(<LensCatalog />);
     expect(screen.getByText("Nikkor 50mm f/1.4")).toBeDefined();
   });
 
   it("renders your lenses heading", () => {
-    mockQueryResults.push([], [], []);
+    mockQueryResults.push([], []);
     render(<LensCatalog />);
     expect(screen.getByText("yourLenses")).toBeDefined();
   });
 
-  it("renders add custom lens button", () => {
-    mockQueryResults.push([], [], []);
+  it("renders add lens button", () => {
+    mockQueryResults.push([], []);
     render(<LensCatalog />);
-    expect(screen.getByText("addCustomLens")).toBeDefined();
+    expect(screen.getByText("addLens")).toBeDefined();
   });
 
-  it("renders lens catalog section", () => {
-    mockQueryResults.push([], [], []);
+  it("renders filter dropdowns", () => {
+    mockQueryResults.push([], []);
     render(<LensCatalog />);
-    expect(screen.getByText("lensCatalog")).toBeDefined();
-    expect(screen.getByText("addFromCatalog")).toBeDefined();
+    expect(screen.getByText("allMounts")).toBeDefined();
+    expect(screen.getByText("allCameras")).toBeDefined();
   });
 
   it("shows universal badge for lenses without linked camera", () => {
@@ -127,9 +122,10 @@ describe("LensCatalog", () => {
         focal_length: 50,
         max_aperture: 1.4,
         camera_id: null,
+        mount: null,
       },
     ];
-    mockQueryResults.push(lenses, [], []);
+    mockQueryResults.push(lenses, []);
     render(<LensCatalog />);
     expect(screen.getByText("universal")).toBeDefined();
   });
@@ -143,6 +139,7 @@ describe("LensCatalog", () => {
         focal_length: 50,
         max_aperture: 1.4,
         camera_id: "cam-1",
+        mount: null,
       },
     ];
     const cameras = [
@@ -153,7 +150,7 @@ describe("LensCatalog", () => {
         format: "35mm",
       },
     ];
-    mockQueryResults.push(lenses, cameras, []);
+    mockQueryResults.push(lenses, cameras);
     render(<LensCatalog />);
     expect(screen.getByText("Nikon FM2")).toBeDefined();
   });
@@ -167,9 +164,10 @@ describe("LensCatalog", () => {
         focal_length: 50,
         max_aperture: 1.4,
         camera_id: null,
+        mount: null,
       },
     ];
-    mockQueryResults.push(lenses, [], []);
+    mockQueryResults.push(lenses, []);
     render(<LensCatalog />);
     expect(screen.getByLabelText("edit")).toBeDefined();
     expect(screen.getByLabelText("delete")).toBeDefined();
@@ -186,11 +184,11 @@ describe("LensCatalog", () => {
         focal_length_max: 70,
         min_aperture: null,
         camera_id: null,
+        mount: null,
       },
     ];
-    mockQueryResults.push(lenses, [], []);
+    mockQueryResults.push(lenses, []);
     render(<LensCatalog />);
-    // The spec line uses formatLensSpec: "Nikon · 24-70mm f/2.8"
     expect(screen.getByText(/Nikon · 24-70mm f\/2\.8/)).toBeDefined();
   });
 
@@ -203,11 +201,28 @@ describe("LensCatalog", () => {
         focal_length: 50,
         max_aperture: 1.4,
         camera_id: null,
+        mount: null,
       },
     ];
-    mockQueryResults.push(lenses, [], []);
+    mockQueryResults.push(lenses, []);
     render(<LensCatalog />);
-    // The spec line uses formatLensSpec, producing "Nikon · 50mm f/1.4"
     expect(screen.getByText(/Nikon · 50mm f\/1\.4/)).toBeDefined();
+  });
+
+  it("displays mount when set", () => {
+    const lenses = [
+      {
+        id: "lens-1",
+        name: "Nikkor 50mm f/1.4",
+        make: "Nikon",
+        focal_length: 50,
+        max_aperture: 1.4,
+        camera_id: null,
+        mount: "Nikon F",
+      },
+    ];
+    mockQueryResults.push(lenses, []);
+    render(<LensCatalog />);
+    expect(screen.getByText(/Nikon F/)).toBeDefined();
   });
 });

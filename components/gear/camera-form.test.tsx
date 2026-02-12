@@ -28,6 +28,33 @@ vi.mock("@/lib/sync-write", () => ({
 vi.mock("@/lib/constants", () => ({
   FILM_FORMATS: ["35mm", "120", "4x5"],
   DEFAULT_FRAME_COUNTS: { "35mm": 36, "120": 12, "4x5": 1 },
+  LENS_MOUNTS: ["Nikon F", "M42"],
+  CAMERA_TYPES: ["slr", "rangefinder"],
+  SHUTTER_SPEEDS: ["B", "1s", "1/2", "1/125", "1/4000"],
+  METERING_MODES: ["spot", "center", "matrix", "incident", "sunny16"],
+  formatLabel: (v: string) => v,
+}));
+
+vi.mock("@/components/ui/checkbox", () => ({
+  Checkbox: ({
+    id,
+    checked,
+    onCheckedChange,
+    "aria-label": ariaLabel,
+  }: {
+    id?: string;
+    checked?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+    "aria-label"?: string;
+  }) => (
+    <input
+      type="checkbox"
+      id={id}
+      checked={checked}
+      onChange={(e) => onCheckedChange?.(e.target.checked)}
+      aria-label={ariaLabel}
+    />
+  ),
 }));
 
 import { CameraForm } from "./camera-form";
@@ -48,6 +75,12 @@ describe("CameraForm", () => {
     expect(screen.getByLabelText("notes")).toBeDefined();
   });
 
+  it("renders mount and type dropdowns", () => {
+    render(<CameraForm onDone={onDone} />);
+    expect(screen.getByLabelText("mount")).toBeDefined();
+    expect(screen.getByLabelText("cameraType")).toBeDefined();
+  });
+
   it("shows add button for new camera", () => {
     render(<CameraForm onDone={onDone} />);
     expect(screen.getByText("add")).toBeDefined();
@@ -61,6 +94,8 @@ describe("CameraForm", () => {
       name: "Nikon FM2",
       make: "Nikon",
       format: "35mm" as const,
+      mount: null,
+      type: null,
       default_frame_count: 36,
       notes: "My camera",
       deleted_at: null,
@@ -78,6 +113,8 @@ describe("CameraForm", () => {
       name: "Nikon FM2",
       make: "Nikon",
       format: "35mm" as const,
+      mount: null,
+      type: null,
       default_frame_count: 36,
       notes: "My camera",
       deleted_at: null,
@@ -105,5 +142,49 @@ describe("CameraForm", () => {
     fireEvent.change(makeInput, { target: { value: "Nikon" } });
     fireEvent.submit(screen.getByText("add").closest("form")!);
     expect(mockSyncAdd).not.toHaveBeenCalled();
+  });
+
+  it("renders shutter speed constraint selects", () => {
+    render(<CameraForm onDone={onDone} />);
+    expect(screen.getByLabelText("shutterSpeedMin")).toBeDefined();
+    expect(screen.getByLabelText("shutterSpeedMax")).toBeDefined();
+  });
+
+  it("renders bulb checkbox", () => {
+    render(<CameraForm onDone={onDone} />);
+    expect(screen.getByLabelText("hasBulb")).toBeDefined();
+  });
+
+  it("renders metering modes checkboxes", () => {
+    render(<CameraForm onDone={onDone} />);
+    expect(screen.getByLabelText("spot")).toBeDefined();
+    expect(screen.getByLabelText("center")).toBeDefined();
+    expect(screen.getByLabelText("sunny16")).toBeDefined();
+  });
+
+  it("pre-fills constraint fields when editing", () => {
+    const camera = {
+      id: "cam-1",
+      user_id: "user-123",
+      name: "Nikon FM2",
+      make: "Nikon",
+      format: "35mm" as const,
+      mount: null,
+      type: null,
+      shutter_speed_min: "1s" as const,
+      shutter_speed_max: "1/4000" as const,
+      metering_modes: ["center", "sunny16"] as ("center" | "sunny16")[],
+      default_frame_count: 36,
+      notes: null,
+      deleted_at: null,
+      updated_at: Date.now(),
+      created_at: Date.now(),
+    };
+    render(<CameraForm camera={camera} onDone={onDone} />);
+    // Metering checkboxes should be checked
+    const centerCheckbox = screen.getByLabelText("center") as HTMLInputElement;
+    expect(centerCheckbox.checked).toBe(true);
+    const spotCheckbox = screen.getByLabelText("spot") as HTMLInputElement;
+    expect(spotCheckbox.checked).toBe(false);
   });
 });

@@ -24,6 +24,39 @@ vi.mock("dexie-react-hooks", () => ({
 
 vi.mock("@/lib/db", () => ({ db: {} }));
 
+vi.mock("@/lib/gear-filters", () => ({
+  filterShutterSpeeds: (
+    min: string | null | undefined,
+    max: string | null | undefined,
+    hasBulb: boolean | null | undefined,
+  ) => {
+    const allSpeeds = ["B", "1s", "1/2", "1/125", "1/4000", "1/8000"];
+    const timed = allSpeeds.filter((s) => s !== "B");
+    if (min == null && max == null && hasBulb == null) return allSpeeds;
+    const minIdx = min != null ? timed.indexOf(min) : 0;
+    const maxIdx = max != null ? timed.indexOf(max) : timed.length - 1;
+    const filtered = timed.slice(minIdx, maxIdx + 1);
+    return hasBulb !== false ? ["B", ...filtered] : filtered;
+  },
+  filterApertures: (
+    maxAp: number | null | undefined,
+    apMin: number | null | undefined,
+  ) => {
+    const apertures = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22];
+    if (maxAp == null && apMin == null) return apertures;
+    return apertures.filter((a) => {
+      if (maxAp != null && a < maxAp) return false;
+      if (apMin != null && a > apMin) return false;
+      return true;
+    });
+  },
+  filterMeteringModes: (allowed: string[] | null | undefined) => {
+    const modes = ["spot", "center", "matrix", "incident", "sunny16"];
+    if (allowed == null) return modes;
+    return modes.filter((m) => allowed.includes(m));
+  },
+}));
+
 const mockSyncAdd = vi.fn().mockResolvedValue(undefined);
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
@@ -82,6 +115,11 @@ function makeRoll(overrides: Partial<Roll> = {}): Roll {
   } as Roll;
 }
 
+/** Push one render cycle of mock query results: frames, camera, lenses */
+function pushQueryCycle(frames: unknown = [], camera: unknown = undefined, lenses: unknown = []) {
+  mockQueryResults.push(frames, camera, lenses);
+}
+
 describe("ShotLogger", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,26 +128,25 @@ describe("ShotLogger", () => {
   });
 
   it("renders frame counter for active roll", () => {
-    // frames, lenses
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.getByText("frameNumber:{\"number\":1}")).toBeDefined();
   });
 
   it("renders save button for active roll", () => {
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.getByText("save")).toBeDefined();
   });
 
   it("renders save button for loaded roll", () => {
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll({ status: "loaded" })} />);
     expect(screen.getByText("save")).toBeDefined();
   });
 
   it("does not render log controls for finished roll", () => {
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll({ status: "finished" })} />);
     expect(screen.queryByText("save")).toBeNull();
   });
@@ -139,9 +176,8 @@ describe("ShotLogger", () => {
         thumbnail: null,
       },
     ];
-    // Push extra copies: useEffect triggers re-renders (setState from last frame)
-    // so useLiveQuery is called multiple times
-    mockQueryResults.push(frames, [], frames, [], frames, []);
+    // Push extra cycles: useEffect triggers re-renders (setState from last frame)
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.getByText("#1")).toBeDefined();
     expect(screen.getByText("#2")).toBeDefined();
@@ -150,14 +186,14 @@ describe("ShotLogger", () => {
   });
 
   it("renders shutter speed and aperture selects", () => {
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.getByText("shutterSpeed")).toBeDefined();
     expect(screen.getByText("aperture")).toBeDefined();
   });
 
   it("renders note and filter inputs", () => {
-    mockQueryResults.push([], []);
+    pushQueryCycle();
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.getByPlaceholderText("note")).toBeDefined();
     expect(screen.getByPlaceholderText("filterUsed")).toBeDefined();
@@ -175,8 +211,8 @@ describe("ShotLogger", () => {
         deleted_at: null,
       },
     ];
-    // frames, lenses — push extra for re-renders
-    mockQueryResults.push([], lenses, [], lenses);
+    // Extra cycles for re-renders (selectedLens useEffect -> setFrameFocalLength for zoom)
+    for (let i = 0; i < 6; i++) pushQueryCycle([], undefined, lenses);
     render(<ShotLogger roll={makeRoll({ lens_id: "lens-z" })} />);
     expect(screen.getByLabelText("focalLengthUsed")).toBeDefined();
   });
@@ -193,9 +229,51 @@ describe("ShotLogger", () => {
         deleted_at: null,
       },
     ];
-    mockQueryResults.push([], lenses, [], lenses);
+    for (let i = 0; i < 3; i++) pushQueryCycle([], undefined, lenses);
     render(<ShotLogger roll={makeRoll({ lens_id: "lens-p" })} />);
     expect(screen.queryByLabelText("focalLengthUsed")).toBeNull();
+  });
+
+  it("uses filterShutterSpeeds with camera constraints", () => {
+    const camera = {
+      id: "cam-1",
+      shutter_speed_min: "1s",
+      shutter_speed_max: "1/4000",
+      metering_modes: null,
+    };
+    pushQueryCycle([], camera);
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByText("shutterSpeed")).toBeDefined();
+  });
+
+  it("uses filterMeteringModes with camera constraints", () => {
+    const camera = {
+      id: "cam-1",
+      shutter_speed_min: null,
+      shutter_speed_max: null,
+      metering_modes: ["center", "sunny16"],
+    };
+    pushQueryCycle([], camera);
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByText("meteringMode")).toBeDefined();
+  });
+
+  it("uses filterApertures with lens constraints", () => {
+    const lenses = [
+      {
+        id: "lens-c",
+        focal_length: 50,
+        max_aperture: 1.4,
+        focal_length_max: null,
+        min_aperture: null,
+        aperture_min: 16,
+        camera_id: null,
+        deleted_at: null,
+      },
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle([], undefined, lenses);
+    render(<ShotLogger roll={makeRoll({ lens_id: "lens-c" })} />);
+    expect(screen.getByText("aperture")).toBeDefined();
   });
 
 });

@@ -6,7 +6,6 @@ import {
   rollSchema,
   frameSchema,
   filmStockSchema,
-  lensStockSchema,
   syncQueueItemSchema,
 } from "./schemas";
 
@@ -39,6 +38,144 @@ describe("cameraSchema", () => {
   it("rejects invalid format", () => {
     expect(
       cameraSchema.safeParse({ ...valid, format: "110" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts mount field with valid lens mount", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, mount: "Nikon F" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null mount (backward compat)", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, mount: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without mount field (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects invalid mount value", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, mount: "Invalid Mount" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts type field with valid camera type", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, type: "slr" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null type (backward compat)", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, type: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without type field (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects invalid type value", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, type: "dslr" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts shutter_speed_min with valid shutter speed", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_min: "1s" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null shutter_speed_min", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_min: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without shutter_speed_min (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects invalid shutter_speed_min value", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_min: "1/3" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects B as shutter_speed_min (bulb is separate)", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_min: "B" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects B as shutter_speed_max (bulb is separate)", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_max: "B" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts has_bulb true", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, has_bulb: true }).success,
+    ).toBe(true);
+  });
+
+  it("accepts has_bulb false", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, has_bulb: false }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null has_bulb", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, has_bulb: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without has_bulb (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("accepts shutter_speed_max with valid shutter speed", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_max: "1/4000" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null shutter_speed_max", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, shutter_speed_max: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without shutter_speed_max (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("accepts metering_modes with valid modes array", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, metering_modes: ["center", "sunny16"] }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null metering_modes", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, metering_modes: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without metering_modes (backward compat)", () => {
+    expect(cameraSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects metering_modes with invalid mode", () => {
+    expect(
+      cameraSchema.safeParse({ ...valid, metering_modes: ["laser"] }).success,
     ).toBe(false);
   });
 });
@@ -100,6 +237,50 @@ describe("lensSchema", () => {
   it("rejects non-positive min_aperture", () => {
     expect(
       lensSchema.safeParse({ ...valid, min_aperture: -1 }).success,
+    ).toBe(false);
+  });
+
+  it("accepts mount field with valid lens mount", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, mount: "Nikon F" }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null mount (backward compat)", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, mount: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without mount field (backward compat)", () => {
+    expect(lensSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects invalid mount value", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, mount: "Invalid Mount" }).success,
+    ).toBe(false);
+  });
+
+  it("accepts aperture_min with valid positive number", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, aperture_min: 16 }).success,
+    ).toBe(true);
+  });
+
+  it("accepts null aperture_min", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, aperture_min: null }).success,
+    ).toBe(true);
+  });
+
+  it("validates without aperture_min (backward compat)", () => {
+    expect(lensSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("rejects non-positive aperture_min", () => {
+    expect(
+      lensSchema.safeParse({ ...valid, aperture_min: 0 }).success,
     ).toBe(false);
   });
 });
@@ -245,60 +426,6 @@ describe("filmStockSchema", () => {
       process: "C-41",
     };
     expect(filmStockSchema.safeParse(valid).success).toBe(true);
-  });
-});
-
-describe("lensStockSchema", () => {
-  it("validates a prime lens stock", () => {
-    const valid = {
-      id: "nikon-50-1.4-ais",
-      make: "Nikon",
-      name: "Nikkor 50mm f/1.4 AI-S",
-      mount: "Nikon F",
-      focal_length: 50,
-      max_aperture: 1.4,
-    };
-    expect(lensStockSchema.safeParse(valid).success).toBe(true);
-  });
-
-  it("validates a zoom lens stock with range fields", () => {
-    const valid = {
-      id: "nikon-24-70-2.8",
-      make: "Nikon",
-      name: "AF-S Nikkor 24-70mm f/2.8G ED",
-      mount: "Nikon F",
-      focal_length: 24,
-      max_aperture: 2.8,
-      focal_length_max: 70,
-      min_aperture: null,
-    };
-    expect(lensStockSchema.safeParse(valid).success).toBe(true);
-  });
-
-  it("validates a variable aperture zoom lens stock", () => {
-    const valid = {
-      id: "sigma-35-135-3.5-4.5",
-      make: "Sigma",
-      name: "35-135mm f/3.5-4.5",
-      mount: "Nikon F",
-      focal_length: 35,
-      max_aperture: 3.5,
-      focal_length_max: 135,
-      min_aperture: 4.5,
-    };
-    expect(lensStockSchema.safeParse(valid).success).toBe(true);
-  });
-
-  it("validates without zoom fields (backward compat)", () => {
-    const valid = {
-      id: "nikon-50-1.4-ais",
-      make: "Nikon",
-      name: "Nikkor 50mm f/1.4 AI-S",
-      mount: "Nikon F",
-      focal_length: 50,
-      max_aperture: 1.4,
-    };
-    expect(lensStockSchema.safeParse(valid).success).toBe(true);
   });
 });
 

@@ -12,10 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
-import { FILM_FORMATS, DEFAULT_FRAME_COUNTS } from "@/lib/constants";
+import { FILM_FORMATS, DEFAULT_FRAME_COUNTS, LENS_MOUNTS, CAMERA_TYPES, SHUTTER_SPEEDS, METERING_MODES, formatLabel } from "@/lib/constants";
+
+/** Timed shutter speeds only (no Bulb) — used for constraint selects */
+const TIMED_SHUTTER_SPEEDS = SHUTTER_SPEEDS.filter((s) => s !== "B");
 import { useUserId } from "@/hooks/useUserId";
-import type { Camera, FilmFormat } from "@/lib/types";
+import type { Camera, FilmFormat, LensMount, CameraType, ShutterSpeed, MeteringMode } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -33,9 +37,15 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
   const [name, setName] = useState(camera?.name ?? "");
   const [make, setMake] = useState(camera?.make ?? "");
   const [format, setFormat] = useState<FilmFormat>(camera?.format ?? "35mm");
+  const [mount, setMount] = useState<LensMount | "__none__">(camera?.mount ?? "__none__");
+  const [type, setType] = useState<CameraType | "__none__">(camera?.type ?? "__none__");
   const [frameCount, setFrameCount] = useState(
     camera?.default_frame_count ?? DEFAULT_FRAME_COUNTS["35mm"],
   );
+  const [shutterSpeedMin, setShutterSpeedMin] = useState<ShutterSpeed | "__none__">(camera?.shutter_speed_min ?? "__none__");
+  const [shutterSpeedMax, setShutterSpeedMax] = useState<ShutterSpeed | "__none__">(camera?.shutter_speed_max ?? "__none__");
+  const [hasBulb, setHasBulb] = useState<boolean | null>(camera?.has_bulb ?? null);
+  const [meteringModes, setMeteringModes] = useState<MeteringMode[]>(camera?.metering_modes ?? []);
   const [notes, setNotes] = useState(camera?.notes ?? "");
 
   function handleFormatChange(value: string) {
@@ -58,6 +68,12 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
         name: name.trim(),
         make: make.trim(),
         format,
+        mount: mount === "__none__" ? null : mount,
+        type: type === "__none__" ? null : type,
+        shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
+        shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
+        has_bulb: hasBulb,
+        metering_modes: meteringModes.length > 0 ? meteringModes : null,
         default_frame_count: frameCount,
         notes: notes.trim() || null,
         updated_at: now,
@@ -70,6 +86,12 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
         name: name.trim(),
         make: make.trim(),
         format,
+        mount: mount === "__none__" ? null : mount,
+        type: type === "__none__" ? null : type,
+        shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
+        shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
+        has_bulb: hasBulb,
+        metering_modes: meteringModes.length > 0 ? meteringModes : null,
         default_frame_count: frameCount,
         notes: notes.trim() || null,
         deleted_at: null,
@@ -121,6 +143,113 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="camera-mount">{t("mount")}</Label>
+        <Select value={mount} onValueChange={(v) => setMount(v as LensMount | "__none__")}>
+          <SelectTrigger id="camera-mount">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">—</SelectItem>
+            {LENS_MOUNTS.map((m) => (
+              <SelectItem key={m} value={m}>
+                {formatLabel(m)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="camera-type">{t("cameraType")}</Label>
+        <Select value={type} onValueChange={(v) => setType(v as CameraType | "__none__")}>
+          <SelectTrigger id="camera-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">—</SelectItem>
+            {CAMERA_TYPES.map((ct) => (
+              <SelectItem key={ct} value={ct}>
+                {formatLabel(ct)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="camera-shutter-min">{t("shutterSpeedMin")}</Label>
+          <Select value={shutterSpeedMin} onValueChange={(v) => setShutterSpeedMin(v as ShutterSpeed | "__none__")}>
+            <SelectTrigger id="camera-shutter-min">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">—</SelectItem>
+              {TIMED_SHUTTER_SPEEDS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="camera-shutter-max">{t("shutterSpeedMax")}</Label>
+          <Select value={shutterSpeedMax} onValueChange={(v) => setShutterSpeedMax(v as ShutterSpeed | "__none__")}>
+            <SelectTrigger id="camera-shutter-max">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">—</SelectItem>
+              {TIMED_SHUTTER_SPEEDS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="camera-bulb"
+          checked={hasBulb === true}
+          onCheckedChange={(checked) => setHasBulb(checked === true ? true : null)}
+          aria-label={t("hasBulb")}
+        />
+        <Label htmlFor="camera-bulb" className="cursor-pointer">
+          {t("hasBulb")}
+        </Label>
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t("meteringModes")}</Label>
+        <div className="flex flex-wrap gap-3">
+          {METERING_MODES.map((mode) => (
+            <div key={mode} className="flex items-center gap-1.5">
+              <Checkbox
+                id={`metering-${mode}`}
+                checked={meteringModes.includes(mode)}
+                onCheckedChange={(checked) => {
+                  setMeteringModes((prev) =>
+                    checked === true
+                      ? [...prev, mode]
+                      : prev.filter((m) => m !== mode),
+                  );
+                }}
+                aria-label={mode}
+              />
+              <Label htmlFor={`metering-${mode}`} className="cursor-pointer text-sm">
+                {formatLabel(mode)}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-2">

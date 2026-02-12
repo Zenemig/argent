@@ -47,6 +47,11 @@ vi.mock("@/lib/sync-write", () => ({
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),
 }));
 
+vi.mock("@/lib/constants", () => ({
+  LENS_MOUNTS: ["Nikon F", "M42"],
+  formatLabel: (v: string) => v,
+}));
+
 import { LensForm } from "./lens-form";
 
 describe("LensForm", () => {
@@ -58,6 +63,8 @@ describe("LensForm", () => {
       name: "Nikon FM2",
       make: "Nikon",
       format: "35mm" as const,
+      mount: null,
+      type: null,
       default_frame_count: 36,
       notes: null,
       deleted_at: null,
@@ -79,6 +86,11 @@ describe("LensForm", () => {
     expect(screen.getByLabelText("maxAperture")).toBeDefined();
   });
 
+  it("renders mount dropdown", () => {
+    render(<LensForm cameras={cameras} onDone={onDone} />);
+    expect(screen.getByLabelText("mount")).toBeDefined();
+  });
+
   it("shows add button for new lens", () => {
     render(<LensForm cameras={cameras} onDone={onDone} />);
     expect(screen.getByText("add")).toBeDefined();
@@ -91,6 +103,7 @@ describe("LensForm", () => {
       user_id: "user-123",
       name: "Nikkor 50mm f/1.4",
       make: "Nikon",
+      mount: null,
       focal_length: 50,
       max_aperture: 1.4,
       camera_id: null,
@@ -108,6 +121,7 @@ describe("LensForm", () => {
       user_id: "user-123",
       name: "Nikkor 50mm f/1.4",
       make: "Nikon",
+      mount: null,
       focal_length: 50,
       max_aperture: 1.4,
       camera_id: null,
@@ -160,6 +174,7 @@ describe("LensForm", () => {
       user_id: "user-123",
       name: "Nikkor 24-70mm f/2.8",
       make: "Nikon",
+      mount: null,
       focal_length: 24,
       max_aperture: 2.8,
       focal_length_max: 70,
@@ -171,5 +186,38 @@ describe("LensForm", () => {
     };
     render(<LensForm lens={zoomLens} cameras={cameras} onDone={onDone} />);
     expect(screen.getByLabelText("focalLengthMax")).toBeDefined();
+  });
+
+  it("renders aperture_min input", () => {
+    render(<LensForm cameras={cameras} onDone={onDone} />);
+    expect(screen.getByLabelText("apertureMin")).toBeDefined();
+  });
+
+  it("pre-fills aperture_min when editing", () => {
+    const lens = {
+      id: "lens-1",
+      user_id: "user-123",
+      name: "Nikkor 50mm f/1.4",
+      make: "Nikon",
+      mount: null,
+      focal_length: 50,
+      max_aperture: 1.4,
+      aperture_min: 16,
+      camera_id: null,
+      deleted_at: null,
+      updated_at: Date.now(),
+      created_at: Date.now(),
+    };
+    render(<LensForm lens={lens} cameras={cameras} onDone={onDone} />);
+    expect(
+      (screen.getByLabelText("apertureMin") as HTMLInputElement).value,
+    ).toBe("16");
+  });
+
+  it("shows empty aperture_min for new lens", () => {
+    render(<LensForm cameras={cameras} onDone={onDone} />);
+    expect(
+      (screen.getByLabelText("apertureMin") as HTMLInputElement).value,
+    ).toBe("");
   });
 });

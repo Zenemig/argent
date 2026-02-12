@@ -29,6 +29,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -36,12 +37,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { toBlob } from "@/lib/image-sync";
+import { EXPOSURE_COMP_VALUES } from "@/lib/constants";
 import {
-  SHUTTER_SPEEDS,
-  APERTURES,
-  METERING_MODES,
-  EXPOSURE_COMP_VALUES,
-} from "@/lib/constants";
+  filterShutterSpeeds,
+  filterApertures,
+  filterMeteringModes,
+} from "@/lib/gear-filters";
 import { cn } from "@/lib/utils";
 import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
 import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
@@ -87,6 +88,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     () =>
       db.frames.where("roll_id").equals(roll.id).sortBy("frame_number"),
     [roll.id],
+  );
+
+  const camera = useLiveQuery(
+    () => db.cameras.get(roll.camera_id),
+    [roll.camera_id],
   );
 
   const lenses = useLiveQuery(async () => {
@@ -189,6 +195,22 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     if (!lenses || lensId === "__none__") return null;
     return lenses.find((l) => l.id === lensId) ?? null;
   }, [lenses, lensId]);
+
+  // Filtered options based on gear constraints
+  const filteredShutterSpeeds = useMemo(
+    () => filterShutterSpeeds(camera?.shutter_speed_min, camera?.shutter_speed_max, camera?.has_bulb),
+    [camera?.shutter_speed_min, camera?.shutter_speed_max, camera?.has_bulb],
+  );
+
+  const filteredApertures = useMemo(
+    () => filterApertures(selectedLens?.max_aperture, selectedLens?.aperture_min),
+    [selectedLens?.max_aperture, selectedLens?.aperture_min],
+  );
+
+  const filteredMeteringModes = useMemo(
+    () => filterMeteringModes(camera?.metering_modes),
+    [camera?.metering_modes],
+  );
 
   // Update focal length default when lens changes
   useEffect(() => {
@@ -398,7 +420,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {SHUTTER_SPEEDS.map((s) => (
+                    {filteredShutterSpeeds.map((s) => (
                       <SelectItem key={s} value={s}>
                         {s}
                       </SelectItem>
@@ -417,7 +439,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {APERTURES.map((a) => (
+                    {filteredApertures.map((a) => (
                       <SelectItem key={a} value={String(a)}>
                         f/{a}
                       </SelectItem>
@@ -455,7 +477,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">—</SelectItem>
-                    {METERING_MODES.map((m) => (
+                    {filteredMeteringModes.map((m) => (
                       <SelectItem key={m} value={m}>
                         {t(`metering.${m}`)}
                       </SelectItem>
@@ -578,6 +600,9 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                 ? t("frameImagePreview", { number: previewImage.frameNumber })
                 : t("imagePreview")}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              {t("imagePreview")}
+            </DialogDescription>
           </DialogHeader>
           {previewImage && (
             <img

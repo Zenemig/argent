@@ -29,7 +29,8 @@ components/ui/                     -- shadcn/ui (generated, do not hand-edit)
 components/                        -- Domain components (shot-logger, roll-card, etc.)
 components/marketing/              -- Landing page sections
 lib/db.ts                          -- Dexie.js database (ArgentDb class)
-lib/seed.ts                        -- Film stock seed data (80+ stocks)
+lib/data/films.json                -- Film stock catalog (~990 stocks, scraped data)
+lib/seed.ts                        -- Film stock seed data
 lib/types.ts                       -- Entity interfaces
 lib/schemas.ts                     -- Zod schemas (single source of truth for data shapes)
 lib/constants.ts                   -- Enums: FILM_FORMATS, ROLL_STATUSES, SHUTTER_SPEEDS, etc.
@@ -136,9 +137,11 @@ UPDATE user_profiles SET tier = 'pro' WHERE id = '<user-uuid>';
 ## Data Model (Dexie.js)
 
 ```typescript
-db.version(1).stores({
-  cameras:    '&id, user_id, format, [user_id+deleted_at], updated_at',
-  lenses:     '&id, user_id, camera_id, [user_id+deleted_at], updated_at',
+db.version(6).stores({
+  cameras:    '&id, user_id, format, mount, type, [user_id+deleted_at], updated_at',
+  //           + shutter_speed_min, shutter_speed_max, has_bulb, metering_modes (not indexed)
+  lenses:     '&id, user_id, camera_id, mount, [user_id+deleted_at], updated_at',
+  //           + aperture_min (not indexed)
   films:      '&id, user_id, brand, format, process, is_custom, [user_id+deleted_at], updated_at',
   rolls:      '&id, user_id, camera_id, film_id, status, [user_id+status], [user_id+deleted_at], updated_at',
   frames:     '&id, roll_id, frame_number, [roll_id+frame_number], updated_at',
@@ -148,7 +151,7 @@ db.version(1).stores({
 });
 ```
 
-Entity interfaces in `lib/types.ts`. Zod schemas in `lib/schemas.ts`. Seed data (80+ film stocks) in `lib/seed.ts`.
+Entity interfaces in `lib/types.ts`. Zod schemas in `lib/schemas.ts`. Film stock seed data (~990 stocks) in `lib/seed.ts` loaded from `lib/data/films.json`. Constants `LENS_MOUNTS` and `CAMERA_TYPES` in `lib/constants.ts`. Gear constraint filters in `lib/gear-filters.ts`.
 
 ## Roll Status Lifecycle
 

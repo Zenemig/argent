@@ -4,6 +4,7 @@ import {
   FILM_PROCESSES,
   ROLL_STATUSES,
   METERING_MODES,
+  SHUTTER_SPEEDS,
   SYNC_OPERATIONS,
   SYNC_STATUSES,
   SYNCABLE_TABLES,
@@ -30,6 +31,12 @@ export const cameraSchema = z.object({
   name: z.string().min(1).max(100),
   make: z.string().min(1).max(100),
   format: z.enum(FILM_FORMATS),
+  mount: z.enum(LENS_MOUNTS).nullable().optional(),
+  type: z.enum(CAMERA_TYPES).nullable().optional(),
+  shutter_speed_min: z.enum(SHUTTER_SPEEDS).exclude(["B"]).nullable().optional(),
+  shutter_speed_max: z.enum(SHUTTER_SPEEDS).exclude(["B"]).nullable().optional(),
+  has_bulb: z.boolean().nullable().optional(),
+  metering_modes: z.array(z.enum(METERING_MODES)).nullable().optional(),
   default_frame_count: z.number().int().positive(),
   notes: z.string().max(500).nullable().optional(),
   deleted_at: optionalTimestamp,
@@ -49,10 +56,12 @@ export const lensSchema = z.object({
   camera_id: ulid.nullable().optional(),
   name: z.string().min(1).max(100),
   make: z.string().min(1).max(100),
+  mount: z.enum(LENS_MOUNTS).nullable().optional(),
   focal_length: z.number().positive(),
   max_aperture: z.number().positive(),
   focal_length_max: z.number().positive().nullable().optional(),
   min_aperture: z.number().positive().nullable().optional(),
+  aperture_min: z.number().positive().nullable().optional(),
   deleted_at: optionalTimestamp,
   updated_at: timestamp,
   created_at: timestamp,
@@ -157,55 +166,6 @@ export const filmStockSchema = z.object({
 });
 
 export type FilmStock = z.infer<typeof filmStockSchema>;
-
-// ---------------------------------------------------------------------------
-// Camera Stock (seed data, read-only catalog)
-// ---------------------------------------------------------------------------
-
-export const cameraStockSchema = z.object({
-  id: z.string().min(1),
-  make: z.string().min(1),
-  name: z.string().min(1),
-  mount: z.enum(LENS_MOUNTS),
-  format: z.enum(FILM_FORMATS),
-  default_frame_count: z.number().int().positive(),
-  type: z.enum(CAMERA_TYPES),
-});
-
-export type CameraStock = z.infer<typeof cameraStockSchema>;
-
-// ---------------------------------------------------------------------------
-// Lens Stock (seed data, read-only catalog)
-// ---------------------------------------------------------------------------
-
-export const lensStockSchema = z.object({
-  id: z.string().min(1),
-  make: z.string().min(1),
-  name: z.string().min(1),
-  mount: z.enum(LENS_MOUNTS),
-  focal_length: z.number().positive(),
-  max_aperture: z.number().positive(),
-  focal_length_max: z.number().positive().nullable().optional(),
-  min_aperture: z.number().positive().nullable().optional(),
-});
-
-export type LensStock = z.infer<typeof lensStockSchema>;
-
-// ---------------------------------------------------------------------------
-// Mount Stock (seed data, read-only catalog)
-// ---------------------------------------------------------------------------
-
-export const mountStockSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  type: z.enum(["bayonet", "breech-lock", "thread", "other"]),
-  register_distance: z.number().positive().nullable().optional(),
-  mount_diameter: z.number().positive().nullable().optional(),
-  compatible_mounts: z.array(z.string()).optional(),
-  format: z.enum(FILM_FORMATS),
-});
-
-export type MountStock = z.infer<typeof mountStockSchema>;
 
 // ---------------------------------------------------------------------------
 // Sync Queue

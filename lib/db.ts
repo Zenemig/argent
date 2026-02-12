@@ -6,9 +6,6 @@ import type {
   Roll,
   Frame,
   FilmStock,
-  CameraStock,
-  LensStock,
-  MountStock,
   SyncQueueItem,
   SyncMeta,
   SyncConflict,
@@ -21,9 +18,6 @@ export class ArgentDb extends Dexie {
   rolls!: EntityTable<Roll, "id">;
   frames!: EntityTable<Frame, "id">;
   filmStock!: EntityTable<FilmStock, "id">;
-  cameraStock!: EntityTable<CameraStock, "id">;
-  lensStock!: EntityTable<LensStock, "id">;
-  mountStock!: EntityTable<MountStock, "id">;
   _syncQueue!: EntityTable<SyncQueueItem, "id">;
   _syncMeta!: EntityTable<SyncMeta, "key">;
   _syncConflicts!: EntityTable<SyncConflict, "id">;
@@ -61,6 +55,20 @@ export class ArgentDb extends Dexie {
     this.version(4).stores({
       mountStock: "&id, name, format",
     });
+
+    this.version(5).stores({
+      cameras:
+        "&id, user_id, format, mount, type, [user_id+deleted_at], updated_at",
+      lenses:
+        "&id, user_id, camera_id, mount, [user_id+deleted_at], updated_at",
+      cameraStock: null,
+      lensStock: null,
+      mountStock: null,
+    });
+
+    // v6: gear constraint fields (shutter_speed_min/max, metering_modes, aperture_min)
+    // No new indexes — fields aren't queried by index
+    this.version(6).stores({});
   }
 }
 
