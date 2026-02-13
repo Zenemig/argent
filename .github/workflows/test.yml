@@ -93,6 +93,10 @@ jobs:
         if: steps.changes.outputs.app == 'true'
         run: npm ci
 
+      - name: Build for E2E
+        if: steps.changes.outputs.app == 'true'
+        run: npm run build
+
       - name: Cache Playwright browsers
         if: steps.changes.outputs.app == 'true'
         id: playwright-cache
@@ -112,7 +116,7 @@ jobs:
 
       - name: Run Playwright tests (Chromium only)
         if: steps.changes.outputs.app == 'true'
-        run: npx playwright test --project=setup --project=chromium --project=chromium-auth --project=mobile-chrome --project=mobile-chrome-auth --project=chromium-auth-destructive
+        run: npx playwright test --workers=2 --project=setup --project=chromium --project=chromium-auth --project=mobile-chrome --project=mobile-chrome-auth --project=chromium-auth-destructive
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
