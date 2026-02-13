@@ -32,6 +32,15 @@ jobs:
       - name: Run unit tests
         run: npm test -- --run
 
+      - name: Run unit tests with coverage
+        run: npm test -- --run --coverage --coverage.reporter=json-summary
+
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
   e2e-tests:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest

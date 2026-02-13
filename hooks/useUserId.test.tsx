@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 
-let mockGetUser: ReturnType<typeof vi.fn>;
-let mockOnAuthStateChange: ReturnType<typeof vi.fn>;
-let mockUnsubscribe: ReturnType<typeof vi.fn>;
+let mockGetUser = vi.fn();
+let mockOnAuthStateChange = vi.fn();
+let mockUnsubscribe = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
