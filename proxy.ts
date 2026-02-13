@@ -82,7 +82,24 @@ export default async function proxy(request: NextRequest) {
 
   // Route marketing requests through next-intl middleware
   if (isMarketingRequest(pathname)) {
-    const intlResponse = marketingMiddleware(request);
+    // Default to English when visitor has no explicit locale preference.
+    // Without this, next-intl uses Accept-Language and auto-redirects
+    // (e.g., Spanish browser → /es). The cookie is set by the locale toggle.
+    let marketingRequest = request;
+    if (!request.cookies.get("NEXT_LOCALE")) {
+      const headers = new Headers(request.headers);
+      headers.set("Accept-Language", "en");
+      marketingRequest = new NextRequest(request.url, {
+        headers,
+        method: request.method,
+      });
+      // Copy cookies to the cloned request (NextRequest constructor doesn't carry them)
+      request.cookies.getAll().forEach((cookie) => {
+        marketingRequest.cookies.set(cookie.name, cookie.value);
+      });
+    }
+
+    const intlResponse = marketingMiddleware(marketingRequest);
 
     // Carry Supabase auth cookies onto the intl response
     supabaseResponse.cookies.getAll().forEach((cookie) => {
