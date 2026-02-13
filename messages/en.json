@@ -335,6 +335,10 @@
     "error": "Sync error",
     "localOnly": "Local only"
   },
+  "a11y": {
+    "skipToMain": "Skip to main content",
+    "mainNavigation": "Main navigation"
+  },
   "auth": {
     "login": "Log In",
     "signup": "Sign Up",

@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+// Load .env.local so E2E_USER_EMAIL / E2E_USER_PASSWORD are available
+loadEnvConfig(process.cwd());
+
+const authFile = "playwright/.auth/user.json";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -12,13 +18,36 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
+    // Auth setup — runs once, saves session for other projects
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    // Public tests — no auth required (landing, login pages)
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: /\.auth\./,
     },
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
+      testIgnore: /\.auth\./,
+    },
+
+    // Authenticated tests — depend on setup, use saved auth state
+    {
+      name: "chromium-auth",
+      use: { ...devices["Desktop Chrome"], storageState: authFile },
+      dependencies: ["setup"],
+      testMatch: /\.auth\./,
+    },
+    {
+      name: "mobile-chrome-auth",
+      use: { ...devices["Pixel 5"], storageState: authFile },
+      dependencies: ["setup"],
+      testMatch: /\.auth\./,
     },
   ],
   webServer: {

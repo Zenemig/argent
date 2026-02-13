@@ -228,7 +228,7 @@ export function FilmCatalog() {
 
         <div className="flex gap-2">
           <Select value={formatFilter} onValueChange={setFormatFilter}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="flex-1" aria-label={t("allFormats")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -242,7 +242,7 @@ export function FilmCatalog() {
           </Select>
 
           <Select value={processFilter} onValueChange={setProcessFilter}>
-            <SelectTrigger className="flex-1">
+            <SelectTrigger className="flex-1" aria-label={t("allProcesses")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

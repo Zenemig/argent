@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/logo";
 import { SyncStatus } from "@/components/sync-status";
 import { UserMenu } from "@/components/user-menu";
+import { SkipLink } from "@/components/skip-link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
@@ -52,9 +53,10 @@ export default async function AppLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <DbProvider>
         <UserTierProvider>
+          <SkipLink />
           <SidebarNav userMenu={userMenu} />
           <div className="lg:pl-60">
-            <div className="mx-auto w-full max-w-lg px-4 pb-20 pt-6 lg:max-w-5xl lg:px-8 lg:pb-8 lg:pt-8">
+            <div id="main-content" className="mx-auto w-full max-w-lg px-4 pb-20 pt-6 lg:max-w-5xl lg:px-8 lg:pb-8 lg:pt-8">
               <div className="mb-4 flex items-center gap-2 lg:hidden">
                 <Logo className="h-5 text-muted-foreground" />
                 <div className="flex-1" />

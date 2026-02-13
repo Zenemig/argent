@@ -17,9 +17,10 @@ const NAV_ITEMS = [
 export function BottomNav() {
   const pathname = usePathname();
   const t = useTranslations("nav");
+  const ta = useTranslations("a11y");
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden" aria-label={ta("mainNavigation")}>
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-4">
         {NAV_ITEMS.map((item) => {
           const isActive = isNavItemActive(item.href, !!item.isHome, pathname);
@@ -28,6 +29,7 @@ export function BottomNav() {
             <Link
               key={item.labelKey}
               href={item.isHome ? "/" : item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center gap-1 text-xs transition-colors",
                 isActive

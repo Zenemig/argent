@@ -28,9 +28,13 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
+  "aria-label"?: string
+  "aria-labelledby"?: string
 }) {
   return (
     <SelectPrimitive.Trigger
@@ -41,6 +45,8 @@ function SelectTrigger({
         className
       )}
       {...props}
+      aria-label={ariaLabel || undefined}
+      aria-labelledby={ariaLabelledBy || undefined}
     >
       {children}
       <SelectPrimitive.Icon asChild>

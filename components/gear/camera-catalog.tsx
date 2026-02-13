@@ -124,7 +124,7 @@ export function CameraCatalog() {
       {/* Filters */}
       <div className="flex gap-2">
         <Select value={formatFilter} onValueChange={setFormatFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1" aria-label={t("allFormats")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +138,7 @@ export function CameraCatalog() {
         </Select>
 
         <Select value={mountFilter} onValueChange={setMountFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1" aria-label={t("allMounts")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -152,7 +152,7 @@ export function CameraCatalog() {
         </Select>
 
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1" aria-label={t("allTypes")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

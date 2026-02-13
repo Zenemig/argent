@@ -76,7 +76,7 @@ function LandingPage({ locale }: { locale: string }) {
   };
 
   return (
-    <main className="flex min-h-screen flex-col">
+    <main id="main-content" className="flex min-h-screen flex-col">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

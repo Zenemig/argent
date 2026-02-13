@@ -65,7 +65,7 @@ export function DashboardFilters({
 
       <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-1 lg:gap-3">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={t("all")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -79,7 +79,7 @@ export function DashboardFilters({
         </Select>
 
         <Select value={sortBy} onValueChange={onSortByChange}>
-          <SelectTrigger>
+          <SelectTrigger aria-label={t("sortDate")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -91,7 +91,7 @@ export function DashboardFilters({
 
         {cameras.length > 0 && (
           <Select value={cameraFilter} onValueChange={onCameraFilterChange}>
-            <SelectTrigger>
+            <SelectTrigger aria-label={t("allCameras")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +107,7 @@ export function DashboardFilters({
 
         {films.length > 0 && (
           <Select value={filmFilter} onValueChange={onFilmFilterChange}>
-            <SelectTrigger>
+            <SelectTrigger aria-label={t("allFilms")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

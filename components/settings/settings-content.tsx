@@ -143,7 +143,7 @@ export function SettingsContent() {
         </CardHeader>
         <CardContent>
           <Select defaultValue="en" onValueChange={handleLanguageChange}>
-            <SelectTrigger>
+            <SelectTrigger aria-label={t("language")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -160,7 +160,7 @@ export function SettingsContent() {
         </CardHeader>
         <CardContent>
           <Select value={theme} onValueChange={handleThemeChange}>
-            <SelectTrigger>
+            <SelectTrigger aria-label={t("theme")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -184,7 +184,7 @@ export function SettingsContent() {
               saveField("defaultMetering", v);
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-label={t("defaultMetering")}>
               <SelectValue placeholder={t("none")} />
             </SelectTrigger>
             <SelectContent>
@@ -212,7 +212,7 @@ export function SettingsContent() {
                 saveField("defaultCamera", v);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-label={t("defaultCamera")}>
                 <SelectValue placeholder={t("none")} />
               </SelectTrigger>
               <SelectContent>

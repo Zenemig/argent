@@ -147,7 +147,7 @@ export function LensCatalog() {
       {/* Filters */}
       <div className="flex gap-2">
         <Select value={mountFilter} onValueChange={setMountFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1" aria-label={t("allMounts")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -161,7 +161,7 @@ export function LensCatalog() {
         </Select>
 
         <Select value={cameraFilter} onValueChange={setCameraFilter}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1" aria-label={t("allCameras")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

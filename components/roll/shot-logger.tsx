@@ -44,6 +44,7 @@ import {
   filterMeteringModes,
 } from "@/lib/gear-filters";
 import { cn } from "@/lib/utils";
+import { LiveRegion } from "@/components/live-region";
 import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
 import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
 import { toast } from "sonner";
@@ -410,6 +411,9 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               <span className="text-xs text-muted-foreground">
                 {nextFrameNumber}/{roll.frame_count}
               </span>
+              <LiveRegion>
+                {t("frameNumber", { number: nextFrameNumber })} — {nextFrameNumber}/{roll.frame_count}
+              </LiveRegion>
             </div>
 
             <div className="grid grid-cols-2 gap-2 lg:gap-3">

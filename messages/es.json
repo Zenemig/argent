@@ -335,6 +335,10 @@
     "error": "Error de sincronización",
     "localOnly": "Solo local"
   },
+  "a11y": {
+    "skipToMain": "Saltar al contenido principal",
+    "mainNavigation": "Navegación principal"
+  },
   "auth": {
     "login": "Iniciar Sesión",
     "signup": "Registrarse",

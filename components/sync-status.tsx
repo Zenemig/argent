@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useSync } from "@/hooks/useSync";
 import { useUserId } from "@/hooks/useUserId";
 import { useUserTier } from "@/hooks/useUserTier";
+import { LiveRegion } from "@/components/live-region";
 import { toast } from "sonner";
 
 export function SyncStatus() {
@@ -63,20 +64,23 @@ export function SyncStatus() {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-      aria-label={labels[syncState] ?? ""}
-    >
-      <span className="relative flex h-2 w-2">
-        {syncState === "syncing" && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-75" />
-        )}
-        <span
-          className={`relative inline-flex h-2 w-2 rounded-full ${colors[syncState] ?? "bg-zinc-500"}`}
-        />
-      </span>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        aria-label={labels[syncState] ?? ""}
+      >
+        <span className="relative flex h-2 w-2">
+          {syncState === "syncing" && (
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-75" />
+          )}
+          <span
+            className={`relative inline-flex h-2 w-2 rounded-full ${colors[syncState] ?? "bg-zinc-500"}`}
+          />
+        </span>
+      </button>
+      <LiveRegion>{labels[syncState]}</LiveRegion>
+    </>
   );
 }

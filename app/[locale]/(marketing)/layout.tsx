@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { SkipLink } from "@/components/skip-link";
 
 export default async function MarketingLayout({
   children,
@@ -18,6 +19,7 @@ export default async function MarketingLayout({
       <link rel="alternate" hrefLang="en" href="/" />
       <link rel="alternate" hrefLang="es" href="/es" />
       <link rel="alternate" hrefLang="x-default" href="/" />
+      <SkipLink />
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
           <Link href={locale === "en" ? "/" : `/${locale}`} className="text-foreground hover:opacity-80">

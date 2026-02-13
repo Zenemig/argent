@@ -6,9 +6,12 @@ export async function generateMetadata() {
   return { title: t("dashboard") };
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const t = await getTranslations("nav");
+
   return (
     <main>
+      <h1 className="sr-only">{t("dashboard")}</h1>
       <DashboardContent />
     </main>
   );

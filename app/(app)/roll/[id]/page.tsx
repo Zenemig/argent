@@ -12,9 +12,11 @@ export default async function RollPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations("roll");
 
   return (
     <main>
+      <h1 className="sr-only">{t("title")}</h1>
       <RollDetail rollId={id} />
     </main>
   );

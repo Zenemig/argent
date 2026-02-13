@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { SkipLink } from "@/components/skip-link";
 
 export default async function AuthLayout({
   children,
@@ -11,9 +12,10 @@ export default async function AuthLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <div className="flex min-h-screen items-center justify-center px-4">
+      <SkipLink />
+      <main id="main-content" className="flex min-h-screen items-center justify-center px-4">
         {children}
-      </div>
+      </main>
     </NextIntlClientProvider>
   );
 }
