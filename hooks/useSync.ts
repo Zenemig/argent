@@ -71,6 +71,43 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
       } catch {
         // Image sync failure should not break data sync state
       }
+
+      // Avatar sync
+      try {
+        const { getLocalAvatar, uploadAvatar, downloadAvatar, setLocalAvatar } =
+          await import("@/lib/avatar");
+        const { getSetting, setSetting } = await import(
+          "@/lib/settings-helpers"
+        );
+
+        const localAvatar = await getLocalAvatar();
+        const avatarUploaded = await getSetting("avatarUploaded");
+
+        if (localAvatar && avatarUploaded !== "true") {
+          // Upload local avatar that hasn't been synced yet
+          const path = await uploadAvatar(supabase, userId, localAvatar);
+          if (path) {
+            await setSetting("avatarUploaded", "true");
+          }
+        } else if (!localAvatar) {
+          // Download avatar from server if we don't have one locally
+          const { data: profile } = await supabase
+            .from("user_profiles")
+            .select("avatar_url")
+            .eq("id", userId)
+            .single();
+
+          if (profile?.avatar_url) {
+            const blob = await downloadAvatar(supabase, profile.avatar_url);
+            if (blob) {
+              await setLocalAvatar(blob);
+              await setSetting("avatarUploaded", "true");
+            }
+          }
+        }
+      } catch {
+        // Avatar sync failure should not break data sync state
+      }
     } finally {
       syncInProgressRef.current = false;
       setIsSyncing(false);

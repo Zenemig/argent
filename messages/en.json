@@ -285,7 +285,9 @@
     "tierPro": "Pro",
     "signOut": "Sign Out",
     "signedOut": "You have been signed out.",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "changeAvatar": "Change Avatar",
+    "avatarError": "Failed to update avatar"
   },
   "upgrade": {
     "title": "Upgrade to Pro",

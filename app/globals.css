@@ -103,6 +103,27 @@
   }
 }
 
+/*
+ * Pointer cursor for interactive elements.
+ *
+ * Tailwind v4 Preflight sets cursor:default on <button>.
+ * shadcn/ui components apply cursor-default (utilities layer) on menu/select items.
+ *
+ * Unlayered CSS beats ALL @layer rules in the CSS cascade, so this
+ * overrides both Preflight (base layer) and utilities (cursor-default).
+ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="menuitem"],
+[role="menuitemcheckbox"],
+[role="menuitemradio"],
+[role="option"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+select:not(:disabled),
+summary {
+  cursor: pointer;
+}
+
 /* Leatherette texture overlay for marketing sections */
 .leatherette {
   position: relative;

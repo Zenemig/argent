@@ -222,6 +222,7 @@ export const userProfileSchema = z.object({
   copyright_notice: z.string().max(200).nullable().optional(),
   default_metering: z.enum(METERING_MODES).nullable().optional(),
   default_camera_id: ulid.nullable().optional(),
+  avatar_url: z.string().max(500).nullable().optional(),
   updated_at: timestamp,
   created_at: timestamp,
 });
