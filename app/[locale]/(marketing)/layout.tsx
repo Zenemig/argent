@@ -2,6 +2,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SkipLink } from "@/components/skip-link";
+import { LocaleToggle } from "@/components/marketing/locale-toggle";
 
 export default async function MarketingLayout({
   children,
@@ -46,6 +47,7 @@ export default async function MarketingLayout({
             >
               {t("nav.signup")}
             </Link>
+            <LocaleToggle currentLocale={locale} />
           </div>
         </div>
       </header>
