@@ -1,9 +1,16 @@
 {
   "name": "argent",
   "version": "0.1.0",
-  "private": true,
   "license": "AGPL-3.0",
   "description": "Offline-first PWA for analogue photographers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zenemig/argent.git"
+  },
+  "homepage": "https://github.com/Zenemig/argent",
+  "bugs": {
+    "url": "https://github.com/Zenemig/argent/issues"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

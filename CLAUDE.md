@@ -15,6 +15,48 @@ Offline-first PWA for analogue photographers. Log shots, manage gear/film invent
 - `npm run test:e2e` -- Playwright E2E tests
 - `npm run test:e2e -- --headed` -- Playwright with visible browser
 
+## Git Workflow
+
+All work goes through pull requests. No direct commits to `main`.
+
+```
+git checkout main && git pull origin main
+git checkout -b <type>/<short-description>   # e.g. feat/gps-tagging, fix/roll-status-undo
+# ... do work, commit ...
+git push -u origin <type>/<short-description>
+# Open PR against main, link the related issue
+```
+
+### Branch naming
+
+- `feat/` -- New features
+- `fix/` -- Bug fixes
+- `refactor/` -- Code restructuring (no behavior change)
+- `docs/` -- Documentation only
+- `test/` -- Adding or updating tests
+- `chore/` -- Dependencies, CI, tooling
+
+### Rules
+
+- Every PR must reference a GitHub issue (create one first if none exists).
+- CI must pass (typecheck + lint + unit tests + E2E) before merge.
+- Only the maintainer (@Zenemig) merges PRs.
+- Squash merge by default to keep `main` history clean.
+- Delete branch after merge.
+
+### Commit messages
+
+Use conventional-style messages: `type: short description`
+
+```
+feat: add GPS tagging to shot logger
+fix: prevent duplicate frame numbers on rapid tap
+refactor: extract roll status machine into hook
+docs: add self-hosting guide to README
+test: add E2E tests for export flow
+chore: bump Next.js to 16.2
+```
+
 ## Architecture
 
 ```
