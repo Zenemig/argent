@@ -11,9 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
@@ -32,6 +30,29 @@ const AVATAR_ICON_MAP = {
   aperture: Aperture,
   film: FilmIcon,
 } as const satisfies Record<AvatarIcon, typeof CameraIcon>;
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mt-8 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      {children}
+    </h2>
+  );
+}
+
+function SettingRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2">
+      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
+      <div className="w-full max-w-sm">{children}</div>
+    </div>
+  );
+}
 
 export function SettingsContent() {
   const t = useTranslations("settings");
@@ -161,206 +182,169 @@ export function SettingsContent() {
 
   return (
     <div className="space-y-6 lg:max-w-2xl">
+      {/* Profile header */}
       {userEmail && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("account")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={handleAvatarChange}
-                  disabled={isUploadingAvatar}
-                  aria-label={t("changeAvatar")}
-                  className={cn(
-                    "group relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    !avatarUrl && (userId ? getUserAvatar(userId).bgColor : "bg-muted"),
-                  )}
-                >
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (() => {
-                      const avatar = userId ? getUserAvatar(userId) : null;
-                      const IconComp = avatar ? AVATAR_ICON_MAP[avatar.icon] : CameraIcon;
-                      return (
-                        <IconComp
-                          className={cn(
-                            "h-6 w-6",
-                            avatar ? avatar.iconColor : "text-muted-foreground",
-                          )}
-                        />
-                      );
-                    })()
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                    <CameraIcon className="h-5 w-5 text-white" />
-                  </div>
-                </button>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">{userEmail}</p>
-                  <Badge variant={isProUser ? "default" : "secondary"}>
-                    {isProUser ? t("tierPro") : t("tierFree")}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("subscription")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isProUser ? (
-                <p className="text-sm text-muted-foreground">
-                  {tUpgrade("proManageHint")}
-                </p>
-              ) : (
-                <UpgradePrompt />
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleAvatarChange}
+              disabled={isUploadingAvatar}
+              aria-label={t("changeAvatar")}
+              className={cn(
+                "group relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                !avatarUrl && (userId ? getUserAvatar(userId).bgColor : "bg-muted"),
               )}
-            </CardContent>
-          </Card>
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                (() => {
+                  const avatar = userId ? getUserAvatar(userId) : null;
+                  const IconComp = avatar ? AVATAR_ICON_MAP[avatar.icon] : CameraIcon;
+                  return (
+                    <IconComp
+                      className={cn(
+                        "h-6 w-6",
+                        avatar ? avatar.iconColor : "text-muted-foreground",
+                      )}
+                    />
+                  );
+                })()
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <CameraIcon className="h-5 w-5 text-white" />
+              </div>
+            </button>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">{userEmail}</p>
+              <Badge variant={isProUser ? "default" : "secondary"}>
+                {isProUser ? t("tierPro") : t("tierFree")}
+              </Badge>
+            </div>
+          </div>
+
+          <div>
+            {isProUser ? (
+              <p className="text-sm text-muted-foreground">
+                {tUpgrade("proManageHint")}
+              </p>
+            ) : (
+              <UpgradePrompt />
+            )}
+          </div>
+
         </>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("language")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select defaultValue="en" onValueChange={handleLanguageChange}>
-            <SelectTrigger aria-label={t("language")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="en">{t("english")}</SelectItem>
-              <SelectItem value="es">{t("spanish")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      {/* Preferences section */}
+      <div>
+        <SectionHeader>{t("preferences")}</SectionHeader>
+        <div className="mt-3">
+          <SettingRow label={t("language")}>
+            <Select defaultValue="en" onValueChange={handleLanguageChange}>
+              <SelectTrigger aria-label={t("language")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">{t("english")}</SelectItem>
+                <SelectItem value="es">{t("spanish")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("theme")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select value={theme} onValueChange={handleThemeChange}>
-            <SelectTrigger aria-label={t("theme")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dark">{t("themeDark")}</SelectItem>
-              <SelectItem value="light">{t("themeLight")}</SelectItem>
-              <SelectItem value="system">{t("themeSystem")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+          <SettingRow label={t("theme")}>
+            <Select value={theme} onValueChange={handleThemeChange}>
+              <SelectTrigger aria-label={t("theme")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dark">{t("themeDark")}</SelectItem>
+                <SelectItem value="light">{t("themeLight")}</SelectItem>
+                <SelectItem value="system">{t("themeSystem")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("defaultMetering")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select
-            value={defaultMetering}
-            onValueChange={(v) => {
-              setDefaultMetering(v);
-              saveField("defaultMetering", v);
-            }}
-          >
-            <SelectTrigger aria-label={t("defaultMetering")}>
-              <SelectValue placeholder={t("none")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">{t("none")}</SelectItem>
-              {METERING_MODES.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {cameras && cameras.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("defaultCamera")}</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <SettingRow label={t("defaultMetering")}>
             <Select
-              value={defaultCamera}
+              value={defaultMetering}
               onValueChange={(v) => {
-                setDefaultCamera(v);
-                saveField("defaultCamera", v);
+                setDefaultMetering(v);
+                saveField("defaultMetering", v);
               }}
             >
-              <SelectTrigger aria-label={t("defaultCamera")}>
+              <SelectTrigger aria-label={t("defaultMetering")}>
                 <SelectValue placeholder={t("none")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">{t("none")}</SelectItem>
-                {cameras.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                {METERING_MODES.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </CardContent>
-        </Card>
-      )}
+          </SettingRow>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("displayName")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            onBlur={() => saveField("displayName", displayName)}
-            placeholder={t("displayName")}
-          />
-        </CardContent>
-      </Card>
+          {cameras && cameras.length > 0 && (
+            <SettingRow label={t("defaultCamera")}>
+              <Select
+                value={defaultCamera}
+                onValueChange={(v) => {
+                  setDefaultCamera(v);
+                  saveField("defaultCamera", v);
+                }}
+              >
+                <SelectTrigger aria-label={t("defaultCamera")}>
+                  <SelectValue placeholder={t("none")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t("none")}</SelectItem>
+                  {cameras.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </SettingRow>
+          )}
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("copyright")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            value={copyright}
-            onChange={(e) => setCopyright(e.target.value)}
-            onBlur={() => saveField("copyright", copyright)}
-            placeholder="© 2026 Your Name"
-          />
-        </CardContent>
-      </Card>
+      {/* Metadata section */}
+      <div>
+        <SectionHeader>{t("metadata")}</SectionHeader>
+        <div className="mt-3">
+          <SettingRow label={t("displayName")}>
+            <Input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              onBlur={() => saveField("displayName", displayName)}
+              placeholder={t("displayName")}
+            />
+          </SettingRow>
 
-      <Separator />
+          <SettingRow label={t("copyright")}>
+            <Input
+              value={copyright}
+              onChange={(e) => setCopyright(e.target.value)}
+              onBlur={() => saveField("copyright", copyright)}
+              placeholder="© 2026 Your Name"
+            />
+          </SettingRow>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("about")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t("version")} 0.1.0
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground">
+        {t("about")} · {t("version")} 0.1.0
+      </p>
     </div>
   );
 }

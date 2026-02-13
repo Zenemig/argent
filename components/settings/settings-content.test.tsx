@@ -80,46 +80,67 @@ describe("SettingsContent", () => {
     mockUserId = "user-123";
   });
 
-  it("renders language settings card", () => {
+  it("renders language setting row", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("language")).toBeDefined();
   });
 
-  it("renders theme settings card", () => {
+  it("renders theme setting row", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("theme")).toBeDefined();
   });
 
-  it("renders default metering card", () => {
+  it("renders default metering setting row", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("defaultMetering")).toBeDefined();
   });
 
-  it("renders display name card", () => {
+  it("renders display name setting row", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("displayName")).toBeDefined();
   });
 
-  it("renders copyright card", () => {
+  it("renders copyright setting row", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("copyright")).toBeDefined();
   });
 
-  it("renders about card with version", () => {
+  it("renders about footer with version", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
-    expect(screen.getByText("about")).toBeDefined();
+    expect(screen.getByText("about · version 0.1.0")).toBeDefined();
+  });
+
+  it("renders preferences section header", () => {
+    mockQueryResults.push(undefined);
+    render(<SettingsContent />);
+    expect(screen.getByText("preferences")).toBeDefined();
+  });
+
+  it("renders metadata section header", () => {
+    mockQueryResults.push(undefined);
+    render(<SettingsContent />);
+    expect(screen.getByText("metadata")).toBeDefined();
+  });
+
+  it("renders section headers as h2 elements", () => {
+    mockQueryResults.push(undefined);
+    render(<SettingsContent />);
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings).toHaveLength(2);
+    expect(headings[0].textContent).toBe("preferences");
+    expect(headings[1].textContent).toBe("metadata");
   });
 
   it("renders avatar button with changeAvatar label", async () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
-    // Account card renders after async getUser resolves
+    // Account section renders after async getUser resolves
     const { findByLabelText } = screen;
     const avatarBtn = await findByLabelText("changeAvatar");
     expect(avatarBtn).toBeDefined();

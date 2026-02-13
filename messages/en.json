@@ -287,7 +287,9 @@
     "signedOut": "You have been signed out.",
     "subscription": "Subscription",
     "changeAvatar": "Change Avatar",
-    "avatarError": "Failed to update avatar"
+    "avatarError": "Failed to update avatar",
+    "preferences": "Preferences",
+    "metadata": "Metadata"
   },
   "upgrade": {
     "title": "Upgrade to Pro",
