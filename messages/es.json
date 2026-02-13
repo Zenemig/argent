@@ -287,7 +287,9 @@
     "signedOut": "Has cerrado sesión.",
     "subscription": "Suscripción",
     "changeAvatar": "Cambiar Avatar",
-    "avatarError": "Error al actualizar el avatar"
+    "avatarError": "Error al actualizar el avatar",
+    "preferences": "Preferencias",
+    "metadata": "Metadatos"
   },
   "upgrade": {
     "title": "Mejora a Pro",
