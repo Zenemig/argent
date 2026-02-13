@@ -5,7 +5,7 @@
 <h1 align="center">Argent</h1>
 
 <p align="center">
-  <strong>The offline-first field notebook for analogue photographers.</strong><br />
+  <strong>The offline-first field notebook for film photographers.</strong><br />
   Log shots, manage your gear &amp; film inventory, and export metadata to your digital scans.
 </p>
 
