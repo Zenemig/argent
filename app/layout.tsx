@@ -3,6 +3,9 @@ import { getLocale } from "next-intl/server";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   title: {
     default: "Argent — The film photographer's companion",
     template: "%s | Argent",
