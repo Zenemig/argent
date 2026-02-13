@@ -21,7 +21,17 @@ import { useUserTier } from "@/hooks/useUserTier";
 import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { getLocalAvatar, setLocalAvatar, uploadAvatar } from "@/lib/avatar";
+import { getUserAvatar, type AvatarIcon } from "@/lib/user-avatar";
+import { Camera as CameraIcon, Aperture, Film as FilmIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+const AVATAR_ICON_MAP = {
+  camera: CameraIcon,
+  aperture: Aperture,
+  film: FilmIcon,
+} as const satisfies Record<AvatarIcon, typeof CameraIcon>;
 
 export function SettingsContent() {
   const t = useTranslations("settings");
@@ -34,6 +44,8 @@ export function SettingsContent() {
   const [copyright, setCopyright] = useState("");
   const [defaultMetering, setDefaultMetering] = useState("__none__");
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Check auth state on mount
   useEffect(() => {
@@ -54,6 +66,11 @@ export function SettingsContent() {
       if (cr) setCopyright(cr);
       const dm = await getSetting("defaultMetering");
       setDefaultMetering(dm || "__none__");
+
+      const blob = await getLocalAvatar();
+      if (blob) {
+        setAvatarUrl(URL.createObjectURL(blob));
+      }
     }
     load();
   }, []);
@@ -94,6 +111,46 @@ export function SettingsContent() {
     window.location.reload();
   }
 
+  async function handleAvatarChange() {
+    try {
+      const { captureImage } = await import("@/lib/image-capture");
+      const result = await captureImage(256, 0.8);
+      if ("error" in result) {
+        if (result.error !== "no_file") {
+          toast.error(t("avatarError"));
+        }
+        return;
+      }
+
+      // Save locally
+      await setLocalAvatar(result.blob);
+      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+      setAvatarUrl(URL.createObjectURL(result.blob));
+
+      // Attempt upload if online
+      if (userId && navigator.onLine) {
+        setIsUploadingAvatar(true);
+        try {
+          const supabase = createClient();
+          const path = await uploadAvatar(supabase, userId, result.blob);
+          if (path) {
+            await setSetting("avatarUploaded", "true");
+          } else {
+            await setSetting("avatarUploaded", "false");
+          }
+        } finally {
+          setIsUploadingAvatar(false);
+        }
+      } else {
+        await setSetting("avatarUploaded", "false");
+      }
+
+      toast.success(t("saved"));
+    } catch {
+      toast.error(t("avatarError"));
+    }
+  }
+
   const saveField = useCallback(
     (key: string, value: string) => {
       setSetting(key, value);
@@ -111,11 +168,47 @@ export function SettingsContent() {
               <CardTitle className="text-base">{t("account")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">{userEmail}</p>
-              <div>
-                <Badge variant={isProUser ? "default" : "secondary"}>
-                  {isProUser ? t("tierPro") : t("tierFree")}
-                </Badge>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={handleAvatarChange}
+                  disabled={isUploadingAvatar}
+                  aria-label={t("changeAvatar")}
+                  className={cn(
+                    "group relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    !avatarUrl && (userId ? getUserAvatar(userId).bgColor : "bg-muted"),
+                  )}
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (() => {
+                      const avatar = userId ? getUserAvatar(userId) : null;
+                      const IconComp = avatar ? AVATAR_ICON_MAP[avatar.icon] : CameraIcon;
+                      return (
+                        <IconComp
+                          className={cn(
+                            "h-6 w-6",
+                            avatar ? avatar.iconColor : "text-muted-foreground",
+                          )}
+                        />
+                      );
+                    })()
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                    <CameraIcon className="h-5 w-5 text-white" />
+                  </div>
+                </button>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">{userEmail}</p>
+                  <Badge variant={isProUser ? "default" : "secondary"}>
+                    {isProUser ? t("tierPro") : t("tierFree")}
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>

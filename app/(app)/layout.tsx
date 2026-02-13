@@ -7,7 +7,7 @@ import { SidebarNav } from "@/components/sidebar-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/logo";
 import { SyncStatus } from "@/components/sync-status";
-import { UserMenu } from "@/components/user-menu";
+import { UserMenuWithAvatar } from "@/components/user-menu-with-avatar";
 import { SkipLink } from "@/components/skip-link";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,7 +41,7 @@ export default async function AppLayout({
   }
 
   const userMenu = user ? (
-    <UserMenu
+    <UserMenuWithAvatar
       userId={user.id}
       email={user.email ?? ""}
       tier={tier}

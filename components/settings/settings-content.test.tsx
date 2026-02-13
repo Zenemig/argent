@@ -56,6 +56,20 @@ vi.mock("@/components/upgrade-prompt", () => ({
   UpgradePrompt: () => <div data-testid="upgrade-prompt" />,
 }));
 
+vi.mock("@/lib/avatar", () => ({
+  getLocalAvatar: vi.fn().mockResolvedValue(null),
+  setLocalAvatar: vi.fn().mockResolvedValue(undefined),
+  uploadAvatar: vi.fn().mockResolvedValue("user-123/avatar.jpg"),
+}));
+
+vi.mock("@/lib/user-avatar", () => ({
+  getUserAvatar: () => ({
+    icon: "camera" as const,
+    bgColor: "bg-[#F2B5A7]",
+    iconColor: "text-[#6B2A1A]",
+  }),
+}));
+
 import { SettingsContent } from "./settings-content";
 
 describe("SettingsContent", () => {
@@ -100,5 +114,14 @@ describe("SettingsContent", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     expect(screen.getByText("about")).toBeDefined();
+  });
+
+  it("renders avatar button with changeAvatar label", async () => {
+    mockQueryResults.push(undefined);
+    render(<SettingsContent />);
+    // Account card renders after async getUser resolves
+    const { findByLabelText } = screen;
+    const avatarBtn = await findByLabelText("changeAvatar");
+    expect(avatarBtn).toBeDefined();
   });
 });

@@ -49,4 +49,30 @@ describe("UserMenu", () => {
       screen.getByRole("button", { name: "John Doe" }),
     ).toBeDefined();
   });
+
+  it("renders avatar image when avatarUrl is provided", () => {
+    const { container } = render(
+      <UserMenu
+        userId="user-1"
+        email="test@example.com"
+        tier="free"
+        avatarUrl="blob:http://localhost/avatar"
+      />,
+    );
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("blob:http://localhost/avatar");
+  });
+
+  it("does not render img when avatarUrl is null", () => {
+    const { container } = render(
+      <UserMenu
+        userId="user-1"
+        email="test@example.com"
+        tier="free"
+        avatarUrl={null}
+      />,
+    );
+    expect(container.querySelector("img")).toBeNull();
+  });
 });

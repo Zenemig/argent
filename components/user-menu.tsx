@@ -28,9 +28,10 @@ interface UserMenuProps {
   email: string;
   tier: "free" | "pro";
   displayName?: string | null;
+  avatarUrl?: string | null;
 }
 
-export function UserMenu({ userId, email, tier, displayName }: UserMenuProps) {
+export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMenuProps) {
   const t = useTranslations("settings");
   const tNav = useTranslations("nav");
   const tUpgrade = useTranslations("upgrade");
@@ -53,12 +54,20 @@ export function UserMenu({ userId, email, tier, displayName }: UserMenuProps) {
         <button
           type="button"
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            avatar.bgColor,
+            "flex h-8 w-8 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            !avatarUrl && avatar.bgColor,
           )}
           aria-label={displayName || email}
         >
-          <Icon className={cn("h-4 w-4", avatar.iconColor)} />
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <Icon className={cn("h-4 w-4", avatar.iconColor)} />
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
