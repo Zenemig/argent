@@ -1,0 +1,54 @@
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "messages/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.test.{ts,tsx}"
+          - "tests/**"
+          - "playwright.config.ts"
+
+ui:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "components/**"
+          - "app/**"
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "supabase/migrations/**"
+          - "lib/db.ts"
+          - "lib/schemas.ts"
+
+exporters:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/exporters/**"
+
+sync:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/sync-write.ts"
+          - "hooks/useSync.ts"
+          - "lib/supabase/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+i18n:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "messages/**"
+          - "i18n/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "package-lock.json"
