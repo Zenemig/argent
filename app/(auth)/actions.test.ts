@@ -11,11 +11,18 @@ vi.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => mockRedirect(...args),
 }));
 
+let mockLocale = "en";
+
 vi.mock("next/headers", () => ({
   headers: () =>
     Promise.resolve({
       get: (name: string) =>
         name === "origin" ? "http://localhost:3000" : null,
+    }),
+  cookies: () =>
+    Promise.resolve({
+      get: (name: string) =>
+        name === "NEXT_LOCALE" ? { value: mockLocale } : undefined,
     }),
 }));
 
@@ -117,14 +124,31 @@ describe("signUp", () => {
     expect(result).toEqual({ error: "passwordTooShort" });
   });
 
-  it("passes emailRedirectTo with origin", async () => {
+  it("passes emailRedirectTo and locale in user metadata", async () => {
     mockSignUpAuth.mockResolvedValue({ error: null });
     await signUp(fd({ email: "a@b.com", password: "123456" }));
     expect(mockSignUpAuth).toHaveBeenCalledWith({
       email: "a@b.com",
       password: "123456",
-      options: { emailRedirectTo: "http://localhost:3000/auth/callback" },
+      options: {
+        emailRedirectTo: "http://localhost:3000/auth/callback",
+        data: { locale: "en" },
+      },
     });
+  });
+
+  it("passes Spanish locale from cookie", async () => {
+    mockLocale = "es";
+    mockSignUpAuth.mockResolvedValue({ error: null });
+    await signUp(fd({ email: "a@b.com", password: "123456" }));
+    expect(mockSignUpAuth).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: { locale: "es" },
+        }),
+      }),
+    );
+    mockLocale = "en";
   });
 
   it("returns confirmationSent on success", async () => {
