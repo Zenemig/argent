@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { SkipLink } from "@/components/skip-link";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AuthLayout({
   children,
@@ -16,6 +17,7 @@ export default async function AuthLayout({
       <main id="main-content" className="flex min-h-screen items-center justify-center px-4">
         {children}
       </main>
+      <Toaster />
     </NextIntlClientProvider>
   );
 }
