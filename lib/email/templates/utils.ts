@@ -13,7 +13,7 @@ export function escapeHtml(text: string): string {
 
 /** Argent logo for emails. Uses hosted image since email clients strip inline SVG. */
 export function logoSvg(): string {
-  return `<img src="https://argent.photo/icons/logo.svg" alt="Argent" width="120" height="42" style="display:block;margin:0 auto;">`;
+  return `<img src="https://argent.photo/icons/logo-email.png" alt="Argent" width="120" height="42" style="display:block;margin:0 auto;">`;
 }
 
 /**
