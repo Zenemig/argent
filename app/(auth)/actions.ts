@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 const emailSchema = z.string().email();
@@ -61,12 +61,16 @@ export async function signUp(formData: FormData) {
   const headerStore = await headers();
   const origin = headerStore.get("origin") ?? "";
 
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value ?? "en";
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: { locale },
     },
   });
 

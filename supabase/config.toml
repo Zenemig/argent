@@ -206,7 +206,7 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -267,6 +267,15 @@ max_frequency = "5s"
 # [auth.hook.custom_access_token]
 # enabled = true
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
+
+# Send auth emails via Resend with branded templates.
+# Disabled locally (Inbucket handles test emails). Enable in Supabase dashboard for production:
+#   Hook type: send_email
+#   URI: https://<project-ref>.supabase.co/functions/v1/send-auth-email
+#   Secrets: RESEND_API_KEY, EMAIL_FROM, SUPABASE_URL
+# [auth.hook.send_email]
+# enabled = true
+# uri = "pg-functions://postgres/public/send_auth_email"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
