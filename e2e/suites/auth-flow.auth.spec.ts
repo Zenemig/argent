@@ -35,7 +35,7 @@ test.describe("Auth Flow", () => {
 
     // Sign back in
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(password);
+    await page.getByLabel(/^password$/i).fill(password);
     await page.getByRole("button", { name: /Log In/i }).click();
 
     // Wait for redirect to dashboard
@@ -70,7 +70,7 @@ test.describe("Auth Flow", () => {
 
     await page1.goto("/login");
     await page1.getByLabel(/email/i).fill(email);
-    await page1.getByLabel(/password/i).fill(password);
+    await page1.getByLabel(/^password$/i).fill(password);
     await page1.getByRole("button", { name: /Log In/i }).click();
     await page1.waitForURL(
       (url) => !url.pathname.includes("/login"),
@@ -95,7 +95,7 @@ test.describe("Auth Flow", () => {
 
     await page2.goto("/login");
     await page2.getByLabel(/email/i).fill(email);
-    await page2.getByLabel(/password/i).fill(password);
+    await page2.getByLabel(/^password$/i).fill(password);
     await page2.getByRole("button", { name: /Log In/i }).click();
     await page2.waitForURL(
       (url) => !url.pathname.includes("/login"),
