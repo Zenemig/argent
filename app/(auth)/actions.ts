@@ -75,6 +75,7 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) {
+    console.error("[signUp] Supabase error:", error.message, error);
     return { error: "signupFailed" };
   }
 
