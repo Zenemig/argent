@@ -32,7 +32,7 @@ describe("logoSvg", () => {
     const logo = logoSvg();
     expect(logo).toContain("<img");
     expect(logo).toContain('alt="Argent"');
-    expect(logo).toContain("https://argent.photo/icons/logo.svg");
+    expect(logo).toContain("https://argent.photo/icons/logo-email.png");
   });
 });
 
@@ -56,7 +56,7 @@ describe("baseLayout", () => {
   it("includes the logo image", () => {
     const html = baseLayout("<p>Test</p>", "en");
     expect(html).toContain("<img");
-    expect(html).toContain("argent.photo/icons/logo.svg");
+    expect(html).toContain("argent.photo/icons/logo-email.png");
   });
 
   it("includes English footer text for en locale", () => {
