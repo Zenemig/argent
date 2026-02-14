@@ -28,11 +28,11 @@ describe("escapeHtml", () => {
 });
 
 describe("logoSvg", () => {
-  it("returns a valid SVG string", () => {
-    const svg = logoSvg();
-    expect(svg).toContain("<svg");
-    expect(svg).toContain("</svg>");
-    expect(svg).toContain('aria-label="Argent"');
+  it("returns an img tag pointing to hosted logo", () => {
+    const logo = logoSvg();
+    expect(logo).toContain("<img");
+    expect(logo).toContain('alt="Argent"');
+    expect(logo).toContain("https://argent.photo/icons/logo.svg");
   });
 });
 
@@ -53,9 +53,10 @@ describe("baseLayout", () => {
     expect(html).toContain(content);
   });
 
-  it("includes the logo SVG", () => {
+  it("includes the logo image", () => {
     const html = baseLayout("<p>Test</p>", "en");
-    expect(html).toContain("<svg");
+    expect(html).toContain("<img");
+    expect(html).toContain("argent.photo/icons/logo.svg");
   });
 
   it("includes English footer text for en locale", () => {
