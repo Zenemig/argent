@@ -362,6 +362,14 @@
     "invalidEmail": "Por favor ingresa un correo electrónico válido.",
     "passwordTooShort": "La contraseña debe tener al menos 6 caracteres.",
     "signupFailed": "No se pudo crear la cuenta. Intenta de nuevo.",
-    "resetFailed": "No se pudo enviar el correo de restablecimiento. Intenta de nuevo."
+    "resetFailed": "No se pudo enviar el correo de restablecimiento. Intenta de nuevo.",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "chooseNewPassword": "Elige una nueva contraseña",
+    "passwordUpdated": "Contraseña actualizada exitosamente.",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+    "updatePasswordFailed": "No se pudo actualizar la contraseña. Intenta de nuevo.",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña"
   }
 }

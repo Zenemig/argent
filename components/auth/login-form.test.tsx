@@ -19,6 +19,12 @@ vi.mock("@/components/logo", () => ({
   LogoIcon: () => <div data-testid="logo-icon" />,
 }));
 
+vi.mock("@/components/auth/password-input", () => ({
+  PasswordInput: (props: React.ComponentProps<"input">) => (
+    <input {...props} type="password" />
+  ),
+}));
+
 import { LoginForm } from "./login-form";
 
 describe("LoginForm", () => {

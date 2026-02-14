@@ -362,6 +362,14 @@
     "invalidEmail": "Please enter a valid email address.",
     "passwordTooShort": "Password must be at least 6 characters.",
     "signupFailed": "Could not create account. Please try again.",
-    "resetFailed": "Could not send reset email. Please try again."
+    "resetFailed": "Could not send reset email. Please try again.",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "chooseNewPassword": "Choose a new password",
+    "passwordUpdated": "Password updated successfully.",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "updatePasswordFailed": "Could not update password. Please try again.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   }
 }
