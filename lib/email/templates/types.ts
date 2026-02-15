@@ -20,6 +20,11 @@ export interface WelcomeProps {
   locale: EmailLocale;
 }
 
+export interface AccountDeletedProps {
+  email: string;
+  locale: EmailLocale;
+}
+
 export interface EmailTemplate<T> {
   subject: string;
   html: string;

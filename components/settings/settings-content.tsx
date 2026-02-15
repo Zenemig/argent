@@ -24,6 +24,7 @@ import { getUserAvatar, type AvatarIcon } from "@/lib/user-avatar";
 import { Camera as CameraIcon, Aperture, Film as FilmIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DeleteAccountSection } from "./delete-account-section";
 
 const AVATAR_ICON_MAP = {
   camera: CameraIcon,
@@ -341,6 +342,14 @@ export function SettingsContent() {
           </SettingRow>
         </div>
       </div>
+
+      {/* Danger Zone */}
+      {userEmail && (
+        <div>
+          <SectionHeader>{t("dangerZone")}</SectionHeader>
+          <DeleteAccountSection />
+        </div>
+      )}
 
       <p className="text-sm text-muted-foreground">
         {t("about")} · {t("version")} 0.1.0

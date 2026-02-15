@@ -289,7 +289,18 @@
     "changeAvatar": "Cambiar Avatar",
     "avatarError": "Error al actualizar el avatar",
     "preferences": "Preferencias",
-    "metadata": "Metadatos"
+    "metadata": "Metadatos",
+    "dangerZone": "Zona de Peligro",
+    "deleteAccount": "Eliminar Cuenta",
+    "deleteAccountDescription": "Elimina permanentemente tu cuenta y todos los datos. Esto no se puede deshacer.",
+    "deleteAccountButton": "Eliminar Mi Cuenta",
+    "deleteAccountConfirmTitle": "Eliminar Cuenta",
+    "deleteAccountConfirmDescription": "Esto eliminará permanentemente tu cuenta y todos los datos asociados, incluidos rollos, fotogramas, cámaras, lentes e imágenes subidas. Esta acción no se puede deshacer.",
+    "deleteAccountConfirmLabel": "Escribe tu correo electrónico para confirmar",
+    "deleteAccountConfirmPlaceholder": "tu@correo.com",
+    "deleteAccountConfirming": "Eliminando...",
+    "deleteAccountError": "Error al eliminar la cuenta. Inténtalo de nuevo.",
+    "cancel": "Cancelar"
   },
   "upgrade": {
     "title": "Mejora a Pro",

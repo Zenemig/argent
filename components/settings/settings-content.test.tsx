@@ -56,6 +56,10 @@ vi.mock("@/components/upgrade-prompt", () => ({
   UpgradePrompt: () => <div data-testid="upgrade-prompt" />,
 }));
 
+vi.mock("./delete-account-section", () => ({
+  DeleteAccountSection: () => <div data-testid="delete-account-section" />,
+}));
+
 vi.mock("@/lib/avatar", () => ({
   getLocalAvatar: vi.fn().mockResolvedValue(null),
   setLocalAvatar: vi.fn().mockResolvedValue(undefined),
