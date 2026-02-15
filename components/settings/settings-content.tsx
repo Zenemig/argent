@@ -88,14 +88,19 @@ export function SettingsContent() {
       if (cr) setCopyright(cr);
       const dm = await getSetting("defaultMetering");
       setDefaultMetering(dm || "__none__");
-
-      const blob = await getLocalAvatar();
-      if (blob) {
-        setAvatarUrl(URL.createObjectURL(blob));
-      }
     }
     load();
   }, []);
+
+  // Load avatar (scoped to user)
+  useEffect(() => {
+    if (!userId) return;
+    getLocalAvatar(userId).then((blob) => {
+      if (blob) {
+        setAvatarUrl(URL.createObjectURL(blob));
+      }
+    });
+  }, [userId]);
 
   const cameras = useLiveQuery(
     () => {
@@ -145,7 +150,7 @@ export function SettingsContent() {
       }
 
       // Save locally
-      await setLocalAvatar(result.blob);
+      await setLocalAvatar(userId!, result.blob);
       if (avatarUrl) URL.revokeObjectURL(avatarUrl);
       setAvatarUrl(URL.createObjectURL(result.blob));
 
