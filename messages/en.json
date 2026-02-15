@@ -289,7 +289,18 @@
     "changeAvatar": "Change Avatar",
     "avatarError": "Failed to update avatar",
     "preferences": "Preferences",
-    "metadata": "Metadata"
+    "metadata": "Metadata",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDescription": "Permanently delete your account and all data. This cannot be undone.",
+    "deleteAccountButton": "Delete My Account",
+    "deleteAccountConfirmTitle": "Delete Account",
+    "deleteAccountConfirmDescription": "This will permanently delete your account and all associated data, including rolls, frames, cameras, lenses, and uploaded images. This action cannot be undone.",
+    "deleteAccountConfirmLabel": "Type your email to confirm",
+    "deleteAccountConfirmPlaceholder": "your@email.com",
+    "deleteAccountConfirming": "Deleting...",
+    "deleteAccountError": "Failed to delete account. Please try again.",
+    "cancel": "Cancel"
   },
   "upgrade": {
     "title": "Upgrade to Pro",

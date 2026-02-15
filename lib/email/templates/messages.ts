@@ -40,6 +40,13 @@ const messages = {
         export: "Export XMP sidecar files to embed metadata into your scans",
       },
     },
+    accountDeleted: {
+      subject: "Your Argent account has been deleted",
+      heading: "Account Deleted",
+      body: "Your Argent account and all associated data have been permanently deleted. This includes your rolls, frames, gear, and any uploaded images.",
+      contact:
+        "If you didn't request this deletion, please contact support@argent.photo.",
+    },
     footer: {
       tagline: "The film photographer's companion",
       unsubscribe:
@@ -85,6 +92,13 @@ const messages = {
         export:
           "Exporta archivos XMP sidecar para incrustar metadatos en tus escaneos",
       },
+    },
+    accountDeleted: {
+      subject: "Tu cuenta de Argent ha sido eliminada",
+      heading: "Cuenta Eliminada",
+      body: "Tu cuenta de Argent y todos los datos asociados han sido eliminados permanentemente. Esto incluye tus rollos, fotogramas, equipo y cualquier imagen subida.",
+      contact:
+        "Si no solicitaste esta eliminación, contacta a support@argent.photo.",
     },
     footer: {
       tagline: "El compañero del fotógrafo analógico",
