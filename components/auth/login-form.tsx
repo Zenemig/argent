@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/auth/password-input";
 import { LogoIcon } from "@/components/logo";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,10 +72,9 @@ export function LoginForm({ defaultMode = "login", next, interest }: LoginFormPr
         {mode !== "reset" && (
           <div className="space-y-2">
             <Label htmlFor="password">{t("password")}</Label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
               required
               minLength={6}

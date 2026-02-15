@@ -6,11 +6,17 @@ import type { EmailLocale } from "@/lib/email/templates/types";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const type = searchParams.get("type");
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Recovery flow — skip welcome email, redirect to password reset form
+      if (type === "recovery") {
+        return NextResponse.redirect(`${origin}/reset-password`);
+      }
+
       // Send welcome email on first login (email confirmation)
       try {
         const {

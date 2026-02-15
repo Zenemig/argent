@@ -111,3 +111,26 @@ export async function resetPassword(formData: FormData) {
 
   return { success: "resetSent" };
 }
+
+export async function updatePassword(formData: FormData) {
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  const passwordResult = passwordSchema.safeParse(password);
+  if (!passwordResult.success) {
+    return { error: "passwordTooShort" };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "passwordsDoNotMatch" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: "updatePasswordFailed" };
+  }
+
+  redirect("/");
+}

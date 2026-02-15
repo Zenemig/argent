@@ -34,10 +34,12 @@ vi.mock("next/headers", () => ({
 
 const { GET } = await import("./route");
 
-function makeRequest(code?: string) {
-  const url = code
-    ? `http://localhost:3000/auth/callback?code=${code}`
-    : "http://localhost:3000/auth/callback";
+function makeRequest(code?: string, type?: string) {
+  const params = new URLSearchParams();
+  if (code) params.set("code", code);
+  if (type) params.set("type", type);
+  const qs = params.toString();
+  const url = `http://localhost:3000/auth/callback${qs ? `?${qs}` : ""}`;
   return new Request(url);
 }
 
@@ -180,5 +182,40 @@ describe("GET /auth/callback", () => {
       email: "user@example.com",
       locale: "en",
     });
+  });
+
+  it("redirects to /reset-password for recovery type", async () => {
+    mockExchangeCode.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          email: "user@example.com",
+          user_metadata: { welcome_email_sent: true },
+        },
+      },
+    });
+
+    const response = await GET(makeRequest("recovery-code", "recovery"));
+
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get("location")!).pathname).toBe(
+      "/reset-password",
+    );
+  });
+
+  it("does not send welcome email for recovery flow", async () => {
+    mockExchangeCode.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          email: "user@example.com",
+          user_metadata: {},
+        },
+      },
+    });
+
+    await GET(makeRequest("recovery-code", "recovery"));
+
+    expect(mockSendWelcome).not.toHaveBeenCalled();
   });
 });

@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockSignInWithPassword = vi.fn();
 const mockSignUpAuth = vi.fn();
 const mockResetPasswordForEmail = vi.fn();
+const mockUpdateUser = vi.fn();
 const mockRedirect = vi.fn();
 
 vi.mock("next/navigation", () => ({
@@ -35,11 +36,12 @@ vi.mock("@/lib/supabase/server", () => ({
         signUp: (...args: unknown[]) => mockSignUpAuth(...args),
         resetPasswordForEmail: (...args: unknown[]) =>
           mockResetPasswordForEmail(...args),
+        updateUser: (...args: unknown[]) => mockUpdateUser(...args),
       },
     }),
 }));
 
-const { signIn, signUp, resetPassword } = await import("./actions");
+const { signIn, signUp, resetPassword, updatePassword } = await import("./actions");
 
 // ---------- helpers ----------
 
@@ -197,5 +199,54 @@ describe("resetPassword", () => {
     });
     const result = await resetPassword(fd({ email: "a@b.com" }));
     expect(result).toEqual({ error: "resetFailed" });
+  });
+});
+
+// ---------- updatePassword ----------
+
+describe("updatePassword", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns passwordTooShort when password < 6 chars", async () => {
+    const result = await updatePassword(
+      fd({ password: "short", confirmPassword: "short" }),
+    );
+    expect(result).toEqual({ error: "passwordTooShort" });
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+  });
+
+  it("returns passwordsDoNotMatch when passwords differ", async () => {
+    const result = await updatePassword(
+      fd({ password: "123456", confirmPassword: "654321" }),
+    );
+    expect(result).toEqual({ error: "passwordsDoNotMatch" });
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+  });
+
+  it("calls supabase updateUser with password on valid input", async () => {
+    mockUpdateUser.mockResolvedValue({ error: null });
+    await updatePassword(
+      fd({ password: "newpass123", confirmPassword: "newpass123" }),
+    );
+    expect(mockUpdateUser).toHaveBeenCalledWith({ password: "newpass123" });
+  });
+
+  it("redirects to / on success", async () => {
+    mockUpdateUser.mockResolvedValue({ error: null });
+    await updatePassword(
+      fd({ password: "newpass123", confirmPassword: "newpass123" }),
+    );
+    expect(mockRedirect).toHaveBeenCalledWith("/");
+  });
+
+  it("returns updatePasswordFailed on Supabase error", async () => {
+    mockUpdateUser.mockResolvedValue({
+      error: { message: "Session expired" },
+    });
+    const result = await updatePassword(
+      fd({ password: "newpass123", confirmPassword: "newpass123" }),
+    );
+    expect(result).toEqual({ error: "updatePasswordFailed" });
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 });
