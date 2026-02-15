@@ -80,7 +80,7 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
           "@/lib/settings-helpers"
         );
 
-        const localAvatar = await getLocalAvatar();
+        const localAvatar = await getLocalAvatar(userId);
         const avatarUploaded = await getSetting("avatarUploaded");
 
         if (localAvatar && avatarUploaded !== "true") {
@@ -100,7 +100,7 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
           if (profile?.avatar_url) {
             const blob = await downloadAvatar(supabase, profile.avatar_url);
             if (blob) {
-              await setLocalAvatar(blob);
+              await setLocalAvatar(userId, blob);
               await setSetting("avatarUploaded", "true");
             }
           }

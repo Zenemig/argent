@@ -11,6 +11,6 @@ interface UserMenuWithAvatarProps {
 }
 
 export function UserMenuWithAvatar(props: UserMenuWithAvatarProps) {
-  const avatarUrl = useAvatar();
+  const avatarUrl = useAvatar(props.userId);
   return <UserMenu {...props} avatarUrl={avatarUrl} />;
 }
