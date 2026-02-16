@@ -7,7 +7,10 @@ loadEnvConfig(process.cwd());
 const authFile = "playwright/.auth/user.json";
 
 export default defineConfig({
+  globalSetup: require.resolve("./e2e/global-setup"),
+  globalTeardown: require.resolve("./e2e/global-teardown"),
   testDir: "./e2e",
+  testMatch: /\.spec\.ts/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
