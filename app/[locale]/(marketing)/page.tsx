@@ -249,7 +249,7 @@ function LandingPage({ locale }: { locale: string }) {
                 <div className="flex items-center gap-3">
                   <h3 className="text-2xl font-bold">{t("pricing.pro")}</h3>
                   <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-500">
-                    Soon
+                    {t("pricing.soonBadge")}
                   </span>
                 </div>
                 <p className="mt-2 text-3xl font-bold">
