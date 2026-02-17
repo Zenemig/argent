@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,7 +17,7 @@ import { db } from "@/lib/db";
 import { METERING_MODES } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
 import { useUserTier } from "@/hooks/useUserTier";
-import { getSetting, setSetting, applyTheme } from "@/lib/settings-helpers";
+import { getSetting, setSetting } from "@/lib/settings-helpers";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { getLocalAvatar, setLocalAvatar, uploadAvatar } from "@/lib/avatar";
@@ -61,8 +62,8 @@ export function SettingsContent() {
   const tUpgrade = useTranslations("upgrade");
   const userId = useUserId();
   const { tier, isProUser, isAuthenticated } = useUserTier();
+  const { theme, setTheme } = useTheme();
 
-  const [theme, setTheme] = useState("dark");
   const [displayName, setDisplayName] = useState("");
   const [copyright, setCopyright] = useState("");
   const [defaultMetering, setDefaultMetering] = useState("__none__");
@@ -81,8 +82,6 @@ export function SettingsContent() {
   // Load settings
   useEffect(() => {
     async function load() {
-      const t = await getSetting("theme");
-      if (t) setTheme(t);
       const dn = await getSetting("displayName");
       if (dn) setDisplayName(dn);
       const cr = await getSetting("copyright");
@@ -125,12 +124,6 @@ export function SettingsContent() {
 
   function handleThemeChange(value: string) {
     setTheme(value);
-    setSetting("theme", value);
-    applyTheme(
-      value,
-      document.documentElement,
-      window.matchMedia("(prefers-color-scheme: dark)"),
-    );
     toast.success(t("saved"));
   }
 
@@ -266,7 +259,7 @@ export function SettingsContent() {
           </SettingRow>
 
           <SettingRow label={t("theme")}>
-            <Select value={theme} onValueChange={handleThemeChange}>
+            <Select value={theme ?? "dark"} onValueChange={handleThemeChange}>
               <SelectTrigger aria-label={t("theme")}>
                 <SelectValue />
               </SelectTrigger>

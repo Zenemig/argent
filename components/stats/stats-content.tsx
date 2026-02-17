@@ -18,10 +18,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useStats } from "@/hooks/useStats";
 
 const CHART_HEIGHT = 260;
-const BAR_COLOR = "hsl(var(--primary))";
-const LINE_COLOR = "hsl(var(--primary))";
-const GRID_COLOR = "hsl(var(--border))";
-const TEXT_COLOR = "hsl(var(--muted-foreground))";
+const BAR_COLOR = "var(--primary)";
+const LINE_COLOR = "var(--primary)";
+const GRID_COLOR = "var(--border)";
+const TEXT_COLOR = "var(--muted-foreground)";
 
 function ChartSkeleton() {
   return <Skeleton className="h-[260px] w-full rounded-md" />;
@@ -111,9 +111,9 @@ export function StatsContent() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--popover))",
+                    backgroundColor: "var(--popover)",
                     borderColor: GRID_COLOR,
-                    color: "hsl(var(--popover-foreground))",
+                    color: "var(--popover-foreground)",
                     borderRadius: 8,
                   }}
                 />
@@ -150,9 +150,9 @@ export function StatsContent() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--popover))",
+                    backgroundColor: "var(--popover)",
                     borderColor: GRID_COLOR,
-                    color: "hsl(var(--popover-foreground))",
+                    color: "var(--popover-foreground)",
                     borderRadius: 8,
                   }}
                 />
@@ -200,9 +200,9 @@ export function StatsContent() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--popover))",
+                    backgroundColor: "var(--popover)",
                     borderColor: GRID_COLOR,
-                    color: "hsl(var(--popover-foreground))",
+                    color: "var(--popover-foreground)",
                     borderRadius: 8,
                   }}
                 />
@@ -246,9 +246,9 @@ export function StatsContent() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--popover))",
+                    backgroundColor: "var(--popover)",
                     borderColor: GRID_COLOR,
-                    color: "hsl(var(--popover-foreground))",
+                    color: "var(--popover-foreground)",
                     borderRadius: 8,
                   }}
                 />
