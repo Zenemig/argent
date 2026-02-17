@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) => {
@@ -66,6 +67,11 @@ vi.mock("@/lib/sync-write", () => ({
 
 vi.mock("@/lib/image-sync", () => ({
   toBlob: () => null,
+}));
+
+const mockCaptureImage = vi.fn();
+vi.mock("@/lib/image-capture", () => ({
+  captureImage: (...args: unknown[]) => mockCaptureImage(...args),
 }));
 
 vi.mock("@/lib/lens-utils", () => ({
@@ -274,6 +280,19 @@ describe("ShotLogger", () => {
     for (let i = 0; i < 3; i++) pushQueryCycle([], undefined, lenses);
     render(<ShotLogger roll={makeRoll({ lens_id: "lens-c" })} />);
     expect(screen.getByText("aperture")).toBeDefined();
+  });
+
+  it("calls captureImage when camera button is clicked", async () => {
+    mockCaptureImage.mockResolvedValue({ error: "no_file" as const });
+    pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+
+    const cameraBtn = screen.getByLabelText("captureImage");
+    await userEvent.click(cameraBtn);
+
+    await waitFor(() => {
+      expect(mockCaptureImage).toHaveBeenCalledOnce();
+    });
   });
 
 });

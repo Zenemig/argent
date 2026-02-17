@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -249,6 +249,22 @@ export function ExportDialog({
   const [pattern, setPattern] = useState("scan_{frame_number}.tif");
   const [fileList, setFileList] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Preload exporter chunks when dialog opens so generateAndDownload()
+  // resolves its dynamic imports from cache, reducing await depth before
+  // navigator.share() on iOS.
+  useEffect(() => {
+    if (!open) return;
+    if (format === "xmp") {
+      void Promise.all([import("@/lib/exporters/xmp"), import("jszip")]);
+    } else if (format === "script") {
+      void Promise.all([import("@/lib/exporters/exiftool-script"), import("jszip")]);
+    } else if (format === "csv") {
+      void import("@/lib/exporters/csv");
+    } else if (format === "json") {
+      void import("@/lib/exporters/json");
+    }
+  }, [open, format]);
 
   const fileListLines = fileList
     .split("\n")
