@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import "fake-indexeddb/auto";
-import { applyTheme } from "./settings-helpers";
 import { ArgentDb } from "./db";
 
 // We test getSetting/setSetting by directly using a fresh ArgentDb instance
@@ -48,54 +47,3 @@ describe("getSetting / setSetting (via _syncMeta)", () => {
   });
 });
 
-describe("applyTheme", () => {
-  function mockHtml() {
-    const classes = new Set<string>();
-    return {
-      classList: {
-        add(c: string) { classes.add(c); },
-        remove(c: string) { classes.delete(c); },
-        toggle(c: string, force: boolean) { force ? classes.add(c) : classes.delete(c); },
-      },
-      _classes: classes,
-    };
-  }
-
-  it("dark theme adds dark, removes light", () => {
-    const html = mockHtml();
-    html._classes.add("light");
-    applyTheme("dark", html, { matches: false });
-    expect(html._classes.has("dark")).toBe(true);
-    expect(html._classes.has("light")).toBe(false);
-  });
-
-  it("light theme removes dark, adds light", () => {
-    const html = mockHtml();
-    html._classes.add("dark");
-    applyTheme("light", html, { matches: false });
-    expect(html._classes.has("dark")).toBe(false);
-    expect(html._classes.has("light")).toBe(true);
-  });
-
-  it("system theme with prefers-dark adds dark", () => {
-    const html = mockHtml();
-    applyTheme("system", html, { matches: true });
-    expect(html._classes.has("dark")).toBe(true);
-    expect(html._classes.has("light")).toBe(false);
-  });
-
-  it("system theme with prefers-light adds light", () => {
-    const html = mockHtml();
-    applyTheme("system", html, { matches: false });
-    expect(html._classes.has("dark")).toBe(false);
-    expect(html._classes.has("light")).toBe(true);
-  });
-
-  it("system with prefers-dark removes existing light class", () => {
-    const html = mockHtml();
-    html._classes.add("light");
-    applyTheme("system", html, { matches: true });
-    expect(html._classes.has("dark")).toBe(true);
-    expect(html._classes.has("light")).toBe(false);
-  });
-});

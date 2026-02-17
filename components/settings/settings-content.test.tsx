@@ -9,6 +9,11 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
+const mockNextThemes = { theme: "dark", setTheme: vi.fn() };
+vi.mock("next-themes", () => ({
+  useTheme: () => mockNextThemes,
+}));
+
 let mockUserId: string | null | undefined = "user-123";
 vi.mock("@/hooks/useUserId", () => ({
   useUserId: () => mockUserId,
@@ -45,7 +50,6 @@ vi.mock("@/lib/supabase/client", () => ({
 vi.mock("@/lib/settings-helpers", () => ({
   getSetting: vi.fn().mockResolvedValue(null),
   setSetting: vi.fn().mockResolvedValue(undefined),
-  applyTheme: vi.fn(),
 }));
 
 vi.mock("@/lib/constants", () => ({
@@ -87,6 +91,8 @@ describe("SettingsContent", () => {
     queryCallIndex = 0;
     mockQueryResults.length = 0;
     mockUserId = "user-123";
+    mockNextThemes.theme = "dark";
+    mockNextThemes.setTheme = vi.fn();
     mockCaptureImage.mockResolvedValue({ error: "no_file" });
   });
 

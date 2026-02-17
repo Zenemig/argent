@@ -9,7 +9,7 @@ test.describe("Settings Persistence", () => {
     await page.getByRole("combobox", { name: /Theme/i }).click();
     await page.getByRole("option", { name: /Light/i }).click();
 
-    // Verify <html> element has "light" class (applied immediately via applyTheme)
+    // Verify <html> element has "light" class (set by next-themes ThemeProvider)
     await expect(page.locator("html")).toHaveClass(/light/);
 
     // Verify the select shows "Light" as the current value
