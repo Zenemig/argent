@@ -23,6 +23,7 @@ import { getLocalAvatar, setLocalAvatar, uploadAvatar } from "@/lib/avatar";
 import { getUserAvatar, type AvatarIcon } from "@/lib/user-avatar";
 import { Camera as CameraIcon, Aperture, Film as FilmIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { captureImage } from "@/lib/image-capture";
 import { toast } from "sonner";
 import { DeleteAccountSection } from "./delete-account-section";
 
@@ -140,7 +141,8 @@ export function SettingsContent() {
 
   async function handleAvatarChange() {
     try {
-      const { captureImage } = await import("@/lib/image-capture");
+      // captureImage is statically imported — dynamic import here would break
+      // the iOS Safari user-gesture chain before input.click().
       const result = await captureImage(256, 0.8);
       if ("error" in result) {
         if (result.error !== "no_file") {

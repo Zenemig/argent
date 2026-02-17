@@ -60,6 +60,11 @@ vi.mock("./delete-account-section", () => ({
   DeleteAccountSection: () => <div data-testid="delete-account-section" />,
 }));
 
+const mockCaptureImage = vi.fn();
+vi.mock("@/lib/image-capture", () => ({
+  captureImage: (...args: unknown[]) => mockCaptureImage(...args),
+}));
+
 vi.mock("@/lib/avatar", () => ({
   getLocalAvatar: vi.fn().mockResolvedValue(null),
   setLocalAvatar: vi.fn().mockResolvedValue(undefined),
@@ -82,6 +87,7 @@ describe("SettingsContent", () => {
     queryCallIndex = 0;
     mockQueryResults.length = 0;
     mockUserId = "user-123";
+    mockCaptureImage.mockResolvedValue({ error: "no_file" });
   });
 
   it("renders language setting row", () => {

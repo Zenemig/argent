@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { LiveRegion } from "@/components/live-region";
 import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
 import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
+import { captureImage } from "@/lib/image-capture";
 import { toast } from "sonner";
 
 interface ShotLoggerProps {
@@ -227,7 +228,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   // ----- Image capture handlers -----
 
   async function captureWithErrorHandling(): Promise<Blob | null> {
-    const { captureImage } = await import("@/lib/image-capture");
+    // captureImage is statically imported — dynamic import here would break
+    // the iOS Safari user-gesture chain before input.click().
     const result = await captureImage();
     if ("error" in result) {
       if (result.error !== "no_file") {
