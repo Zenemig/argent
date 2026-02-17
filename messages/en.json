@@ -260,6 +260,26 @@
       "no_file": "No image selected",
       "invalid_type": "Please select a valid image file",
       "compression_failed": "Failed to process image. Try a different file."
+    },
+    "location": {
+      "title": "Set Location",
+      "description": "Tap the map or drag the marker to set the shot location.",
+      "search": "Place Search",
+      "searchPlaceholder": "Search for a place...",
+      "searchResults": "Search results",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "placeName": "Place Name",
+      "placeNamePlaceholder": "Optional label",
+      "placeholder": "Tap to set location",
+      "set": "Set Location",
+      "update": "Update Location",
+      "remove": "Remove Location",
+      "cancel": "Cancel",
+      "editLocation": "Edit location",
+      "setLocation": "Set location",
+      "offlineBanner": "You are offline. Place search is unavailable. Enter coordinates manually.",
+      "mapUnavailable": "Map tiles could not be loaded. Use the coordinate inputs below."
     }
   },
   "settings": {

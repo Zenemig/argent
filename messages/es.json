@@ -260,6 +260,26 @@
       "no_file": "No se seleccionó ninguna imagen",
       "invalid_type": "Por favor selecciona un archivo de imagen válido",
       "compression_failed": "Error al procesar la imagen. Prueba con otro archivo."
+    },
+    "location": {
+      "title": "Establecer Ubicación",
+      "description": "Toca el mapa o arrastra el marcador para establecer la ubicación.",
+      "search": "Búsqueda de Lugar",
+      "searchPlaceholder": "Buscar un lugar...",
+      "searchResults": "Resultados de búsqueda",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
+      "placeName": "Nombre del Lugar",
+      "placeNamePlaceholder": "Etiqueta opcional",
+      "placeholder": "Toca para establecer ubicación",
+      "set": "Establecer Ubicación",
+      "update": "Actualizar Ubicación",
+      "remove": "Eliminar Ubicación",
+      "cancel": "Cancelar",
+      "editLocation": "Editar ubicación",
+      "setLocation": "Establecer ubicación",
+      "offlineBanner": "Estás sin conexión. La búsqueda de lugares no está disponible. Ingresa las coordenadas manualmente.",
+      "mapUnavailable": "No se pudieron cargar los mosaicos del mapa. Usa los campos de coordenadas."
     }
   },
   "settings": {

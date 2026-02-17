@@ -48,6 +48,7 @@ import { LiveRegion } from "@/components/live-region";
 import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
 import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
 import { captureImage } from "@/lib/image-capture";
+import { LocationPickerDialog } from "@/components/roll/location-picker-dialog";
 import { toast } from "sonner";
 
 interface ShotLoggerProps {
@@ -81,6 +82,14 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     url: string;
     frameNumber?: number;
   } | null>(null);
+
+  // Location picker state
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
+  const [locationPickerFrameId, setLocationPickerFrameId] = useState<string | null>(null);
+  const [pickerInitialLat, setPickerInitialLat] = useState<number | null>(null);
+  const [pickerInitialLon, setPickerInitialLon] = useState<number | null>(null);
+  const [pickerInitialName, setPickerInitialName] = useState<string | null>(null);
+  const [locationDisplay, setLocationDisplay] = useState<string>("");
 
   const locationRef = useRef<{ lat: number; lon: number } | null>(null);
   const locationNameRef = useRef<string>("");
@@ -269,6 +278,59 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     toast.success(t("imageRemoved"));
   }
 
+  // ----- Location picker handlers -----
+
+  function handleOpenNewFrameLocationPicker() {
+    const loc = locationRef.current;
+    setPickerInitialLat(loc?.lat ?? null);
+    setPickerInitialLon(loc?.lon ?? null);
+    setPickerInitialName(locationNameRef.current || null);
+    setLocationPickerFrameId(null);
+    setLocationPickerOpen(true);
+  }
+
+  function handleOpenFrameLocationPicker(frame: Frame) {
+    setPickerInitialLat(frame.latitude ?? null);
+    setPickerInitialLon(frame.longitude ?? null);
+    setPickerInitialName(frame.location_name ?? null);
+    setLocationPickerFrameId(frame.id);
+    setLocationPickerOpen(true);
+  }
+
+  async function handleLocationConfirm(lat: number, lon: number, name: string) {
+    if (locationPickerFrameId) {
+      await syncUpdate("frames", locationPickerFrameId, {
+        latitude: lat,
+        longitude: lon,
+        location_name: name || null,
+        updated_at: Date.now(),
+      });
+      setLocationPickerFrameId(null);
+    } else {
+      locationRef.current = { lat, lon };
+      locationNameRef.current = name;
+      setLocationDisplay(name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+    }
+    setLocationPickerOpen(false);
+  }
+
+  async function handleLocationClear() {
+    if (locationPickerFrameId) {
+      await syncUpdate("frames", locationPickerFrameId, {
+        latitude: null,
+        longitude: null,
+        location_name: null,
+        updated_at: Date.now(),
+      });
+      setLocationPickerFrameId(null);
+    } else {
+      locationRef.current = null;
+      locationNameRef.current = "";
+      setLocationDisplay("");
+    }
+    setLocationPickerOpen(false);
+  }
+
   // ----- Save frame -----
 
   const saveFrame = useCallback(async () => {
@@ -308,6 +370,9 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     setNote("");
     setFilter("");
     setCapturedThumbnail(null);
+    setLocationDisplay("");
+    locationNameRef.current = "";
+    locationRef.current = null;
     toast.success(t("frameNumber", { number: nextFrameNumber }));
   }, [
     roll.id,
@@ -383,8 +448,15 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   ) : null}
                   <span className="tabular-nums">{frame.shutter_speed}</span>
                   <span className="text-muted-foreground">f/{frame.aperture}</span>
-                  {frame.latitude && (
-                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                  {frame.latitude != null && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenFrameLocationPicker(frame)}
+                      aria-label={t("location.editLocation")}
+                      className="shrink-0 text-muted-foreground hover:text-primary"
+                    >
+                      <MapPin className="h-3 w-3" />
+                    </button>
                   )}
                   {frame.notes && (
                     <span className="truncate text-xs text-muted-foreground">
@@ -545,6 +617,19 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
               />
             </div>
 
+            {/* Location row */}
+            <button
+              type="button"
+              onClick={handleOpenNewFrameLocationPicker}
+              className="flex h-9 w-full items-center gap-2 rounded-md border border-border px-3 text-sm text-muted-foreground hover:border-primary hover:text-primary"
+              aria-label={locationDisplay ? t("location.editLocation") : t("location.setLocation")}
+            >
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                {locationDisplay || t("location.placeholder")}
+              </span>
+            </button>
+
             {/* Camera capture + save row */}
             <div className="flex gap-2 lg:gap-3">
               {capturedThumbnail && capturedThumbUrl ? (
@@ -645,6 +730,17 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Location picker dialog */}
+      <LocationPickerDialog
+        open={locationPickerOpen}
+        onOpenChange={setLocationPickerOpen}
+        initialLat={pickerInitialLat}
+        initialLon={pickerInitialLon}
+        initialName={pickerInitialName}
+        onConfirm={handleLocationConfirm}
+        onClear={handleLocationClear}
+      />
     </div>
   );
 }

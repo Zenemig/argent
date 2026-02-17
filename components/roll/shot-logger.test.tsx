@@ -74,6 +74,27 @@ vi.mock("@/lib/image-capture", () => ({
   captureImage: (...args: unknown[]) => mockCaptureImage(...args),
 }));
 
+vi.mock("@/components/roll/location-picker-dialog", () => ({
+  LocationPickerDialog: ({
+    open,
+    onConfirm,
+    onClear,
+  }: {
+    open: boolean;
+    onConfirm: (lat: number, lon: number, name: string) => void;
+    onClear: () => void;
+  }) =>
+    open ? (
+      <div data-testid="location-picker-dialog">
+        <button
+          data-testid="location-confirm"
+          onClick={() => onConfirm(48.8566, 2.3522, "Paris")}
+        />
+        <button data-testid="location-clear" onClick={onClear} />
+      </div>
+    ) : null,
+}));
+
 vi.mock("@/lib/lens-utils", () => ({
   isZoomLens: (lens: { focal_length_max?: number | null }) => lens.focal_length_max != null,
   formatFocalLength: (lens: { focal_length: number; focal_length_max?: number | null }) =>
@@ -293,6 +314,86 @@ describe("ShotLogger", () => {
     await waitFor(() => {
       expect(mockCaptureImage).toHaveBeenCalledOnce();
     });
+  });
+
+  it("shows location placeholder button for new frame", () => {
+    pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByText("location.placeholder")).toBeDefined();
+  });
+
+  it("opens location picker when location button is clicked", async () => {
+    pushQueryCycle();
+    pushQueryCycle(); // re-render after state change
+    render(<ShotLogger roll={makeRoll()} />);
+
+    const locationBtn = screen.getByText("location.placeholder");
+    await userEvent.click(locationBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location-picker-dialog")).toBeDefined();
+    });
+  });
+
+  it("shows location display after confirming location", async () => {
+    for (let i = 0; i < 3; i++) pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+
+    // Open location picker
+    await userEvent.click(screen.getByText("location.placeholder"));
+
+    // Confirm location
+    await waitFor(() => {
+      expect(screen.getByTestId("location-confirm")).toBeDefined();
+    });
+    await userEvent.click(screen.getByTestId("location-confirm"));
+
+    // Should show "Paris" in the location button
+    await waitFor(() => {
+      expect(screen.getByText("Paris")).toBeDefined();
+    });
+  });
+
+  it("shows tappable MapPin for frames with location", () => {
+    const frames = [
+      {
+        id: "f1",
+        roll_id: "roll-001",
+        frame_number: 1,
+        shutter_speed: "1/125",
+        aperture: 5.6,
+        lens_id: null,
+        notes: null,
+        latitude: 40.7128,
+        longitude: -74.006,
+        location_name: "NYC",
+        thumbnail: null,
+      },
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByLabelText("location.editLocation")).toBeDefined();
+  });
+
+  it("does not show MapPin for frames without location", () => {
+    const frames = [
+      {
+        id: "f1",
+        roll_id: "roll-001",
+        frame_number: 1,
+        shutter_speed: "1/125",
+        aperture: 5.6,
+        lens_id: null,
+        notes: null,
+        latitude: null,
+        longitude: null,
+        location_name: null,
+        thumbnail: null,
+      },
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.queryByLabelText("location.editLocation")).toBeNull();
   });
 
 });
