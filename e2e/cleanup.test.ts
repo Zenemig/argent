@@ -56,51 +56,85 @@ describe("cleanupE2eData", () => {
     mockFrom.mockReturnValue(Promise.resolve({ error: null }));
   });
 
-  it("skips gracefully when E2E_USER_EMAIL is missing", async () => {
+  it("throws when E2E_USER_EMAIL is missing", async () => {
     vi.stubEnv("E2E_USER_EMAIL", "");
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    await expect(cleanupE2eData()).resolves.toBeUndefined();
+    await expect(cleanupE2eData()).rejects.toThrow(/Missing required env/);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Missing env"),
-    );
     expect(mockListUsers).not.toHaveBeenCalled();
-    consoleSpy.mockRestore();
   });
 
-  it("skips gracefully when SUPABASE_SERVICE_ROLE_KEY is missing", async () => {
+  it("throws when SUPABASE_SERVICE_ROLE_KEY is missing", async () => {
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "");
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    await expect(cleanupE2eData()).resolves.toBeUndefined();
+    await expect(cleanupE2eData()).rejects.toThrow(/Missing required env/);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Missing env"),
-    );
     expect(mockListUsers).not.toHaveBeenCalled();
-    consoleSpy.mockRestore();
   });
 
-  it("resolves user UUID from email via listUsers", async () => {
+  it("throws when NEXT_PUBLIC_SUPABASE_URL is missing", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+
+    await expect(cleanupE2eData()).rejects.toThrow(/Missing required env/);
+
+    expect(mockListUsers).not.toHaveBeenCalled();
+  });
+
+  it("resolves user UUID from email via paginated listUsers", async () => {
     await cleanupE2eData();
 
-    expect(mockListUsers).toHaveBeenCalled();
+    expect(mockListUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1, perPage: 50 }),
+    );
   });
 
-  it("skips gracefully when user is not found", async () => {
-    mockListUsers.mockResolvedValue({
-      data: { users: [{ id: "other-user", email: "other@test.com" }] },
-    });
-    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("finds user on a later page", async () => {
+    mockListUsers
+      // Page 1: other users, full page
+      .mockResolvedValueOnce({
+        data: {
+          users: Array.from({ length: 50 }, (_, i) => ({
+            id: `other-${i}`,
+            email: `user${i}@other.com`,
+          })),
+        },
+      })
+      // Page 2: target user
+      .mockResolvedValueOnce({
+        data: {
+          users: [{ id: "user-uuid-123", email: "e2e@test.com" }],
+        },
+      });
 
-    await expect(cleanupE2eData()).resolves.toBeUndefined();
+    await cleanupE2eData();
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("not found"),
+    expect(mockListUsers).toHaveBeenCalledTimes(2);
+    expect(mockListUsers).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2 }),
     );
+    // Verify cleanup ran with the correct user ID
+    expect(mockFrom).toHaveBeenCalled();
+  });
+
+  it("throws when user is not found after exhausting all pages", async () => {
+    mockListUsers.mockResolvedValue({
+      data: { users: [] },
+    });
+
+    await expect(cleanupE2eData()).rejects.toThrow(/not found/);
+
     expect(mockFrom).not.toHaveBeenCalled();
-    consoleSpy.mockRestore();
+  });
+
+  it("throws when listUsers returns an API error", async () => {
+    mockListUsers.mockResolvedValue({
+      data: null,
+      error: { message: "rate limited" },
+    });
+
+    await expect(cleanupE2eData()).rejects.toThrow(/listUsers failed/);
+
+    expect(mockFrom).not.toHaveBeenCalled();
   });
 
   it("deletes storage files including roll subfolders", async () => {
