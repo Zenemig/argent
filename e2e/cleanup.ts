@@ -10,25 +10,51 @@ export async function cleanupE2eData(): Promise<void> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!email || !url || !key) {
-    console.warn(`${LOG} Missing env vars — skipping cleanup`);
-    return;
+  const missing = [
+    !email && "E2E_USER_EMAIL",
+    !url && "NEXT_PUBLIC_SUPABASE_URL",
+    !key && "SUPABASE_SERVICE_ROLE_KEY",
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `${LOG} Missing required env vars: ${missing.join(", ")}`,
+    );
   }
 
-  const admin = createClient(url, key, {
+  const admin = createClient(url!, key!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Resolve user UUID from email
-  const { data } = await admin.auth.admin.listUsers();
-  const user = data?.users.find((u) => u.email === email);
+  // Resolve user UUID from email — paginate through all users
+  let userId: string | undefined;
+  let page = 1;
+  const perPage = 50;
 
-  if (!user) {
-    console.warn(`${LOG} User ${email} not found — skipping cleanup`);
-    return;
+  while (!userId) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      throw new Error(
+        `${LOG} listUsers failed on page ${page}: ${error.message}`,
+      );
+    }
+
+    const users = data.users ?? [];
+
+    const match = users.find((u) => u.email === email);
+    if (match) {
+      userId = match.id;
+      break;
+    }
+
+    // No more pages to check
+    if (users.length < perPage) {
+      throw new Error(`${LOG} User ${email} not found in auth.users`);
+    }
+
+    page++;
   }
-
-  const userId = user.id;
   console.log(`${LOG} Cleaning data for ${email} (${userId})`);
 
   // 1. Clean storage: list top-level, recurse into subfolders
