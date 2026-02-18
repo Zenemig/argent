@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ulid } from "ulid";
-import { Camera, ImageOff, MapPin, X } from "lucide-react";
+import { Camera, ImageOff, MapPin, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +76,10 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   const [showExceedWarning, setShowExceedWarning] = useState(false);
   const [frameFocalLength, setFrameFocalLength] = useState<number | null>(null);
 
+  // Edit mode state
+  const [editingFrame, setEditingFrame] = useState<Frame | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Image capture state
   const [capturedThumbnail, setCapturedThumbnail] = useState<Blob | null>(null);
   const [previewImage, setPreviewImage] = useState<{
@@ -83,12 +87,13 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     frameNumber?: number;
   } | null>(null);
 
-  // Location picker state
-  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
-  const [locationPickerFrameId, setLocationPickerFrameId] = useState<string | null>(null);
-  const [pickerInitialLat, setPickerInitialLat] = useState<number | null>(null);
-  const [pickerInitialLon, setPickerInitialLon] = useState<number | null>(null);
-  const [pickerInitialName, setPickerInitialName] = useState<string | null>(null);
+  // Location picker state (null = closed)
+  const [locationPicker, setLocationPicker] = useState<{
+    frameId: string | null;
+    initialLat: number | null;
+    initialLon: number | null;
+    initialName: string | null;
+  } | null>(null);
   const [locationDisplay, setLocationDisplay] = useState<string>("");
 
   const locationRef = useRef<{ lat: number; lon: number } | null>(null);
@@ -121,8 +126,9 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     return all;
   }, [roll.user_id, roll.camera_id]);
 
-  // Auto-fill from last frame
+  // Auto-fill from last frame (suppressed in edit mode)
   useEffect(() => {
+    if (editingFrame !== null) return;
     if (frames && frames.length > 0) {
       const last = frames[frames.length - 1];
       setShutterSpeed(last.shutter_speed);
@@ -133,7 +139,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
         setExposureComp(last.exposure_comp);
       if (last.filter) setFilter(last.filter);
     }
-  }, [frames?.length]);
+  }, [frames?.length, editingFrame]);
 
   // Geolocation watcher
   useEffect(() => {
@@ -172,7 +178,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     return map;
   }, [frames]);
 
-  // Revoke old thumbnail URLs when frames change
+  // Revoke stale thumbnail URLs when frames change
   const prevUrlsRef = useRef<Map<string, string>>(new Map());
   useEffect(() => {
     const prev = prevUrlsRef.current;
@@ -182,12 +188,16 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       }
     }
     prevUrlsRef.current = frameThumbUrls;
+  }, [frameThumbUrls]);
+
+  // Revoke all object URLs on unmount
+  useEffect(() => {
     return () => {
-      for (const url of frameThumbUrls.values()) {
+      for (const url of prevUrlsRef.current.values()) {
         URL.revokeObjectURL(url);
       }
     };
-  }, [frameThumbUrls]);
+  }, []);
 
   // Preview URL for captured thumbnail (before save)
   const capturedThumbUrl = useMemo(() => {
@@ -232,7 +242,12 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     }
   }, [selectedLens]);
 
-  const nextFrameNumber = (frames?.length ?? 0) + 1;
+  const activeFrames = useMemo(
+    () => frames?.filter((f) => f.deleted_at == null) ?? [],
+    [frames],
+  );
+
+  const nextFrameNumber = activeFrames.length + 1;
 
   // ----- Image capture handlers -----
 
@@ -282,53 +297,64 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
   function handleOpenNewFrameLocationPicker() {
     const loc = locationRef.current;
-    setPickerInitialLat(loc?.lat ?? null);
-    setPickerInitialLon(loc?.lon ?? null);
-    setPickerInitialName(locationNameRef.current || null);
-    setLocationPickerFrameId(null);
-    setLocationPickerOpen(true);
+    setLocationPicker({
+      frameId: null,
+      initialLat: loc?.lat ?? null,
+      initialLon: loc?.lon ?? null,
+      initialName: locationNameRef.current || null,
+    });
   }
 
   function handleOpenFrameLocationPicker(frame: Frame) {
-    setPickerInitialLat(frame.latitude ?? null);
-    setPickerInitialLon(frame.longitude ?? null);
-    setPickerInitialName(frame.location_name ?? null);
-    setLocationPickerFrameId(frame.id);
-    setLocationPickerOpen(true);
+    setLocationPicker({
+      frameId: frame.id,
+      initialLat: frame.latitude ?? null,
+      initialLon: frame.longitude ?? null,
+      initialName: frame.location_name ?? null,
+    });
   }
 
   async function handleLocationConfirm(lat: number, lon: number, name: string) {
-    if (locationPickerFrameId) {
-      await syncUpdate("frames", locationPickerFrameId, {
+    if (locationPicker?.frameId) {
+      await syncUpdate("frames", locationPicker.frameId, {
         latitude: lat,
         longitude: lon,
         location_name: name || null,
         updated_at: Date.now(),
       });
-      setLocationPickerFrameId(null);
     } else {
       locationRef.current = { lat, lon };
       locationNameRef.current = name;
       setLocationDisplay(name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }
-    setLocationPickerOpen(false);
+    setLocationPicker(null);
   }
 
   async function handleLocationClear() {
-    if (locationPickerFrameId) {
-      await syncUpdate("frames", locationPickerFrameId, {
+    if (locationPicker?.frameId) {
+      await syncUpdate("frames", locationPicker.frameId, {
         latitude: null,
         longitude: null,
         location_name: null,
         updated_at: Date.now(),
       });
-      setLocationPickerFrameId(null);
     } else {
       locationRef.current = null;
       locationNameRef.current = "";
       setLocationDisplay("");
     }
-    setLocationPickerOpen(false);
+    setLocationPicker(null);
+  }
+
+  // ----- Shared form reset -----
+
+  function resetFormState() {
+    setNote("");
+    setFilter("");
+    setCapturedThumbnail(null);
+    setLocationDisplay("");
+    locationNameRef.current = "";
+    locationRef.current = null;
   }
 
   // ----- Save frame -----
@@ -367,17 +393,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       });
     }
 
-    setNote("");
-    setFilter("");
-    setCapturedThumbnail(null);
-    setLocationDisplay("");
-    locationNameRef.current = "";
-    locationRef.current = null;
+    resetFormState();
     toast.success(t("frameNumber", { number: nextFrameNumber }));
   }, [
     roll.id,
     roll.status,
-    roll.user_id,
     nextFrameNumber,
     shutterSpeed,
     aperture,
@@ -391,30 +411,121 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     t,
   ]);
 
-  function handleSaveClick() {
+  // ----- Edit frame -----
+
+  function loadFrameIntoForm(frame: Frame) {
+    setShutterSpeed(frame.shutter_speed);
+    setAperture(frame.aperture);
+    setLensId(frame.lens_id ?? "__none__");
+    setMeteringMode(frame.metering_mode ?? "__none__");
+    setExposureComp(frame.exposure_comp ?? 0);
+    setFilter(frame.filter ?? "");
+    setNote(frame.notes ?? "");
+    setFrameFocalLength(frame.focal_length ?? null);
+    if (frame.latitude != null && frame.longitude != null) {
+      locationRef.current = { lat: frame.latitude, lon: frame.longitude };
+      locationNameRef.current = frame.location_name ?? "";
+      setLocationDisplay(
+        frame.location_name ||
+          `${frame.latitude.toFixed(4)}, ${frame.longitude.toFixed(4)}`,
+      );
+    } else {
+      locationRef.current = null;
+      locationNameRef.current = "";
+      setLocationDisplay("");
+    }
+    setCapturedThumbnail(null);
+    setEditingFrame(frame);
+  }
+
+  function exitEditMode() {
+    setEditingFrame(null);
+    resetFormState();
+  }
+
+  async function updateFrame() {
+    if (!editingFrame) return;
+    const now = Date.now();
+    const loc = locationRef.current;
+    await syncUpdate("frames", editingFrame.id, {
+      shutter_speed: shutterSpeed,
+      aperture,
+      lens_id: lensId === "__none__" ? null : lensId,
+      focal_length: frameFocalLength,
+      metering_mode:
+        meteringMode === "__none__"
+          ? null
+          : (meteringMode as MeteringMode),
+      exposure_comp: exposureComp,
+      filter: filter.trim() || null,
+      notes: note.trim() || null,
+      latitude: loc?.lat ?? null,
+      longitude: loc?.lon ?? null,
+      location_name: locationNameRef.current || null,
+      thumbnail: capturedThumbnail ?? editingFrame.thumbnail,
+      updated_at: now,
+    });
+    const frameNum = editingFrame.frame_number;
+    exitEditMode();
+    toast.success(t("frameUpdated", { number: frameNum }));
+  }
+
+  async function handleDeleteFrame() {
+    if (!editingFrame) return;
+    const now = Date.now();
+    const frameNum = editingFrame.frame_number;
+    await syncUpdate("frames", editingFrame.id, {
+      deleted_at: now,
+      updated_at: now,
+    });
+    exitEditMode();
+    toast.success(t("frameDeleted", { number: frameNum }));
+  }
+
+  async function handleSaveClick() {
+    if (editingFrame) {
+      await updateFrame();
+      return;
+    }
     if (nextFrameNumber > roll.frame_count) {
       setShowExceedWarning(true);
       return;
     }
-    saveFrame();
+    await saveFrame();
   }
 
   const canLog =
     roll.status === "loaded" || roll.status === "active";
+  const showForm = canLog || editingFrame !== null;
 
   return (
     <div className="space-y-4 lg:flex lg:gap-6 lg:space-y-0">
       {/* Frame timeline */}
       <div className="lg:flex-1 lg:min-w-0">
-      {frames && frames.length > 0 && (
+      {activeFrames.length > 0 && (
         <ScrollArea className="max-h-48 lg:max-h-[calc(100vh-16rem)]">
           <div className="space-y-1">
-            {frames.map((frame) => {
+            {activeFrames.map((frame) => {
               const thumbUrl = frameThumbUrls.get(frame.id);
               return (
                 <div
                   key={frame.id}
-                  className="flex items-center gap-2 rounded border border-border px-3 py-1.5 text-sm"
+                  role="group"
+                  tabIndex={0}
+                  onClick={() => loadFrameIntoForm(frame)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      loadFrameIntoForm(frame);
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 rounded border border-border px-3 py-1.5 text-sm cursor-pointer",
+                    "hover:border-primary hover:bg-muted/50 transition-colors",
+                    editingFrame?.id === frame.id && "border-primary bg-muted/50",
+                  )}
+                  aria-label={t("editFrame", { number: frame.frame_number })}
+                  aria-current={editingFrame?.id === frame.id || undefined}
                 >
                   <Badge variant="outline" className="shrink-0 tabular-nums">
                     #{frame.frame_number}
@@ -422,9 +533,10 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   {thumbUrl ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        handleViewThumbnail(thumbUrl, frame.frame_number)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewThumbnail(thumbUrl, frame.frame_number);
+                      }}
                       className="shrink-0 overflow-hidden rounded"
                       aria-label={t("frameThumbnail", {
                         number: frame.frame_number,
@@ -439,7 +551,10 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   ) : canLog ? (
                     <button
                       type="button"
-                      onClick={() => handleAddImageToFrame(frame.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddImageToFrame(frame.id);
+                      }}
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"
                       aria-label={t("captureImage")}
                     >
@@ -451,7 +566,10 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   {frame.latitude != null && (
                     <button
                       type="button"
-                      onClick={() => handleOpenFrameLocationPicker(frame)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenFrameLocationPicker(frame);
+                      }}
                       aria-label={t("location.editLocation")}
                       className="shrink-0 text-muted-foreground hover:text-primary"
                     >
@@ -472,7 +590,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       </div>
 
       {/* Log controls */}
-      {canLog && (
+      {showForm && (
         <div className={cn(
           "fixed inset-x-0 bottom-16 z-40 border-t border-border bg-background p-4",
           "lg:static lg:inset-auto lg:z-auto lg:w-[28rem] lg:shrink-0 lg:self-start lg:sticky lg:top-8 lg:rounded-lg lg:border lg:bg-card lg:p-6"
@@ -480,13 +598,41 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
           <div className="mx-auto max-w-lg space-y-3 lg:mx-0 lg:max-w-none lg:space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
-                {t("frameNumber", { number: nextFrameNumber })}
+                {editingFrame
+                  ? t("editingFrame", { number: editingFrame.frame_number })
+                  : t("frameNumber", { number: nextFrameNumber })}
               </span>
-              <span className="text-xs text-muted-foreground">
-                {nextFrameNumber}/{roll.frame_count}
-              </span>
+              {editingFrame ? (
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    aria-label={t("deleteFrame")}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={exitEditMode}
+                  >
+                    {tc("cancel")}
+                  </Button>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {nextFrameNumber}/{roll.frame_count}
+                </span>
+              )}
               <LiveRegion>
-                {t("frameNumber", { number: nextFrameNumber })} — {nextFrameNumber}/{roll.frame_count}
+                {editingFrame
+                  ? t("editingFrame", { number: editingFrame.frame_number })
+                  : `${t("frameNumber", { number: nextFrameNumber })} — ${nextFrameNumber}/${roll.frame_count}`}
               </LiveRegion>
             </div>
 
@@ -670,7 +816,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                 </Button>
               )}
               <Button onClick={handleSaveClick} className="min-w-0 flex-1">
-                {t("save")}
+                {editingFrame ? t("update") : t("save")}
               </Button>
             </div>
           </div>
@@ -731,13 +877,38 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Delete frame confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteFrameTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteFrameWarning", {
+                number: editingFrame?.frame_number ?? 0,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                handleDeleteFrame();
+              }}
+            >
+              {tc("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Location picker dialog */}
       <LocationPickerDialog
-        open={locationPickerOpen}
-        onOpenChange={setLocationPickerOpen}
-        initialLat={pickerInitialLat}
-        initialLon={pickerInitialLon}
-        initialName={pickerInitialName}
+        open={locationPicker !== null}
+        onOpenChange={(open) => { if (!open) setLocationPicker(null); }}
+        initialLat={locationPicker?.initialLat ?? null}
+        initialLon={locationPicker?.initialLon ?? null}
+        initialName={locationPicker?.initialName ?? null}
         onConfirm={handleLocationConfirm}
         onClear={handleLocationClear}
       />

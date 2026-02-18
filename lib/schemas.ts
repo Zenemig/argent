@@ -141,6 +141,7 @@ export const frameSchema = z.object({
   thumbnail: z.any().nullable().optional(),
   image_url: z.string().nullable().optional(),
   captured_at: timestamp,
+  deleted_at: optionalTimestamp,
   updated_at: timestamp,
   created_at: timestamp,
 });

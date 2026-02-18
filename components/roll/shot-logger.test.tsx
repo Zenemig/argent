@@ -142,6 +142,32 @@ function makeRoll(overrides: Partial<Roll> = {}): Roll {
   } as Roll;
 }
 
+function makeFrame(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "f1",
+    roll_id: "roll-001",
+    frame_number: 1,
+    shutter_speed: "1/250",
+    aperture: 8,
+    lens_id: null,
+    metering_mode: null,
+    exposure_comp: 0,
+    focal_length: null,
+    filter: null,
+    notes: null,
+    latitude: null,
+    longitude: null,
+    location_name: null,
+    thumbnail: null,
+    image_url: null,
+    captured_at: Date.now(),
+    updated_at: Date.now(),
+    created_at: Date.now(),
+    deleted_at: null,
+    ...overrides,
+  };
+}
+
 /** Push one render cycle of mock query results: frames, camera, lenses */
 function pushQueryCycle(frames: unknown = [], camera: unknown = undefined, lenses: unknown = []) {
   mockQueryResults.push(frames, camera, lenses);
@@ -180,28 +206,19 @@ describe("ShotLogger", () => {
 
   it("renders existing frames in timeline", () => {
     const frames = [
-      {
+      makeFrame({
         id: "f1",
-        roll_id: "roll-001",
-        frame_number: 1,
         shutter_speed: "1/125",
         aperture: 5.6,
-        lens_id: null,
         notes: null,
-        latitude: null,
-        thumbnail: null,
-      },
-      {
+      }),
+      makeFrame({
         id: "f2",
-        roll_id: "roll-001",
         frame_number: 2,
         shutter_speed: "1/250",
         aperture: 8,
-        lens_id: null,
         notes: "Test note",
-        latitude: null,
-        thumbnail: null,
-      },
+      }),
     ];
     // Push extra cycles: useEffect triggers re-renders (setState from last frame)
     for (let i = 0; i < 3; i++) pushQueryCycle(frames);
@@ -356,19 +373,13 @@ describe("ShotLogger", () => {
 
   it("shows tappable MapPin for frames with location", () => {
     const frames = [
-      {
-        id: "f1",
-        roll_id: "roll-001",
-        frame_number: 1,
+      makeFrame({
         shutter_speed: "1/125",
         aperture: 5.6,
-        lens_id: null,
-        notes: null,
         latitude: 40.7128,
         longitude: -74.006,
         location_name: "NYC",
-        thumbnail: null,
-      },
+      }),
     ];
     for (let i = 0; i < 3; i++) pushQueryCycle(frames);
     render(<ShotLogger roll={makeRoll()} />);
@@ -377,23 +388,150 @@ describe("ShotLogger", () => {
 
   it("does not show MapPin for frames without location", () => {
     const frames = [
-      {
-        id: "f1",
-        roll_id: "roll-001",
-        frame_number: 1,
+      makeFrame({
         shutter_speed: "1/125",
         aperture: 5.6,
-        lens_id: null,
-        notes: null,
-        latitude: null,
-        longitude: null,
-        location_name: null,
-        thumbnail: null,
-      },
+      }),
     ];
     for (let i = 0; i < 3; i++) pushQueryCycle(frames);
     render(<ShotLogger roll={makeRoll()} />);
     expect(screen.queryByLabelText("location.editLocation")).toBeNull();
+  });
+
+  // --- Frame editing tests ---
+
+  it("clicking a frame row enters edit mode with editingFrame header", async () => {
+    const frames = [makeFrame({ shutter_speed: "1/250", aperture: 8 })];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+
+    await waitFor(() => {
+      expect(screen.getAllByText('editingFrame:{"number":1}').length).toBeGreaterThan(0);
+    });
+  });
+
+  it("save button shows update text in edit mode", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 6; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+  });
+
+  it("cancel exits edit mode and restores new-frame header", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 8; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByText("cancel"));
+
+    await waitFor(() => {
+      expect(screen.getByText("save")).toBeDefined();
+    });
+  });
+
+  it("form panel appears for finished roll when in edit mode", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 6; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll({ status: "finished" })} />);
+
+    // No form initially
+    expect(screen.queryByText("save")).toBeNull();
+    expect(screen.queryByText("update")).toBeNull();
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+  });
+
+  it("updateFrame calls syncUpdate with form field values", async () => {
+    const frames = [makeFrame({ id: "f-edit", shutter_speed: "1/250", aperture: 8, notes: "Original" })];
+    for (let i = 0; i < 8; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByText("update"));
+
+    await waitFor(() => {
+      expect(mockSyncUpdate).toHaveBeenCalledWith(
+        "frames",
+        "f-edit",
+        expect.objectContaining({
+          shutter_speed: "1/250",
+          aperture: 8,
+        }),
+      );
+    });
+  });
+
+  it("soft-deleted frame does not appear in timeline", () => {
+    const frames = [makeFrame({ deleted_at: Date.now() })];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.queryByText("#1")).toBeNull();
+  });
+
+  it("delete icon opens confirmation dialog", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 6; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByLabelText("deleteFrame")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByLabelText("deleteFrame"));
+
+    await waitFor(() => {
+      expect(screen.getByText("deleteFrameTitle")).toBeDefined();
+    });
+  });
+
+  it("confirming delete calls syncUpdate with deleted_at", async () => {
+    const frames = [makeFrame({ id: "f-del" })];
+    for (let i = 0; i < 8; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByLabelText("deleteFrame")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByLabelText("deleteFrame"));
+    await waitFor(() => {
+      expect(screen.getByText("deleteFrameTitle")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByText("delete"));
+
+    await waitFor(() => {
+      expect(mockSyncUpdate).toHaveBeenCalledWith(
+        "frames",
+        "f-del",
+        expect.objectContaining({
+          deleted_at: expect.any(Number),
+          updated_at: expect.any(Number),
+        }),
+      );
+    });
   });
 
 });
