@@ -42,6 +42,29 @@ vi.mock("@/lib/roll-lifecycle", () => ({
   } as Record<string, string>,
 }));
 
+// jsdom stubs for scroll-related APIs
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+Element.prototype.scrollIntoView = vi.fn();
+
+// jsdom does not implement ResizeObserver
+class MockResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
+
 import { RollLifecycle } from "./roll-lifecycle";
 import type { Roll } from "@/lib/types";
 
@@ -130,5 +153,52 @@ describe("RollLifecycle", () => {
       />,
     );
     expect(screen.getByText("discardReason.light_leak")).toBeDefined();
+  });
+
+  describe("scroll affordance", () => {
+    it("renders fade overlays as aria-hidden", () => {
+      const { container } = render(<RollLifecycle roll={makeRoll()} />);
+      const timeline = container.querySelector("[data-testid='status-timeline']")!.parentElement!;
+      const fades = timeline.querySelectorAll(":scope > [aria-hidden='true']");
+      expect(fades.length).toBe(2);
+    });
+
+    it("hides scrollbar on the status timeline", () => {
+      const { container } = render(<RollLifecycle roll={makeRoll()} />);
+      const scrollable = container.querySelector("[data-testid='status-timeline']");
+      expect(scrollable).toBeDefined();
+      expect(scrollable!.className).toContain("overflow-x-auto");
+    });
+
+    it("sets ref on the current status pill", () => {
+      const { container } = render(
+        <RollLifecycle roll={makeRoll({ status: "finished" })} />,
+      );
+      const activePill = container.querySelector("[data-testid='status-pill-active']");
+      expect(activePill).toBeDefined();
+      expect(activePill!.textContent).toBe("status.finished");
+    });
+
+    it("scrolls the active pill into view on mount", () => {
+      render(<RollLifecycle roll={makeRoll({ status: "finished" })} />);
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith(
+        expect.objectContaining({ inline: "center", block: "nearest" }),
+      );
+    });
+
+    it("shows left fade after scrolling right", () => {
+      const { container } = render(<RollLifecycle roll={makeRoll()} />);
+      const scrollable = container.querySelector("[data-testid='status-timeline']")!;
+
+      Object.defineProperty(scrollable, "scrollLeft", { value: 20, configurable: true });
+      Object.defineProperty(scrollable, "scrollWidth", { value: 400, configurable: true });
+      Object.defineProperty(scrollable, "clientWidth", { value: 300, configurable: true });
+
+      fireEvent.scroll(scrollable);
+
+      const parent = scrollable.parentElement!;
+      const leftFade = parent.querySelector(":scope > [aria-hidden='true']:first-child")!;
+      expect(leftFade.className).toContain("opacity-100");
+    });
   });
 });
