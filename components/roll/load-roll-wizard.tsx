@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ulid } from "ulid";
-import { Camera, Film, Settings2, Check } from "lucide-react";
+import { Camera, Film, Settings2, Check, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { db } from "@/lib/db";
 import { syncAdd } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
@@ -61,6 +62,8 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   const [pushPull, setPushPull] = useState(0);
   const [lensId, setLensId] = useState("__none__");
   const [notes, setNotes] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [formatFilter, setFormatFilter] = useState("all");
 
   const cameras = useLiveQuery(
     () => {
@@ -73,6 +76,27 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     },
     [userId],
   );
+
+  const uniqueFormats = useMemo(() => {
+    if (!cameras) return [];
+    return [...new Set(cameras.map((c) => c.format))];
+  }, [cameras]);
+
+  const filteredCameras = useMemo(() => {
+    if (!cameras) return [];
+    return cameras.filter((cam) => {
+      if (formatFilter !== "all" && cam.format !== formatFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        if (
+          !cam.name.toLowerCase().includes(q) &&
+          !cam.make.toLowerCase().includes(q)
+        )
+          return false;
+      }
+      return true;
+    });
+  }, [cameras, searchQuery, formatFilter]);
 
   const selectedCamera = useMemo(
     () => cameras?.find((c) => c.id === cameraId) ?? null,
@@ -196,6 +220,8 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     setPushPull(0);
     setLensId("__none__");
     setNotes("");
+    setSearchQuery("");
+    setFormatFilter("all");
     onOpenChange(false);
   }
 
@@ -246,24 +272,69 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                 {t("noCamera")}
               </p>
             ) : (
-              cameras.map((cam) => (
-                <Card
-                  key={cam.id}
-                  className="cursor-pointer transition-colors hover:bg-accent/50"
-                  onClick={() => handleSelectCamera(cam)}
-                >
-                  <CardContent className="flex items-center gap-3 py-3">
-                    <Camera className="h-5 w-5 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="font-medium">{cam.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {cam.make} &middot; {cam.format} &middot;{" "}
-                        {cam.default_frame_count} frames
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              <>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t("searchCamera")}
+                    className="pl-9"
+                    aria-label={t("searchCamera")}
+                  />
+                </div>
+                {uniqueFormats.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setFormatFilter("all")}
+                    >
+                      <Badge
+                        variant={formatFilter === "all" ? "default" : "outline"}
+                      >
+                        {t("allFormats")}
+                      </Badge>
+                    </button>
+                    {uniqueFormats.map((fmt) => (
+                      <button
+                        key={fmt}
+                        type="button"
+                        onClick={() => setFormatFilter(fmt)}
+                      >
+                        <Badge
+                          variant={formatFilter === fmt ? "default" : "outline"}
+                        >
+                          {fmt}
+                        </Badge>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filteredCameras.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    {t("noCameraMatch")}
+                  </p>
+                ) : (
+                  filteredCameras.map((cam) => (
+                    <Card
+                      key={cam.id}
+                      className="cursor-pointer transition-colors hover:bg-accent/50"
+                      onClick={() => handleSelectCamera(cam)}
+                    >
+                      <CardContent className="flex items-center gap-3 py-3">
+                        <Camera className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <p className="font-medium">{cam.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {cam.make} &middot; {cam.format} &middot;{" "}
+                            {cam.default_frame_count} frames
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </>
             )}
           </div>
         )}
