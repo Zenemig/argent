@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, Aperture, Film, LogOut, Sparkles } from "lucide-react";
+import { Camera, Aperture, Film, LogOut, Settings, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
 import { getUserAvatar, type AvatarIcon } from "@/lib/user-avatar";
 import { signOut, joinWaitlist } from "@/app/(app)/settings/actions";
 import { clearGlobalAvatarKey } from "@/lib/avatar";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -87,6 +88,12 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <Settings className="h-4 w-4" />
+            {tNav("settings")}
+          </Link>
+        </DropdownMenuItem>
         {tier === "free" && (
           <DropdownMenuItem disabled={pending} onSelect={handleJoinWaitlist}>
             <Sparkles className="h-4 w-4" />
