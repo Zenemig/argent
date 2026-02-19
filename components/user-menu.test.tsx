@@ -22,7 +22,12 @@ vi.mock("@/app/(app)/settings/actions", () => ({
   joinWaitlist: vi.fn().mockResolvedValue({ success: true }),
 }));
 
+vi.mock("@/lib/avatar", () => ({
+  clearGlobalAvatarKey: vi.fn(),
+}));
+
 import { UserMenu } from "./user-menu";
+import userEvent from "@testing-library/user-event";
 
 describe("UserMenu", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -74,5 +79,17 @@ describe("UserMenu", () => {
       />,
     );
     expect(container.querySelector("img")).toBeNull();
+  });
+
+  it("renders settings link in dropdown menu", async () => {
+    const user = userEvent.setup();
+    render(
+      <UserMenu userId="user-1" email="test@example.com" tier="free" />,
+    );
+    await user.click(screen.getByRole("button", { name: "test@example.com" }));
+    const settingsItem = screen.getByText("settings");
+    expect(settingsItem).toBeDefined();
+    expect(settingsItem.closest("a")).toBeDefined();
+    expect(settingsItem.closest("a")!.getAttribute("href")).toBe("/settings");
   });
 });
