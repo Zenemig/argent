@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Undo2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { syncUpdate } from "@/lib/sync-write";
+import { cn } from "@/lib/utils";
 import type { Roll, RollStatus } from "@/lib/types";
 import {
   STATUS_ORDER,
@@ -36,6 +37,45 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
   const [showDevelopDialog, setShowDevelopDialog] = useState(false);
   const [labName, setLabName] = useState(roll.lab_name ?? "");
   const [devNotes, setDevNotes] = useState(roll.dev_notes ?? "");
+
+  // Scroll affordance state (all hooks must be above early returns)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef<HTMLDivElement>(null);
+  const [fadeLeft, setFadeLeft] = useState(false);
+  const [fadeRight, setFadeRight] = useState(false);
+
+  const updateFades = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setFadeLeft(el.scrollLeft > 4);
+    setFadeRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    updateFades();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateFades, { passive: true });
+    const ro = new ResizeObserver(updateFades);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateFades);
+      ro.disconnect();
+    };
+  }, [updateFades]);
+
+  useEffect(() => {
+    const el = activeRef.current;
+    if (!el) return;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    el.scrollIntoView({
+      behavior: prefersReduced ? "instant" : "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [roll.status]);
 
   // Discarded rolls show a banner instead of the lifecycle timeline
   if (roll.status === "discarded") {
@@ -65,6 +105,7 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
 
   const nextStatus = getNextStatus(roll.status);
   const prevStatus = getPrevStatus(roll.status);
+  const currentIdx = STATUS_ORDER.indexOf(roll.status);
 
   async function advanceStatus() {
     if (!nextStatus) return;
@@ -98,39 +139,71 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
     toast.success(t("statusUpdated"));
   }
 
-  // Status timeline
-  const currentIdx = STATUS_ORDER.indexOf(roll.status);
-
   return (
     <div className="space-y-4">
       {/* Status timeline */}
-      <div className="flex items-center gap-1 overflow-x-auto">
-        {STATUS_ORDER.map((s, i) => {
-          const isPast = i < currentIdx;
-          const isCurrent = i === currentIdx;
-          return (
-            <div key={s} className="flex items-center gap-1">
-              {i > 0 && (
-                <div
-                  className={`h-px w-3 ${
-                    isPast || isCurrent ? "bg-primary" : "bg-border"
-                  }`}
-                />
-              )}
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 z-10 w-8 transition-opacity duration-200",
+            fadeLeft ? "opacity-100" : "opacity-0",
+          )}
+          style={{
+            background:
+              "linear-gradient(to right, var(--background), transparent)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 z-10 w-8 transition-opacity duration-200",
+            fadeRight ? "opacity-100" : "opacity-0",
+          )}
+          style={{
+            background:
+              "linear-gradient(to left, var(--background), transparent)",
+          }}
+        />
+        <div
+          ref={scrollRef}
+          data-testid="status-timeline"
+          className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {STATUS_ORDER.map((s, i) => {
+            const isPast = i < currentIdx;
+            const isCurrent = i === currentIdx;
+            return (
               <div
-                className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs ${
-                  isCurrent
-                    ? "bg-primary text-primary-foreground"
-                    : isPast
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                }`}
+                key={s}
+                ref={isCurrent ? activeRef : undefined}
+                data-testid={isCurrent ? "status-pill-active" : undefined}
+                className="flex items-center gap-1"
               >
-                {t(`status.${s}`)}
+                {i > 0 && (
+                  <div
+                    className={cn(
+                      "h-px w-3",
+                      isPast || isCurrent ? "bg-primary" : "bg-border",
+                    )}
+                  />
+                )}
+                <div
+                  className={cn(
+                    "whitespace-nowrap rounded-full px-2 py-0.5 text-xs",
+                    isCurrent
+                      ? "bg-primary text-primary-foreground"
+                      : isPast
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {t(`status.${s}`)}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Action buttons */}
