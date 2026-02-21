@@ -10,6 +10,7 @@ import { LogoIcon } from "@/components/logo";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn, signUp, resetPassword } from "@/app/(auth)/actions";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 type Mode = "login" | "signup" | "reset";
 
@@ -40,6 +41,9 @@ export function LoginForm({ defaultMode = "login", next, interest }: LoginFormPr
         toast.error(t(result.error));
       }
       if (result?.success) {
+        if (mode === "signup") {
+          trackEvent("signup_started");
+        }
         toast.success(t(result.success));
       }
     });

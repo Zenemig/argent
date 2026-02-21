@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics/track-event";
 import {
   Dialog,
   DialogContent,
@@ -303,6 +304,7 @@ export function ExportDialog({
 
       await generateAndDownload(format, inputs, options, filmLabel);
 
+      trackEvent("first_export");
       toast.success(t("success"));
       onOpenChange(false);
     } catch (error) {

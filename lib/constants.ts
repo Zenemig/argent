@@ -143,6 +143,19 @@ export type SyncOperation = (typeof SYNC_OPERATIONS)[number];
 export const SYNC_STATUSES = ["pending", "in_progress", "failed"] as const;
 export type SyncStatus = (typeof SYNC_STATUSES)[number];
 
+/** Analytics events (fire-once per user) */
+export const ANALYTICS_EVENTS = [
+  "signup_started",
+  "email_confirmed",
+  "first_camera_added",
+  "first_lens_added",
+  "first_roll_loaded",
+  "first_frame_logged",
+  "first_export",
+  "joined_waitlist",
+] as const;
+export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
+
 /** Syncable table names */
 export const SYNCABLE_TABLES = [
   "cameras",

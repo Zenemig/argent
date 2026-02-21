@@ -32,6 +32,7 @@ import { useUserId } from "@/hooks/useUserId";
 import { DEFAULT_FRAME_COUNTS } from "@/lib/constants";
 import type { Camera as CameraType, FilmFormat } from "@/lib/types";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 interface LoadRollWizardProps {
   open: boolean;
@@ -208,6 +209,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     });
 
     toast.success(t("rollCreated"));
+    trackEvent("first_roll_loaded");
     resetAndClose();
     router.push(`/roll/${id}`);
   }

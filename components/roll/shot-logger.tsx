@@ -37,6 +37,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { db } from "@/lib/db";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { toBlob } from "@/lib/image-sync";
+import { trackEvent } from "@/lib/analytics/track-event";
 import { EXPOSURE_COMP_VALUES } from "@/lib/constants";
 import {
   filterShutterSpeeds,
@@ -394,6 +395,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     }
 
     resetFormState();
+    trackEvent("first_frame_logged");
     toast.success(t("frameNumber", { number: nextFrameNumber }));
   }, [
     roll.id,

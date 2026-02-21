@@ -19,6 +19,7 @@ import { useUserId } from "@/hooks/useUserId";
 import type { Lens, Camera, LensMount } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 interface LensFormProps {
   lens?: Lens;
@@ -83,6 +84,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
         created_at: now,
       });
       toast.success(t("lensAdded"));
+      trackEvent("first_lens_added");
     }
 
     onDone();
