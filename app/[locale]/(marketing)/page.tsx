@@ -31,6 +31,11 @@ export async function generateMetadata({
       type: "website",
       siteName: "Argent",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `Argent — ${t("hero.title")}`,
+      description: t("hero.subtitle"),
+    },
   };
 }
 
