@@ -428,6 +428,88 @@ describe("processDownloadSync", () => {
     expect(cam!.name).toBe("Server Name");
   });
 
+  it("detects conflicts for failed queue entries (not just pending)", async () => {
+    // Local frame with a FAILED queue entry (e.g. delete that failed 5 times)
+    const localFrame = {
+      id: "01HTEST_FRAME_FAILED_000001",
+      roll_id: "01HTEST_ROLL_000000000000001",
+      frame_number: 4,
+      shutter_speed: "1/125",
+      aperture: 8,
+      lens_id: null,
+      metering_mode: null,
+      exposure_comp: null,
+      filter: null,
+      latitude: null,
+      longitude: null,
+      location_name: null,
+      notes: null,
+      thumbnail: null,
+      image_url: null,
+      captured_at: Date.now(),
+      deleted_at: Date.now(), // locally deleted
+      updated_at: Date.now() - 5000,
+      created_at: Date.now() - 10000,
+    };
+
+    await testDb.frames.add(localFrame);
+
+    // Add a FAILED sync queue entry (delete that exhausted retries)
+    await testDb._syncQueue.add({
+      table: "frames",
+      entity_id: "01HTEST_FRAME_FAILED_000001",
+      operation: "delete",
+      status: "failed",
+      retry_count: 5,
+      last_attempt: Date.now() - 60000,
+      payload: null,
+    });
+
+    // Server still has this frame (delete never reached the server)
+    const serverFrames = [
+      {
+        id: "01HTEST_FRAME_FAILED_000001",
+        roll_id: "01HTEST_ROLL_000000000000001",
+        frame_number: 4,
+        shutter_speed: "1/125",
+        aperture: 8,
+        lens_id: null,
+        metering_mode: null,
+        exposure_comp: null,
+        filter: null,
+        latitude: null,
+        longitude: null,
+        location_name: null,
+        notes: "Server version",
+        thumbnail: null,
+        image_url: null,
+        captured_at: "2024-01-15T10:00:00.000Z",
+        deleted_at: null,
+        updated_at: "2024-01-16T12:00:00.000Z",
+        created_at: "2024-01-10T08:00:00.000Z",
+      },
+    ];
+
+    const mockSupabase = createMockTableSupabase({
+      cameras: [],
+      lenses: [],
+      films: [],
+      rolls: [],
+      frames: serverFrames,
+    });
+
+    const result = await processDownloadSync(mockSupabase as never);
+
+    // Should detect a conflict because of the failed queue entry
+    expect(result.conflicts).toBe(1);
+
+    // Verify conflict was logged
+    const conflicts = await testDb._syncConflicts.toArray();
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].table).toBe("frames");
+    expect(conflicts[0].entity_id).toBe("01HTEST_FRAME_FAILED_000001");
+  });
+
   it("preserves local thumbnail on frame download", async () => {
     const thumbnailBlob = new Uint8Array([10, 20, 30]);
 

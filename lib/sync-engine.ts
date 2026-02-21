@@ -358,7 +358,7 @@ export async function processDownloadSync(
         .filter(
           (item) =>
             item.entity_id === entityId &&
-            (item.status === "pending" || item.status === "in_progress"),
+            (item.status === "pending" || item.status === "in_progress" || item.status === "failed"),
         )
         .toArray();
 

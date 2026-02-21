@@ -123,7 +123,7 @@ export async function processImageUpload(
       }
 
       // Update image_url and enqueue sync so the path reaches the server
-      await syncUpdate("frames", frame.id, { image_url: path });
+      await syncUpdate("frames", frame.id, { image_url: path, updated_at: Date.now() });
       successCount++;
     } catch (err) {
       console.warn(
