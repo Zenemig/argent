@@ -244,7 +244,7 @@ function LandingPage({ locale }: { locale: string }) {
                 ))}
               </ul>
               <Link
-                href="/login"
+                href="/login?mode=signup"
                 className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
               >
                 {t("pricing.getStarted")}
