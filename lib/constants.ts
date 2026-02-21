@@ -131,6 +131,10 @@ export function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+/** Feedback categories */
+export const FEEDBACK_CATEGORIES = ["bug", "feature", "general"] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
 /** Sync queue operation types */
 export const SYNC_OPERATIONS = ["create", "update", "delete"] as const;
 export type SyncOperation = (typeof SYNC_OPERATIONS)[number];

@@ -22,7 +22,8 @@
     "gear": "Gear Bag",
     "settings": "Settings",
     "stats": "Statistics",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "sendFeedback": "Send Feedback"
   },
   "marketing": {
     "hero": {
@@ -321,6 +322,8 @@
     "avatarError": "Failed to update avatar",
     "preferences": "Preferences",
     "metadata": "Metadata",
+    "feedback": "Feedback",
+    "feedbackDescription": "Help us improve Argent",
     "dangerZone": "Danger Zone",
     "deleteAccount": "Delete Account",
     "deleteAccountDescription": "Permanently delete your account and all data. This cannot be undone.",
@@ -413,5 +416,22 @@
     "updatePasswordFailed": "Could not update password. Please try again.",
     "showPassword": "Show password",
     "hidePassword": "Hide password"
+  },
+  "feedback": {
+    "title": "Send Feedback",
+    "description": "Help us improve Argent. Bug reports, feature requests, and general feedback are all welcome.",
+    "category": "Category",
+    "categoryBug": "Bug report",
+    "categoryFeature": "Feature request",
+    "categoryGeneral": "General feedback",
+    "categoryPlaceholder": "Select a category",
+    "message": "Description",
+    "messagePlaceholder": "Tell us what happened, what you expected, or what you'd like to see...",
+    "includeEmail": "Include my email for follow-up",
+    "submit": "Send Feedback",
+    "sending": "Sending...",
+    "success": "Thank you for your feedback!",
+    "error": "Failed to send feedback. Please try again.",
+    "rateLimited": "Please wait a few minutes before submitting again."
   }
 }

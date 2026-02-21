@@ -22,7 +22,8 @@
     "gear": "Equipo",
     "settings": "Ajustes",
     "stats": "Estadísticas",
-    "signOut": "Cerrar Sesión"
+    "signOut": "Cerrar Sesión",
+    "sendFeedback": "Enviar Comentarios"
   },
   "marketing": {
     "hero": {
@@ -321,6 +322,8 @@
     "avatarError": "Error al actualizar el avatar",
     "preferences": "Preferencias",
     "metadata": "Metadatos",
+    "feedback": "Comentarios",
+    "feedbackDescription": "Ayúdanos a mejorar Argent",
     "dangerZone": "Zona de Peligro",
     "deleteAccount": "Eliminar Cuenta",
     "deleteAccountDescription": "Elimina permanentemente tu cuenta y todos los datos. Esto no se puede deshacer.",
@@ -413,5 +416,22 @@
     "updatePasswordFailed": "No se pudo actualizar la contraseña. Intenta de nuevo.",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña"
+  },
+  "feedback": {
+    "title": "Enviar Comentarios",
+    "description": "Ayúdanos a mejorar Argent. Reportes de errores, solicitudes de funciones y comentarios generales son bienvenidos.",
+    "category": "Categoría",
+    "categoryBug": "Reporte de error",
+    "categoryFeature": "Solicitud de función",
+    "categoryGeneral": "Comentario general",
+    "categoryPlaceholder": "Selecciona una categoría",
+    "message": "Descripción",
+    "messagePlaceholder": "Cuéntanos qué pasó, qué esperabas o qué te gustaría ver...",
+    "includeEmail": "Incluir mi correo para seguimiento",
+    "submit": "Enviar Comentarios",
+    "sending": "Enviando...",
+    "success": "¡Gracias por tus comentarios!",
+    "error": "Error al enviar comentarios. Inténtalo de nuevo.",
+    "rateLimited": "Espera unos minutos antes de enviar de nuevo."
   }
 }

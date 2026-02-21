@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { MessageSquarePlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FeedbackDialog } from "@/components/feedback/feedback-dialog";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -70,6 +73,7 @@ export function SettingsContent() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Check auth state on mount
   useEffect(() => {
@@ -350,6 +354,23 @@ export function SettingsContent() {
           <DeleteAccountSection />
         </div>
       )}
+
+      {/* Feedback section */}
+      <div>
+        <SectionHeader>{t("feedback")}</SectionHeader>
+        <div className="mt-3">
+          <p className="text-sm text-muted-foreground">{t("feedbackDescription")}</p>
+          <Button
+            variant="outline"
+            className="mt-3"
+            onClick={() => setFeedbackOpen(true)}
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            {t("feedback")}
+          </Button>
+        </div>
+      </div>
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
       <p className="text-sm text-muted-foreground">
         {t("about")} · {t("version")} 0.1.0

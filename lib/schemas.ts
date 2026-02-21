@@ -11,6 +11,7 @@ import {
   USER_TIERS,
   LENS_MOUNTS,
   CAMERA_TYPES,
+  FEEDBACK_CATEGORIES,
 } from "./constants";
 
 // ---------------------------------------------------------------------------
@@ -229,3 +230,19 @@ export const userProfileSchema = z.object({
 });
 
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+// ---------------------------------------------------------------------------
+// Feedback Payload (client → API route)
+// ---------------------------------------------------------------------------
+
+export const feedbackPayloadSchema = z.object({
+  category: z.enum(FEEDBACK_CATEGORIES),
+  description: z.string().min(10).max(5000),
+  includeEmail: z.boolean(),
+  metadata: z.object({
+    page: z.string(),
+    userAgent: z.string(),
+  }),
+});
+
+export type FeedbackPayload = z.infer<typeof feedbackPayloadSchema>;
