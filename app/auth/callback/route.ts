@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/email/send-welcome";
+import { trackEventServer } from "@/lib/analytics/track-event.server";
 import type { EmailLocale } from "@/lib/email/templates/types";
 
 export async function GET(request: Request) {
@@ -24,6 +25,8 @@ export async function GET(request: Request) {
         } = await supabase.auth.getUser();
 
         if (user && !user.user_metadata?.welcome_email_sent) {
+          await trackEventServer(supabase, user.id, "email_confirmed");
+
           const locale =
             (user.user_metadata?.locale as EmailLocale) ?? "en";
           await sendWelcomeEmail({ email: user.email!, locale });

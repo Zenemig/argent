@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { trackEventServer } from "@/lib/analytics/track-event.server";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -22,6 +23,8 @@ export async function joinWaitlist() {
     .upsert({ email: user.email }, { onConflict: "email" });
 
   if (error) return { error: "failed" };
+
+  await trackEventServer(supabase, user.id, "joined_waitlist");
 
   return { success: true };
 }

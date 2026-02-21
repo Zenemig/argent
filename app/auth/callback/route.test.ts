@@ -24,6 +24,10 @@ vi.mock("@/lib/email/send-welcome", () => ({
   sendWelcomeEmail: (...args: unknown[]) => mockSendWelcome(...args),
 }));
 
+vi.mock("@/lib/analytics/track-event.server", () => ({
+  trackEventServer: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("next/headers", () => ({
   cookies: () =>
     Promise.resolve({

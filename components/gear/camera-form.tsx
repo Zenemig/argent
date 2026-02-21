@@ -22,6 +22,7 @@ import { useUserId } from "@/hooks/useUserId";
 import type { Camera, FilmFormat, LensMount, CameraType, ShutterSpeed, MeteringMode } from "@/lib/types";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics/track-event";
 
 interface CameraFormProps {
   camera?: Camera;
@@ -99,6 +100,7 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
         created_at: now,
       });
       toast.success(t("cameraAdded"));
+      trackEvent("first_camera_added");
     }
 
     onDone();

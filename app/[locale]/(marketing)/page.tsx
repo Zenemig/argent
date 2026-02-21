@@ -1,11 +1,11 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { WifiOff, FileCode, Globe, FolderOpen, Check } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Reveal } from "@/components/marketing/reveal";
+import { CtaLink } from "@/components/marketing/cta-link";
 
 export async function generateMetadata({
   params,
@@ -107,12 +107,13 @@ function LandingPage({ locale }: { locale: string }) {
             {t("hero.subtitle")}
           </p>
           <div className="mt-10 flex justify-center gap-4 animate-fade-up [animation-delay:450ms]">
-            <Link
+            <CtaLink
               href="/login?mode=signup"
+              trackName="cta_hero_signup"
               className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
             >
               {t("hero.cta")}
-            </Link>
+            </CtaLink>
             <a
               href="#how-it-works"
               className="rounded-xl border border-border bg-background/50 px-6 py-3 text-sm font-semibold backdrop-blur transition-all duration-200 hover:bg-accent hover:border-zinc-600 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
@@ -243,12 +244,13 @@ function LandingPage({ locale }: { locale: string }) {
                   </li>
                 ))}
               </ul>
-              <Link
+              <CtaLink
                 href="/login?mode=signup"
+                trackName="cta_pricing_free_signup"
                 className="mt-auto block rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
               >
                 {t("pricing.getStarted")}
-              </Link>
+              </CtaLink>
             </div>
             </Reveal>
             {/* Pro Tier */}
@@ -273,12 +275,13 @@ function LandingPage({ locale }: { locale: string }) {
                   </li>
                 ))}
               </ul>
-              <Link
+              <CtaLink
                 href="/login?mode=signup&interest=pro"
+                trackName="cta_pricing_pro_waitlist"
                 className="mt-auto block rounded-xl border border-border px-6 py-3 text-center text-sm font-semibold transition-all duration-200 hover:bg-accent hover:border-zinc-600 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]"
               >
                 {t("pricing.joinWaitlist")}
-              </Link>
+              </CtaLink>
             </div>
             </Reveal>
           </div>

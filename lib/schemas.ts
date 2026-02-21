@@ -12,6 +12,7 @@ import {
   LENS_MOUNTS,
   CAMERA_TYPES,
   FEEDBACK_CATEGORIES,
+  ANALYTICS_EVENTS,
 } from "./constants";
 
 // ---------------------------------------------------------------------------
@@ -246,3 +247,14 @@ export const feedbackPayloadSchema = z.object({
 });
 
 export type FeedbackPayload = z.infer<typeof feedbackPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Analytics Event Tracking (client → API route)
+// ---------------------------------------------------------------------------
+
+export const trackEventPayloadSchema = z.object({
+  event_name: z.enum(ANALYTICS_EVENTS),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type TrackEventPayload = z.infer<typeof trackEventPayloadSchema>;
