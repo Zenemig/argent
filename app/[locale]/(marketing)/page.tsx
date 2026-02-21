@@ -53,9 +53,9 @@ const FEATURE_ICONS = {
 } as const;
 
 const HOW_IT_WORKS_IMAGES = {
-  step1: "/images/how-it-works-log.png",
-  step2: "/images/how-it-works-develop.png",
-  step3: "/images/how-it-works-export.png",
+  step1: "/images/how-it-works-log.webp",
+  step2: "/images/how-it-works-develop.webp",
+  step3: "/images/how-it-works-export.webp",
 } as const;
 
 function LandingPage({ locale }: { locale: string }) {
@@ -85,9 +85,10 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Hero */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-center px-4 py-24 text-center">
         <Image
-          src="/images/hero-photographer.png"
+          src="/images/hero-photographer.webp"
           alt=""
           fill
+          sizes="100vw"
           className="object-cover"
           priority
         />
@@ -134,9 +135,10 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Features */}
       <section className="relative px-4 py-24">
         <Image
-          src="/images/hero.png"
+          src="/images/hero.webp"
           alt=""
           fill
+          sizes="100vw"
           className="object-cover opacity-10"
         />
         <div className="absolute inset-0 bg-linear-to-b from-background via-transparent to-background" />
@@ -184,6 +186,7 @@ function LandingPage({ locale }: { locale: string }) {
                       src={HOW_IT_WORKS_IMAGES[step]}
                       alt={t(`howItWorks.${step}.title`)}
                       fill
+                      sizes="192px"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
@@ -206,9 +209,10 @@ function LandingPage({ locale }: { locale: string }) {
       {/* Pricing Preview */}
       <section className="relative px-4 py-24">
         <Image
-          src="/images/pricing-notebook.png"
+          src="/images/pricing-notebook.webp"
           alt=""
           fill
+          sizes="100vw"
           className="object-cover opacity-10"
         />
         <div className="absolute inset-0 bg-linear-to-b from-background via-transparent to-background" />
