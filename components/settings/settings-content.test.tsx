@@ -64,6 +64,10 @@ vi.mock("./delete-account-section", () => ({
   DeleteAccountSection: () => <div data-testid="delete-account-section" />,
 }));
 
+vi.mock("@/components/feedback/feedback-dialog", () => ({
+  FeedbackDialog: () => null,
+}));
+
 const mockCaptureImage = vi.fn();
 vi.mock("@/lib/image-capture", () => ({
   captureImage: (...args: unknown[]) => mockCaptureImage(...args),
@@ -148,9 +152,10 @@ describe("SettingsContent", () => {
     mockQueryResults.push(undefined);
     render(<SettingsContent />);
     const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings).toHaveLength(2);
+    expect(headings).toHaveLength(3);
     expect(headings[0].textContent).toBe("preferences");
     expect(headings[1].textContent).toBe("metadata");
+    expect(headings[2].textContent).toBe("feedback");
   });
 
   it("renders avatar button with changeAvatar label", async () => {

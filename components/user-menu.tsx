@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, Aperture, Film, LogOut, Settings, Sparkles } from "lucide-react";
+import { Camera, Aperture, Film, LogOut, Settings, Sparkles, MessageSquarePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import { clearGlobalAvatarKey } from "@/lib/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { FeedbackDialog } from "@/components/feedback/feedback-dialog";
 
 const ICON_MAP = {
   camera: Camera,
@@ -38,6 +39,7 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
   const tNav = useTranslations("nav");
   const tUpgrade = useTranslations("upgrade");
   const [pending, startTransition] = useTransition();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const avatar = getUserAvatar(userId);
   const Icon = ICON_MAP[avatar.icon];
 
@@ -51,6 +53,7 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
   }
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
@@ -94,6 +97,10 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
             {tNav("settings")}
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setFeedbackOpen(true)}>
+          <MessageSquarePlus className="h-4 w-4" />
+          {tNav("sendFeedback")}
+        </DropdownMenuItem>
         {tier === "free" && (
           <DropdownMenuItem disabled={pending} onSelect={handleJoinWaitlist}>
             <Sparkles className="h-4 w-4" />
@@ -112,5 +119,7 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+    </>
   );
 }
