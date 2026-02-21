@@ -845,7 +845,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
             <img
               src={previewImage.url}
               alt=""
-              className="min-h-0 flex-1 rounded-md object-contain"
+              className="min-h-0 max-h-[70vh] flex-1 rounded-md object-contain"
             />
           )}
         </DialogContent>

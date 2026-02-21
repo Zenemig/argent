@@ -39,6 +39,15 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
+        <link rel="preconnect" href="https://unpkg.com" />
+        <link rel="dns-prefetch" href="https://a.tile.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://b.tile.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://c.tile.openstreetmap.org" />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
