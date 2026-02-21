@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getLocale } from "next-intl/server";
 import { ThemeProvider } from "@/components/theme-provider";
 import "@/app/globals.css";
@@ -39,6 +41,8 @@ export default async function RootLayout({
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider>{children}</ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
