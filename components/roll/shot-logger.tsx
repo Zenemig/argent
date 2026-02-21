@@ -275,7 +275,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   async function handleAddImageToFrame(frameId: string) {
     const blob = await captureWithErrorHandling();
     if (!blob) return;
-    await syncUpdate("frames", frameId, { thumbnail: blob });
+    await syncUpdate("frames", frameId, { thumbnail: blob, updated_at: Date.now() });
     toast.success(t("imageAdded"));
   }
 

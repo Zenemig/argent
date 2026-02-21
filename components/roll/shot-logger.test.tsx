@@ -505,6 +505,33 @@ describe("ShotLogger", () => {
     });
   });
 
+  it("handleAddImageToFrame calls syncUpdate with thumbnail and updated_at", async () => {
+    const mockBlob = new Blob(["img"], { type: "image/jpeg" });
+    mockCaptureImage.mockResolvedValue({ blob: mockBlob });
+
+    const frames = [makeFrame({ id: "f-img", thumbnail: null })];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    const { container } = render(<ShotLogger roll={makeRoll()} />);
+
+    // The frame row's add-image button is a dashed-border button inside the timeline
+    const addImageBtn = container.querySelector(
+      'button[aria-label="captureImage"].border-dashed',
+    ) as HTMLElement;
+    expect(addImageBtn).toBeTruthy();
+    await userEvent.click(addImageBtn);
+
+    await waitFor(() => {
+      expect(mockSyncUpdate).toHaveBeenCalledWith(
+        "frames",
+        "f-img",
+        expect.objectContaining({
+          thumbnail: expect.any(Blob),
+          updated_at: expect.any(Number),
+        }),
+      );
+    });
+  });
+
   it("confirming delete calls syncUpdate with deleted_at", async () => {
     const frames = [makeFrame({ id: "f-del" })];
     for (let i = 0; i < 8; i++) pushQueryCycle(frames);
