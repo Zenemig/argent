@@ -27,9 +27,11 @@ import { trackEvent } from "@/lib/analytics/track-event";
 interface CameraFormProps {
   camera?: Camera;
   onDone: () => void;
+  onCreated?: (id: string) => void;
+  onCancel?: () => void;
 }
 
-export function CameraForm({ camera, onDone }: CameraFormProps) {
+export function CameraForm({ camera, onDone, onCreated, onCancel }: CameraFormProps) {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const userId = useUserId();
@@ -64,46 +66,52 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
 
     const now = Date.now();
 
-    if (isEdit && camera) {
-      await syncUpdate("cameras", camera.id, {
-        name: name.trim(),
-        make: make.trim(),
-        format,
-        mount: mount === "__none__" ? null : mount,
-        type: type === "__none__" ? null : type,
-        shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
-        shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
-        has_bulb: hasBulb,
-        metering_modes: meteringModes.length > 0 ? meteringModes : null,
-        default_frame_count: frameCount,
-        notes: notes.trim() || null,
-        updated_at: now,
-      });
-      toast.success(t("cameraUpdated"));
-    } else {
-      await syncAdd("cameras", {
-        id: ulid(),
-        user_id: userId!,
-        name: name.trim(),
-        make: make.trim(),
-        format,
-        mount: mount === "__none__" ? null : mount,
-        type: type === "__none__" ? null : type,
-        shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
-        shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
-        has_bulb: hasBulb,
-        metering_modes: meteringModes.length > 0 ? meteringModes : null,
-        default_frame_count: frameCount,
-        notes: notes.trim() || null,
-        deleted_at: null,
-        updated_at: now,
-        created_at: now,
-      });
-      toast.success(t("cameraAdded"));
-      trackEvent("first_camera_added");
-    }
+    try {
+      if (isEdit && camera) {
+        await syncUpdate("cameras", camera.id, {
+          name: name.trim(),
+          make: make.trim(),
+          format,
+          mount: mount === "__none__" ? null : mount,
+          type: type === "__none__" ? null : type,
+          shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
+          shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
+          has_bulb: hasBulb,
+          metering_modes: meteringModes.length > 0 ? meteringModes : null,
+          default_frame_count: frameCount,
+          notes: notes.trim() || null,
+          updated_at: now,
+        });
+        toast.success(t("cameraUpdated"));
+      } else {
+        const id = ulid();
+        await syncAdd("cameras", {
+          id,
+          user_id: userId!,
+          name: name.trim(),
+          make: make.trim(),
+          format,
+          mount: mount === "__none__" ? null : mount,
+          type: type === "__none__" ? null : type,
+          shutter_speed_min: shutterSpeedMin === "__none__" ? null : shutterSpeedMin,
+          shutter_speed_max: shutterSpeedMax === "__none__" ? null : shutterSpeedMax,
+          has_bulb: hasBulb,
+          metering_modes: meteringModes.length > 0 ? meteringModes : null,
+          default_frame_count: frameCount,
+          notes: notes.trim() || null,
+          deleted_at: null,
+          updated_at: now,
+          created_at: now,
+        });
+        toast.success(t("cameraAdded"));
+        trackEvent("first_camera_added");
+        onCreated?.(id);
+      }
 
-    onDone();
+      onDone();
+    } catch {
+      toast.error(tc("error"));
+    }
   }
 
   return (
@@ -281,7 +289,7 @@ export function CameraForm({ camera, onDone }: CameraFormProps) {
         <Button type="submit" className="flex-1">
           {isEdit ? tc("save") : tc("add")}
         </Button>
-        <Button type="button" variant="outline" onClick={onDone}>
+        <Button type="button" variant="outline" onClick={onCancel ?? onDone}>
           {tc("cancel")}
         </Button>
       </div>
