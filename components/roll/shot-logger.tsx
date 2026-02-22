@@ -505,8 +505,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       {/* Frame timeline */}
       <div className="lg:flex-1 lg:min-w-0">
       {activeFrames.length > 0 && (
-        <ScrollArea className="max-h-48 lg:max-h-[calc(100vh-16rem)]">
-          <div className="space-y-1">
+        <ScrollArea className="max-h-[calc(100dvh-12rem)] lg:max-h-[calc(100vh-16rem)]">
+          <div className={cn("space-y-1", showForm && "pb-80 lg:pb-0")}>
             {activeFrames.map((frame) => {
               const thumbUrl = frameThumbUrls.get(frame.id);
               return (
