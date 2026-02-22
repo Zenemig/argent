@@ -136,6 +136,50 @@ describe("CameraForm", () => {
     expect(onDone).toHaveBeenCalled();
   });
 
+  it("calls onCancel instead of onDone when cancel is clicked and onCancel is provided", () => {
+    const onCancel = vi.fn();
+    render(<CameraForm onDone={onDone} onCancel={onCancel} />);
+    fireEvent.click(screen.getByText("cancel"));
+    expect(onCancel).toHaveBeenCalled();
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
+  it("calls onCreated with the new camera id on submit", async () => {
+    const onCreated = vi.fn();
+    render(<CameraForm onDone={onDone} onCreated={onCreated} />);
+    fireEvent.change(screen.getByLabelText("name"), {
+      target: { value: "Nikon FM2" },
+    });
+    fireEvent.change(screen.getByLabelText("make"), {
+      target: { value: "Nikon" },
+    });
+    await fireEvent.submit(screen.getByText("add").closest("form")!);
+    expect(onCreated).toHaveBeenCalledWith("test-camera-ulid");
+    expect(onDone).toHaveBeenCalled();
+  });
+
+  it("does not call onCreated when editing", async () => {
+    const onCreated = vi.fn();
+    const camera = {
+      id: "cam-1",
+      user_id: "user-123",
+      name: "Nikon FM2",
+      make: "Nikon",
+      format: "35mm" as const,
+      mount: null,
+      type: null,
+      default_frame_count: 36,
+      notes: null,
+      deleted_at: null,
+      updated_at: Date.now(),
+      created_at: Date.now(),
+    };
+    render(<CameraForm camera={camera} onDone={onDone} onCreated={onCreated} />);
+    await fireEvent.submit(screen.getByText("save").closest("form")!);
+    expect(onCreated).not.toHaveBeenCalled();
+    expect(onDone).toHaveBeenCalled();
+  });
+
   it("does not submit when name is empty", () => {
     render(<CameraForm onDone={onDone} />);
     const makeInput = screen.getByLabelText("make");

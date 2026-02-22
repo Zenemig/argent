@@ -15,7 +15,8 @@
     "filter": "Filtrar",
     "noResults": "No se encontraron resultados",
     "confirm": "Confirmar",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "error": "Algo salió mal"
   },
   "nav": {
     "dashboard": "Inicio",
@@ -205,6 +206,7 @@
     "allFormats": "Todas",
     "noCameraMatch": "Ninguna cámara coincide con tu búsqueda",
     "noCamera": "Agrega una cámara primero",
+    "addCamera": "Agregar Cámara",
     "noFilm": "No se encontraron películas compatibles",
     "undoStatus": "Deshacer",
     "statusUpdated": "Estado actualizado",
