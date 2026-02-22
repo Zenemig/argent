@@ -230,7 +230,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("loadNew")}</DialogTitle>
           <DialogDescription className="sr-only">
