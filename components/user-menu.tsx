@@ -48,6 +48,8 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
       const result = await joinWaitlist();
       if (result.success) {
         toast.success(tUpgrade("waitlistConfirmed"));
+      } else {
+        toast.error(tUpgrade("waitlistError"));
       }
     });
   }

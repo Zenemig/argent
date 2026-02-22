@@ -359,6 +359,7 @@
     "cta": "Join Waitlist",
     "getProWhenReady": "Get Pro when available",
     "waitlistConfirmed": "You're on the list! We'll notify you when Pro is available.",
+    "waitlistError": "Could not join the waitlist. Please try again.",
     "syncTeaser": "Upgrade to Pro to enable cloud sync",
     "proActive": "Pro",
     "proManageHint": "You have Pro access. Managed via your account."
