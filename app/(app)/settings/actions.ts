@@ -20,9 +20,9 @@ export async function joinWaitlist() {
 
   const { error } = await supabase
     .from("waitlist")
-    .upsert({ email: user.email }, { onConflict: "email", ignoreDuplicates: true });
+    .insert({ email: user.email });
 
-  if (error) return { error: "failed" };
+  if (error && error.code !== "23505") return { error: "failed" };
 
   await trackEventServer(supabase, user.id, "joined_waitlist");
 

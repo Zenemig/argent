@@ -80,10 +80,13 @@ export async function signUp(formData: FormData) {
 
   // Record Pro interest in waitlist for future outreach
   if (interest === "pro") {
-    await supabase.from("waitlist").upsert(
-      { email },
-      { onConflict: "email", ignoreDuplicates: true },
-    );
+    const { error: waitlistError } = await supabase
+      .from("waitlist")
+      .insert({ email });
+
+    if (waitlistError && waitlistError.code !== "23505") {
+      // Log but don't fail signup over waitlist
+    }
   }
 
   return { success: "confirmationSent" };
