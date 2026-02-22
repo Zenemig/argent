@@ -30,6 +30,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -47,6 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import { LiveRegion } from "@/components/live-region";
 import { isZoomLens, formatFocalLength, defaultFrameFocalLength } from "@/lib/lens-utils";
+import { computeNextFrameNumber, createBlankFrame, validateSkipTo } from "@/lib/shot-helpers";
 import type { Roll, Frame, Lens, MeteringMode } from "@/lib/types";
 import { captureImage } from "@/lib/image-capture";
 import { LocationPickerDialog } from "@/components/roll/location-picker-dialog";
@@ -127,13 +129,14 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     return all;
   }, [roll.user_id, roll.camera_id]);
 
-  // Auto-fill from last frame (suppressed in edit mode)
+  // Auto-fill from last non-blank frame (suppressed in edit mode)
   useEffect(() => {
     if (editingFrame !== null) return;
     if (frames && frames.length > 0) {
-      const last = frames[frames.length - 1];
-      setShutterSpeed(last.shutter_speed);
-      setAperture(last.aperture);
+      const last = [...frames].reverse().find((f) => !f.is_blank && f.deleted_at == null);
+      if (!last) return;
+      if (last.shutter_speed) setShutterSpeed(last.shutter_speed);
+      if (last.aperture) setAperture(last.aperture);
       if (last.lens_id) setLensId(last.lens_id);
       if (last.metering_mode) setMeteringMode(last.metering_mode);
       if (last.exposure_comp !== null && last.exposure_comp !== undefined)
@@ -248,7 +251,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     [frames],
   );
 
-  const nextFrameNumber = activeFrames.length + 1;
+  const nextFrameNumber = computeNextFrameNumber(activeFrames);
+
+  // Skip-to dialog state
+  const [showSkipTo, setShowSkipTo] = useState(false);
+  const [skipToTarget, setSkipToTarget] = useState<string>("");
 
   // ----- Image capture handlers -----
 
@@ -416,8 +423,8 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   // ----- Edit frame -----
 
   function loadFrameIntoForm(frame: Frame) {
-    setShutterSpeed(frame.shutter_speed);
-    setAperture(frame.aperture);
+    setShutterSpeed(frame.is_blank ? "1/125" : (frame.shutter_speed ?? "1/125"));
+    setAperture(frame.is_blank ? 5.6 : (frame.aperture ?? 5.6));
     setLensId(frame.lens_id ?? "__none__");
     setMeteringMode(frame.metering_mode ?? "__none__");
     setExposureComp(frame.exposure_comp ?? 0);
@@ -452,6 +459,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     await syncUpdate("frames", editingFrame.id, {
       shutter_speed: shutterSpeed,
       aperture,
+      is_blank: false,
       lens_id: lensId === "__none__" ? null : lensId,
       focal_length: frameFocalLength,
       metering_mode:
@@ -484,6 +492,40 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     toast.success(t("frameDeleted", { number: frameNum }));
   }
 
+  async function handleSkipFrame() {
+    const now = Date.now();
+    const blankData = createBlankFrame(roll.id, nextFrameNumber);
+    await syncAdd("frames", { id: ulid(), ...blankData });
+
+    if (roll.status === "loaded") {
+      await syncUpdate("rolls", roll.id, { status: "active", updated_at: now });
+    }
+    toast.success(t("frameSkipped", { number: nextFrameNumber }));
+  }
+
+  async function handleSkipTo() {
+    const target = Number(skipToTarget);
+    const validation = validateSkipTo(target, nextFrameNumber, roll.frame_count);
+    if (!validation.valid) {
+      toast.error(t(validation.error!));
+      return;
+    }
+
+    const now = Date.now();
+    for (let n = nextFrameNumber; n < target; n++) {
+      const blankData = createBlankFrame(roll.id, n);
+      await syncAdd("frames", { id: ulid(), ...blankData });
+    }
+
+    if (roll.status === "loaded") {
+      await syncUpdate("rolls", roll.id, { status: "active", updated_at: now });
+    }
+
+    setShowSkipTo(false);
+    setSkipToTarget("");
+    toast.success(t("skippedTo", { number: target }));
+  }
+
   async function handleSaveClick() {
     if (editingFrame) {
       await updateFrame();
@@ -508,6 +550,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
         <ScrollArea className="max-h-[calc(100dvh-12rem)] lg:max-h-[calc(100vh-16rem)]">
           <div className={cn("space-y-1", showForm && "pb-80 lg:pb-0")}>
             {activeFrames.map((frame) => {
+              const isBlank = frame.is_blank === true;
               const thumbUrl = frameThumbUrls.get(frame.id);
               return (
                 <div
@@ -525,63 +568,74 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                     "flex items-center gap-2 rounded border border-border px-3 py-1.5 text-sm cursor-pointer",
                     "hover:border-primary hover:bg-muted/50 transition-colors",
                     editingFrame?.id === frame.id && "border-primary bg-muted/50",
+                    isBlank && "opacity-50 border-dashed",
                   )}
-                  aria-label={t("editFrame", { number: frame.frame_number })}
+                  aria-label={isBlank
+                    ? t("editBlankFrame", { number: frame.frame_number })
+                    : t("editFrame", { number: frame.frame_number })}
                   aria-current={editingFrame?.id === frame.id || undefined}
                 >
                   <Badge variant="outline" className="shrink-0 tabular-nums">
                     #{frame.frame_number}
                   </Badge>
-                  {thumbUrl ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewThumbnail(thumbUrl, frame.frame_number);
-                      }}
-                      className="shrink-0 overflow-hidden rounded"
-                      aria-label={t("frameThumbnail", {
-                        number: frame.frame_number,
-                      })}
-                    >
-                      <img
-                        src={thumbUrl}
-                        alt=""
-                        className="h-8 w-8 object-cover"
-                      />
-                    </button>
-                  ) : canLog ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddImageToFrame(frame.id);
-                      }}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"
-                      aria-label={t("captureImage")}
-                    >
-                      <Camera className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null}
-                  <span className="tabular-nums">{frame.shutter_speed}</span>
-                  <span className="text-muted-foreground">f/{frame.aperture}</span>
-                  {frame.latitude != null && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenFrameLocationPicker(frame);
-                      }}
-                      aria-label={t("location.editLocation")}
-                      className="shrink-0 text-muted-foreground hover:text-primary"
-                    >
-                      <MapPin className="h-3 w-3" />
-                    </button>
-                  )}
-                  {frame.notes && (
-                    <span className="truncate text-xs text-muted-foreground">
-                      {frame.notes}
+                  {isBlank ? (
+                    <span className="text-xs italic text-muted-foreground">
+                      {t("skippedLabel")}
                     </span>
+                  ) : (
+                    <>
+                      {thumbUrl ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewThumbnail(thumbUrl, frame.frame_number);
+                          }}
+                          className="shrink-0 overflow-hidden rounded"
+                          aria-label={t("frameThumbnail", {
+                            number: frame.frame_number,
+                          })}
+                        >
+                          <img
+                            src={thumbUrl}
+                            alt=""
+                            className="h-8 w-8 object-cover"
+                          />
+                        </button>
+                      ) : canLog ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddImageToFrame(frame.id);
+                          }}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary"
+                          aria-label={t("captureImage")}
+                        >
+                          <Camera className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                      <span className="tabular-nums">{frame.shutter_speed}</span>
+                      <span className="text-muted-foreground">f/{frame.aperture}</span>
+                      {frame.latitude != null && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenFrameLocationPicker(frame);
+                          }}
+                          aria-label={t("location.editLocation")}
+                          className="shrink-0 text-muted-foreground hover:text-primary"
+                        >
+                          <MapPin className="h-3 w-3" />
+                        </button>
+                      )}
+                      {frame.notes && (
+                        <span className="truncate text-xs text-muted-foreground">
+                          {frame.notes}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               );
@@ -627,9 +681,20 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   </Button>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">
-                  {nextFrameNumber}/{roll.frame_count}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setShowSkipTo(true)}
+                  >
+                    {t("skipTo")}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {nextFrameNumber}/{roll.frame_count}
+                  </span>
+                </div>
               )}
               <LiveRegion>
                 {editingFrame
@@ -817,6 +882,17 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
                   <Camera className="h-4 w-4" />
                 </Button>
               )}
+              {!editingFrame && canLog && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={handleSkipFrame}
+                >
+                  {t("skipFrame")}
+                </Button>
+              )}
               <Button onClick={handleSaveClick} className="min-w-0 flex-1">
                 {editingFrame ? t("update") : t("save")}
               </Button>
@@ -914,6 +990,34 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
         onConfirm={handleLocationConfirm}
         onClear={handleLocationClear}
       />
+
+      {/* Skip-to dialog */}
+      <Dialog open={showSkipTo} onOpenChange={setShowSkipTo}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("skipToTitle")}</DialogTitle>
+            <DialogDescription>{t("skipToDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="skip-to-input">{t("skipToLabel")}</Label>
+            <Input
+              id="skip-to-input"
+              type="number"
+              min={nextFrameNumber + 1}
+              value={skipToTarget}
+              onChange={(e) => setSkipToTarget(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSkipTo(false)}>
+              {tc("cancel")}
+            </Button>
+            <Button onClick={handleSkipTo} disabled={!skipToTarget}>
+              {tc("confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

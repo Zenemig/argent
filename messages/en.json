@@ -273,6 +273,18 @@
       "invalid_type": "Please select a valid image file",
       "compression_failed": "Failed to process image. Try a different file."
     },
+    "skipFrame": "Skip",
+    "skipTo": "Skip to...",
+    "skipToTitle": "Skip to Frame",
+    "skipToDescription": "Create blank records for all skipped frames and advance the counter.",
+    "skipToLabel": "Skip to frame number",
+    "frameSkipped": "Frame {number} skipped",
+    "skippedTo": "Skipped to frame {number}",
+    "skippedLabel": "Skipped",
+    "editBlankFrame": "Edit blank frame {number}",
+    "invalidFrameNumber": "Please enter a valid frame number",
+    "skipToMustBeGreater": "Target must be greater than the current frame number",
+    "skipToExceedsMax": "Target exceeds the maximum allowed frame number",
     "location": {
       "title": "Set Location",
       "description": "Tap the map or drag the marker to set the shot location.",

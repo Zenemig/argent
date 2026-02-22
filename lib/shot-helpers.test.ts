@@ -3,6 +3,9 @@ import {
   getAutoFillDefaults,
   shouldWarnExceedFrameCount,
   canLogFrame,
+  computeNextFrameNumber,
+  createBlankFrame,
+  validateSkipTo,
 } from "./shot-helpers";
 import type { Frame, RollStatus } from "./types";
 
@@ -135,5 +138,138 @@ describe("canLogFrame", () => {
 
   it("returns false for archived", () => {
     expect(canLogFrame("archived")).toBe(false);
+  });
+});
+
+describe("computeNextFrameNumber", () => {
+  it("returns 1 for empty array", () => {
+    expect(computeNextFrameNumber([])).toBe(1);
+  });
+
+  it("returns 2 when one frame exists", () => {
+    const frames = [makeFrame({ frame_number: 1 })];
+    expect(computeNextFrameNumber(frames)).toBe(2);
+  });
+
+  it("returns max + 1 for sequential frames", () => {
+    const frames = [
+      makeFrame({ frame_number: 1 }),
+      makeFrame({ frame_number: 2 }),
+      makeFrame({ frame_number: 3 }),
+    ];
+    expect(computeNextFrameNumber(frames)).toBe(4);
+  });
+
+  it("returns max + 1 when there are gaps (skipped frames)", () => {
+    const frames = [
+      makeFrame({ frame_number: 1 }),
+      makeFrame({ frame_number: 2 }),
+      makeFrame({ frame_number: 5 }),
+      makeFrame({ frame_number: 6 }),
+    ];
+    expect(computeNextFrameNumber(frames)).toBe(7);
+  });
+
+  it("handles non-sequential frame numbers", () => {
+    const frames = [
+      makeFrame({ frame_number: 3 }),
+      makeFrame({ frame_number: 1 }),
+    ];
+    expect(computeNextFrameNumber(frames)).toBe(4);
+  });
+});
+
+describe("createBlankFrame", () => {
+  it("returns object with is_blank: true", () => {
+    const blank = createBlankFrame("01TESTROLL000000000000000", 5);
+    expect(blank.is_blank).toBe(true);
+  });
+
+  it("has null shutter_speed and aperture", () => {
+    const blank = createBlankFrame("01TESTROLL000000000000000", 5);
+    expect(blank.shutter_speed).toBeNull();
+    expect(blank.aperture).toBeNull();
+  });
+
+  it("has correct roll_id and frame_number", () => {
+    const blank = createBlankFrame("01TESTROLL000000000000000", 3);
+    expect(blank.roll_id).toBe("01TESTROLL000000000000000");
+    expect(blank.frame_number).toBe(3);
+  });
+
+  it("has all optional fields as null", () => {
+    const blank = createBlankFrame("01TESTROLL000000000000000", 1);
+    expect(blank.lens_id).toBeNull();
+    expect(blank.metering_mode).toBeNull();
+    expect(blank.exposure_comp).toBeNull();
+    expect(blank.filter).toBeNull();
+    expect(blank.focal_length).toBeNull();
+    expect(blank.latitude).toBeNull();
+    expect(blank.longitude).toBeNull();
+    expect(blank.location_name).toBeNull();
+    expect(blank.notes).toBeNull();
+    expect(blank.thumbnail).toBeNull();
+    expect(blank.image_url).toBeNull();
+  });
+
+  it("has valid timestamps", () => {
+    const before = Date.now();
+    const blank = createBlankFrame("01TESTROLL000000000000000", 1);
+    const after = Date.now();
+    expect(blank.captured_at).toBeGreaterThanOrEqual(before);
+    expect(blank.captured_at).toBeLessThanOrEqual(after);
+    expect(blank.updated_at).toBeGreaterThanOrEqual(before);
+    expect(blank.created_at).toBeGreaterThanOrEqual(before);
+    expect(blank.deleted_at).toBeNull();
+  });
+});
+
+describe("validateSkipTo", () => {
+  it("returns valid for target > current", () => {
+    expect(validateSkipTo(5, 3, 36)).toEqual({ valid: true });
+  });
+
+  it("returns invalid for target equal to current", () => {
+    const result = validateSkipTo(3, 3, 36);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("skipToMustBeGreater");
+  });
+
+  it("returns invalid for target less than current", () => {
+    const result = validateSkipTo(2, 3, 36);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("skipToMustBeGreater");
+  });
+
+  it("returns invalid for non-integer target", () => {
+    const result = validateSkipTo(3.5, 2, 36);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("invalidFrameNumber");
+  });
+
+  it("returns invalid for target < 1", () => {
+    const result = validateSkipTo(0, 1, 36);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("invalidFrameNumber");
+  });
+
+  it("returns invalid when exceeding max cap", () => {
+    // max(36 * 2, 100) = 100
+    const result = validateSkipTo(101, 1, 36);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("skipToExceedsMax");
+  });
+
+  it("returns valid at the max boundary", () => {
+    // max(36 * 2, 100) = 100
+    expect(validateSkipTo(100, 1, 36)).toEqual({ valid: true });
+  });
+
+  it("uses frameCount * 2 when larger than 100", () => {
+    // max(72 * 2, 100) = 144
+    expect(validateSkipTo(144, 1, 72)).toEqual({ valid: true });
+    const result = validateSkipTo(145, 1, 72);
+    expect(result.valid).toBe(false);
+    expect(result.error).toBe("skipToExceedsMax");
   });
 });

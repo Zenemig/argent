@@ -9,6 +9,7 @@ export interface ExportFrameData {
   frameNumber: number;
   shutterSpeed: string;
   aperture: number;
+  isBlank?: boolean;
   focalLength: number | null;
   latitude: number | null | undefined;
   longitude: number | null | undefined;

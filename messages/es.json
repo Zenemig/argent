@@ -273,6 +273,18 @@
       "invalid_type": "Por favor selecciona un archivo de imagen válido",
       "compression_failed": "Error al procesar la imagen. Prueba con otro archivo."
     },
+    "skipFrame": "Saltar",
+    "skipTo": "Saltar a...",
+    "skipToTitle": "Saltar al Cuadro",
+    "skipToDescription": "Crear registros en blanco para los cuadros omitidos y avanzar el contador.",
+    "skipToLabel": "Saltar al cuadro número",
+    "frameSkipped": "Cuadro {number} omitido",
+    "skippedTo": "Saltado al cuadro {number}",
+    "skippedLabel": "Omitido",
+    "editBlankFrame": "Editar cuadro en blanco {number}",
+    "invalidFrameNumber": "Ingresa un número de cuadro válido",
+    "skipToMustBeGreater": "El destino debe ser mayor que el número de cuadro actual",
+    "skipToExceedsMax": "El destino excede el número máximo de cuadros permitido",
     "location": {
       "title": "Establecer Ubicación",
       "description": "Toca el mapa o arrastra el marcador para establecer la ubicación.",

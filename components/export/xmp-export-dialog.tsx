@@ -95,10 +95,15 @@ async function fetchExportData(
   const roll = await db.rolls.get(rollId);
   if (!roll) throw new Error("Roll not found");
 
-  const frames = await db.frames
+  const allFrames = await db.frames
     .where("roll_id")
     .equals(rollId)
     .sortBy("frame_number");
+
+  // Filter out soft-deleted and blank frames for export
+  const frames = allFrames.filter(
+    (f) => f.deleted_at == null && !f.is_blank,
+  );
 
   if (frames.length === 0) throw new Error("NO_FRAMES");
 
@@ -137,8 +142,8 @@ async function fetchExportData(
     return {
       frame: {
         frameNumber: frame.frame_number,
-        shutterSpeed: frame.shutter_speed,
-        aperture: frame.aperture,
+        shutterSpeed: frame.shutter_speed ?? "",
+        aperture: frame.aperture ?? 0,
         focalLength: frame.focal_length ?? lensRecord?.focal_length ?? null,
         latitude: frame.latitude,
         longitude: frame.longitude,
