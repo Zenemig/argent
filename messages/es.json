@@ -394,7 +394,34 @@
     "syncing": "Sincronizando...",
     "offline": "Sin conexión",
     "error": "Error de sincronización",
-    "localOnly": "Solo local"
+    "localOnly": "Solo local",
+    "details": {
+      "title": "Detalles de Sincronización",
+      "pending": "Pendientes",
+      "failed": "Fallidos",
+      "lastSynced": "Última sincronización",
+      "never": "Nunca",
+      "storage": "Almacenamiento persistente",
+      "storageGranted": "Concedido",
+      "storageNotGranted": "Mejor esfuerzo",
+      "storageUnknown": "Desconocido",
+      "syncNow": "Sincronizar Ahora",
+      "retryFailed": "Reintentar Fallidos",
+      "discardFailed": "Descartar Fallidos",
+      "discardConfirm": "¿Descartar todas las entradas fallidas? Esto no se puede deshacer.",
+      "failedItems": "Elementos Fallidos",
+      "conflicts": "Conflictos Recientes",
+      "conflictResolved": "Servidor gana",
+      "noConflicts": "No hay conflictos recientes",
+      "noFailed": "No hay elementos fallidos"
+    },
+    "table": {
+      "cameras": "Cámaras",
+      "lenses": "Lentes",
+      "films": "Películas",
+      "rolls": "Rollos",
+      "frames": "Cuadros"
+    }
   },
   "a11y": {
     "skipToMain": "Saltar al contenido principal",
@@ -445,5 +472,14 @@
     "success": "¡Gracias por tus comentarios!",
     "error": "Error al enviar comentarios. Inténtalo de nuevo.",
     "rateLimited": "Espera unos minutos antes de enviar de nuevo."
+  },
+  "pwaInstall": {
+    "title": "Tus datos no están completamente protegidos",
+    "description": "Tus registros fotográficos se almacenan localmente en este navegador. Sin almacenamiento persistente, el navegador podría eliminar estos datos para liberar espacio. Para proteger tus datos:",
+    "installAction": "Instalar App",
+    "bookmarkTip": "Agrega esta página a marcadores (Ctrl+D / Cmd+D) para ayudar a proteger tus datos.",
+    "upgradeTip": "Para máxima seguridad, actualiza a Pro para respaldo automático en la nube.",
+    "upgradeLink": "Ir a Ajustes",
+    "dismiss": "Cerrar"
   }
 }

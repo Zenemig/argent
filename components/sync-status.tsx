@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSync } from "@/hooks/useSync";
 import { useUserId } from "@/hooks/useUserId";
 import { useUserTier } from "@/hooks/useUserTier";
 import { LiveRegion } from "@/components/live-region";
+import { SyncDetailsSheet } from "@/components/sync-details-sheet";
 import { toast } from "sonner";
 
 export function SyncStatus() {
@@ -12,9 +14,11 @@ export function SyncStatus() {
   const tUpgrade = useTranslations("upgrade");
   const userId = useUserId();
   const { isProUser, isAuthenticated } = useUserTier();
-  const { syncState, failedCount, syncNow } = useSync(userId ?? null, {
-    enabled: isProUser,
-  });
+  const { syncState, failedCount, pendingCount, lastError, syncNow } = useSync(
+    userId ?? null,
+    { enabled: isProUser },
+  );
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Unauthenticated users see nothing (shouldn't happen behind route protection)
   if (!isAuthenticated) return null;
@@ -36,19 +40,6 @@ export function SyncStatus() {
     );
   }
 
-  // Pro users: existing colored-dot indicator
-  function handleClick() {
-    if (syncState === "error") {
-      toast.error(
-        t("error") + (failedCount > 0 ? ` (${failedCount})` : ""),
-      );
-    } else if (syncState === "offline") {
-      toast.info(t("offline"));
-    } else {
-      syncNow();
-    }
-  }
-
   const colors: Record<string, string> = {
     synced: "bg-green-500",
     syncing: "bg-yellow-500",
@@ -67,7 +58,7 @@ export function SyncStatus() {
     <>
       <button
         type="button"
-        onClick={handleClick}
+        onClick={() => setSheetOpen(true)}
         className="flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         aria-label={labels[syncState] ?? ""}
       >
@@ -81,6 +72,16 @@ export function SyncStatus() {
         </span>
       </button>
       <LiveRegion>{labels[syncState]}</LiveRegion>
+      <SyncDetailsSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        syncState={syncState}
+        pendingCount={pendingCount}
+        failedCount={failedCount}
+        lastError={lastError}
+        syncNow={syncNow}
+        isProUser={isProUser}
+      />
     </>
   );
 }
