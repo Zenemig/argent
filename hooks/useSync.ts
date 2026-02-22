@@ -16,6 +16,8 @@ interface UseSyncOptions {
 interface UseSyncResult {
   syncState: SyncState;
   failedCount: number;
+  pendingCount: number;
+  lastError: string | null;
   syncNow: () => Promise<void>;
 }
 
@@ -29,6 +31,7 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const syncInProgressRef = useRef(false);
 
   // Reactively watch queue counts
@@ -60,6 +63,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
       // Download first: resolve server-wins conflicts before uploading
       await processDownloadSync(supabase);
       await processUploadQueue(supabase);
+
+      setLastError(null);
 
       // Image sync (dynamic import to keep out of initial bundle)
       try {
@@ -108,6 +113,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
       } catch {
         // Avatar sync failure should not break data sync state
       }
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : "Sync failed");
     } finally {
       syncInProgressRef.current = false;
       setIsSyncing(false);
@@ -137,6 +144,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState === "visible") {
+        // Refresh isOnline — navigator.onLine may have changed while suspended
+        setIsOnline(navigator.onLine);
         runSync();
       }
     }
@@ -147,12 +156,27 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
     };
   }, [runSync]);
 
+  // pagehide: reset syncInProgress so sync is not permanently blocked
+  // after iOS kills a mid-flight request during page suspension
+  useEffect(() => {
+    function handlePageHide() {
+      syncInProgressRef.current = false;
+    }
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, []);
+
   // Initial sync on mount (if online + authenticated)
   useEffect(() => {
     runSync();
   }, [runSync]);
 
   // Derive sync state
+  // Only show "syncing" when actively running. Pending items waiting for
+  // backoff or next cycle should not keep the indicator spinning forever.
   let syncState: SyncState;
   if (shouldSkip) {
     syncState = "local-only";
@@ -162,15 +186,15 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
     syncState = "syncing";
   } else if (failedCount > 0) {
     syncState = "error";
-  } else if (pendingCount === 0) {
-    syncState = "synced";
   } else {
-    syncState = "syncing";
+    syncState = "synced";
   }
 
   return {
     syncState,
     failedCount,
+    pendingCount,
+    lastError,
     syncNow: runSync,
   };
 }

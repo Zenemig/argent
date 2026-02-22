@@ -7,6 +7,7 @@ const MAX_BATCH_SIZE = 200;
 const MAX_RETRIES = 5;
 const MAX_BACKOFF_MS = 60_000;
 const DOWNLOAD_PAGE_SIZE = 1000;
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 /** Fields that should not be sent to Supabase (local-only blobs). */
 const LOCAL_ONLY_FIELDS: Record<SyncableTable, string[]> = {
@@ -14,7 +15,7 @@ const LOCAL_ONLY_FIELDS: Record<SyncableTable, string[]> = {
   lenses: [],
   films: [],
   rolls: [],
-  frames: ["thumbnail"],
+  frames: ["thumbnail", "deleted_at"],
 };
 
 /** Timestamp fields that store epoch-ms locally but need ISO strings for Postgres. */
@@ -115,7 +116,22 @@ export async function processUploadQueue(
     .toArray();
 
   const eligible = allEntries.filter(isReadyForRetry);
-  if (eligible.length === 0) return 0;
+
+  if (eligible.length === 0) {
+    // Reset stale in_progress entries that are not yet ready for retry
+    // (e.g. from a previous cycle that was interrupted). This prevents
+    // items from being stuck in in_progress indefinitely.
+    const stale = allEntries.filter(
+      (e) => e.status === "in_progress" && e.id !== undefined,
+    );
+    if (stale.length > 0) {
+      await db._syncQueue
+        .where("id")
+        .anyOf(stale.map((e) => e.id as number))
+        .modify({ status: "pending", retry_count: 0 });
+    }
+    return 0;
+  }
 
   // 2. Deduplicate
   const deduplicated = deduplicateQueue(eligible);
@@ -173,10 +189,11 @@ export async function processUploadQueue(
         continue;
       }
 
-      // Upsert to Supabase
-      const { error } = await supabase
-        .from(table)
-        .upsert(entities, { onConflict: "id" });
+      // Upsert to Supabase (with timeout for iOS resilience)
+      // Wrap thenable query builder in a real Promise for withTimeout
+      const { error } = await withTimeout(
+        Promise.resolve(supabase.from(table).upsert(entities, { onConflict: "id" })),
+      ) as { error: { message: string } | null };
 
       if (!error) {
         // Success: remove all queue entries for these entities
@@ -189,6 +206,10 @@ export async function processUploadQueue(
           value: new Date().toISOString(),
         });
       } else {
+        console.warn(
+          `[sync] Upload failed for ${table} (${entityIds.length} entities):`,
+          error.message,
+        );
         // Failure: increment retry counts
         for (const queueId of allQueueIds) {
           const entry = await db._syncQueue.get(queueId);
@@ -232,6 +253,78 @@ export async function getQueueStats(): Promise<{
     .equals("failed")
     .count();
   return { pending, failed };
+}
+
+/**
+ * Race a promise against a timeout. Rejects with a descriptive error if
+ * the promise doesn't settle within `ms` milliseconds.
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number = DEFAULT_TIMEOUT_MS,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Request timed out after ${ms}ms`));
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
+/**
+ * Reset all failed sync queue entries back to pending so they will be
+ * retried on the next sync cycle.
+ */
+export async function retryFailedEntries(): Promise<void> {
+  await db._syncQueue
+    .where("status")
+    .equals("failed")
+    .modify({ status: "pending", retry_count: 0 });
+}
+
+/**
+ * Permanently delete all failed sync queue entries.
+ */
+export async function clearFailedEntries(): Promise<void> {
+  await db._syncQueue.where("status").equals("failed").delete();
+}
+
+/**
+ * Get failed entries grouped by table for display in the sync details panel.
+ */
+export async function getFailedEntrySummary(): Promise<
+  Map<SyncableTable, { count: number; entities: { id: string; operation: string }[] }>
+> {
+  const failed = await db._syncQueue
+    .where("status")
+    .equals("failed")
+    .toArray();
+
+  const map = new Map<
+    SyncableTable,
+    { count: number; entities: { id: string; operation: string }[] }
+  >();
+
+  for (const entry of failed) {
+    const existing = map.get(entry.table);
+    if (existing) {
+      existing.count++;
+      existing.entities.push({ id: entry.entity_id, operation: entry.operation });
+    } else {
+      map.set(entry.table, {
+        count: 1,
+        entities: [{ id: entry.entity_id, operation: entry.operation }],
+      });
+    }
+  }
+
+  return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -285,8 +378,7 @@ export async function downloadFromTable(
 
   while (true) {
     // Build query: select → filter → order → paginate
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = supabase.from(table).select("*");
+    let query = supabase.from(table).select("*");
 
     if (since) {
       query = query.gt("updated_at", since);
@@ -296,7 +388,10 @@ export async function downloadFromTable(
       .order("updated_at", { ascending: true })
       .range(offset, offset + DOWNLOAD_PAGE_SIZE - 1);
 
-    const { data, error } = await query;
+    const { data, error } = await withTimeout(Promise.resolve(query)) as {
+      data: Record<string, unknown>[] | null;
+      error: { message: string } | null;
+    };
 
     if (error) {
       throw new Error(

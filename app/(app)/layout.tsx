@@ -9,6 +9,7 @@ import { Logo } from "@/components/logo";
 import { SyncStatus } from "@/components/sync-status";
 import { UserMenuWithAvatar } from "@/components/user-menu-with-avatar";
 import { SkipLink } from "@/components/skip-link";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({
@@ -63,6 +64,7 @@ export default async function AppLayout({
                 <SyncStatus />
                 {userMenu}
               </div>
+              <PwaInstallBanner />
               {children}
             </div>
           </div>
