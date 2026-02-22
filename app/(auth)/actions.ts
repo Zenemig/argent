@@ -82,7 +82,7 @@ export async function signUp(formData: FormData) {
   if (interest === "pro") {
     await supabase.from("waitlist").upsert(
       { email },
-      { onConflict: "email" },
+      { onConflict: "email", ignoreDuplicates: true },
     );
   }
 

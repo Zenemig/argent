@@ -20,7 +20,7 @@ export async function joinWaitlist() {
 
   const { error } = await supabase
     .from("waitlist")
-    .upsert({ email: user.email }, { onConflict: "email" });
+    .upsert({ email: user.email }, { onConflict: "email", ignoreDuplicates: true });
 
   if (error) return { error: "failed" };
 

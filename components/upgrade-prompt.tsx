@@ -17,6 +17,8 @@ export function UpgradePrompt() {
       const result = await joinWaitlist();
       if (result.success) {
         toast.success(t("waitlistConfirmed"));
+      } else {
+        toast.error(t("waitlistError"));
       }
     });
   }
