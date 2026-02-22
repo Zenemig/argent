@@ -26,13 +26,26 @@ vi.mock("@/hooks/useUserTier", () => ({
 
 let mockSyncState = "synced";
 let mockFailedCount = 0;
+let mockPendingCount = 0;
+let mockLastError: string | null = null;
 const mockSyncNow = vi.fn();
 vi.mock("@/hooks/useSync", () => ({
   useSync: () => ({
     syncState: mockSyncState,
     failedCount: mockFailedCount,
+    pendingCount: mockPendingCount,
+    lastError: mockLastError,
     syncNow: mockSyncNow,
   }),
+}));
+
+// Mock SyncDetailsSheet to track open state
+let sheetOpenState = false;
+vi.mock("@/components/sync-details-sheet", () => ({
+  SyncDetailsSheet: ({ open }: { open: boolean }) => {
+    sheetOpenState = open;
+    return open ? <div data-testid="sync-details-sheet">Sheet Open</div> : null;
+  },
 }));
 
 import { SyncStatus } from "./sync-status";
@@ -45,6 +58,9 @@ describe("SyncStatus", () => {
     mockIsAuthenticated = true;
     mockSyncState = "synced";
     mockFailedCount = 0;
+    mockPendingCount = 0;
+    mockLastError = null;
+    sheetOpenState = false;
   });
 
   it("returns null when not authenticated", () => {
@@ -75,30 +91,28 @@ describe("SyncStatus", () => {
     expect(button.getAttribute("aria-label")).toBe("synced");
   });
 
-  it("calls syncNow when pro user clicks on synced state", () => {
+  it("opens sheet when pro user clicks on synced state", () => {
     mockIsProUser = true;
     mockSyncState = "synced";
     render(<SyncStatus />);
     fireEvent.click(screen.getByRole("button"));
-    expect(mockSyncNow).toHaveBeenCalled();
+    expect(sheetOpenState).toBe(true);
   });
 
-  it("shows error toast when pro user clicks on error state", async () => {
-    const { toast } = await import("sonner");
+  it("opens sheet when pro user clicks on error state", () => {
     mockIsProUser = true;
     mockSyncState = "error";
     mockFailedCount = 2;
     render(<SyncStatus />);
     fireEvent.click(screen.getByRole("button"));
-    expect(toast.error).toHaveBeenCalled();
+    expect(sheetOpenState).toBe(true);
   });
 
-  it("shows info toast when pro user clicks on offline state", async () => {
-    const { toast } = await import("sonner");
+  it("opens sheet when pro user clicks on offline state", () => {
     mockIsProUser = true;
     mockSyncState = "offline";
     render(<SyncStatus />);
     fireEvent.click(screen.getByRole("button"));
-    expect(toast.info).toHaveBeenCalledWith("offline");
+    expect(sheetOpenState).toBe(true);
   });
 });

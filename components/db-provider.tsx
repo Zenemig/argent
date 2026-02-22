@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { db } from "@/lib/db";
 import { seedFilmStocks } from "@/lib/seed";
 
+interface StorageContextValue {
+  isPersisted: boolean | null;
+}
+
+const StorageContext = createContext<StorageContextValue>({
+  isPersisted: null,
+});
+
+export function useStoragePersisted(): boolean | null {
+  return useContext(StorageContext).isPersisted;
+}
+
 export function DbProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
+  const [isPersisted, setIsPersisted] = useState<boolean | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -16,7 +29,12 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (navigator.storage?.persist) {
-        navigator.storage.persist().catch(() => {});
+        try {
+          const granted = await navigator.storage.persist();
+          setIsPersisted(granted);
+        } catch {
+          setIsPersisted(false);
+        }
       }
 
       setReady(true);
@@ -25,5 +43,9 @@ export function DbProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!ready) return null;
-  return <>{children}</>;
+  return (
+    <StorageContext value={{ isPersisted }}>
+      {children}
+    </StorageContext>
+  );
 }

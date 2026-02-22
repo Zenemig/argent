@@ -394,7 +394,34 @@
     "syncing": "Syncing...",
     "offline": "Offline",
     "error": "Sync error",
-    "localOnly": "Local only"
+    "localOnly": "Local only",
+    "details": {
+      "title": "Sync Details",
+      "pending": "Pending",
+      "failed": "Failed",
+      "lastSynced": "Last synced",
+      "never": "Never",
+      "storage": "Persistent storage",
+      "storageGranted": "Granted",
+      "storageNotGranted": "Best effort",
+      "storageUnknown": "Unknown",
+      "syncNow": "Sync Now",
+      "retryFailed": "Retry Failed",
+      "discardFailed": "Discard Failed",
+      "discardConfirm": "Discard all failed sync entries? This cannot be undone.",
+      "failedItems": "Failed Items",
+      "conflicts": "Recent Conflicts",
+      "conflictResolved": "Server wins",
+      "noConflicts": "No recent conflicts",
+      "noFailed": "No failed items"
+    },
+    "table": {
+      "cameras": "Cameras",
+      "lenses": "Lenses",
+      "films": "Films",
+      "rolls": "Rolls",
+      "frames": "Frames"
+    }
   },
   "a11y": {
     "skipToMain": "Skip to main content",
@@ -445,5 +472,14 @@
     "success": "Thank you for your feedback!",
     "error": "Failed to send feedback. Please try again.",
     "rateLimited": "Please wait a few minutes before submitting again."
+  },
+  "pwaInstall": {
+    "title": "Your data is not fully protected",
+    "description": "Your film logs are stored locally in this browser. Without persistent storage, your browser may delete this data to free up space. To protect your data:",
+    "installAction": "Install App",
+    "bookmarkTip": "Bookmark this page (Ctrl+D / Cmd+D) to help secure your data.",
+    "upgradeTip": "For maximum safety, upgrade to Pro for automatic cloud backup.",
+    "upgradeLink": "Go to Settings",
+    "dismiss": "Dismiss"
   }
 }

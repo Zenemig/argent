@@ -24,6 +24,10 @@ const {
   deduplicateQueue,
   processUploadQueue,
   getQueueStats,
+  retryFailedEntries,
+  clearFailedEntries,
+  getFailedEntrySummary,
+  withTimeout,
 } = await import("./sync-engine");
 
 // ---------- Pure function tests ----------
@@ -333,6 +337,41 @@ describe("processUploadQueue", () => {
     expect(upsertedData[0].updated_at).toBe(new Date(ts).toISOString());
   });
 
+  it("resets stale in_progress entries when none are ready for retry", async () => {
+    await testDb.cameras.add({
+      id: "01HTEST0000000000000000009",
+      user_id: "supabase-uuid",
+      name: "Stale Cam",
+      make: "Test",
+      format: "35mm",
+      default_frame_count: 36,
+      notes: null,
+      deleted_at: null,
+      updated_at: Date.now(),
+      created_at: Date.now(),
+    });
+
+    // Entry stuck in in_progress with recent last_attempt (backoff not expired)
+    const queueId = await testDb._syncQueue.add({
+      table: "cameras",
+      entity_id: "01HTEST0000000000000000009",
+      operation: "create",
+      status: "in_progress",
+      retry_count: 1,
+      last_attempt: Date.now(), // just happened, backoff hasn't expired
+      payload: null,
+    });
+
+    const mockSupabase = createMockSupabase();
+    const synced = await processUploadQueue(mockSupabase as never);
+    expect(synced).toBe(0);
+
+    // Should be reset to pending so it gets picked up on next cycle
+    const entry = await testDb._syncQueue.get(queueId);
+    expect(entry!.status).toBe("pending");
+    expect(entry!.retry_count).toBe(0);
+  });
+
   it("removes queue entries when entity was deleted locally", async () => {
     const queueId = await testDb._syncQueue.add({
       table: "cameras",
@@ -398,6 +437,219 @@ describe("getQueueStats", () => {
     const stats = await getQueueStats();
     expect(stats.pending).toBe(2);
     expect(stats.failed).toBe(1);
+  });
+});
+
+// ---------- retryFailedEntries ----------
+
+describe("retryFailedEntries", () => {
+  beforeEach(async () => {
+    if (testDb) await testDb.delete();
+    testDb = new ArgentDb();
+    await testDb.open();
+  });
+
+  it("resets failed entries to pending with retry_count 0", async () => {
+    const id1 = await testDb._syncQueue.add({
+      table: "cameras",
+      entity_id: "A",
+      operation: "create",
+      status: "failed",
+      retry_count: 5,
+      last_attempt: Date.now(),
+      payload: null,
+    });
+    const id2 = await testDb._syncQueue.add({
+      table: "lenses",
+      entity_id: "B",
+      operation: "update",
+      status: "failed",
+      retry_count: 3,
+      last_attempt: Date.now(),
+      payload: null,
+    });
+    // This pending one should not be touched
+    await testDb._syncQueue.add({
+      table: "cameras",
+      entity_id: "C",
+      operation: "create",
+      status: "pending",
+      retry_count: 0,
+      last_attempt: null,
+      payload: null,
+    });
+
+    await retryFailedEntries();
+
+    const entry1 = await testDb._syncQueue.get(id1);
+    expect(entry1!.status).toBe("pending");
+    expect(entry1!.retry_count).toBe(0);
+
+    const entry2 = await testDb._syncQueue.get(id2);
+    expect(entry2!.status).toBe("pending");
+    expect(entry2!.retry_count).toBe(0);
+  });
+
+  it("does nothing when no failed entries exist", async () => {
+    await testDb._syncQueue.add({
+      table: "cameras",
+      entity_id: "A",
+      operation: "create",
+      status: "pending",
+      retry_count: 0,
+      last_attempt: null,
+      payload: null,
+    });
+
+    await retryFailedEntries();
+
+    const count = await testDb._syncQueue.count();
+    expect(count).toBe(1);
+  });
+});
+
+// ---------- clearFailedEntries ----------
+
+describe("clearFailedEntries", () => {
+  beforeEach(async () => {
+    if (testDb) await testDb.delete();
+    testDb = new ArgentDb();
+    await testDb.open();
+  });
+
+  it("deletes all failed entries", async () => {
+    await testDb._syncQueue.bulkAdd([
+      {
+        table: "cameras",
+        entity_id: "A",
+        operation: "create",
+        status: "failed",
+        retry_count: 5,
+        last_attempt: Date.now(),
+        payload: null,
+      },
+      {
+        table: "lenses",
+        entity_id: "B",
+        operation: "update",
+        status: "failed",
+        retry_count: 5,
+        last_attempt: Date.now(),
+        payload: null,
+      },
+      {
+        table: "cameras",
+        entity_id: "C",
+        operation: "create",
+        status: "pending",
+        retry_count: 0,
+        last_attempt: null,
+        payload: null,
+      },
+    ]);
+
+    await clearFailedEntries();
+
+    const remaining = await testDb._syncQueue.toArray();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].entity_id).toBe("C");
+  });
+});
+
+// ---------- getFailedEntrySummary ----------
+
+describe("getFailedEntrySummary", () => {
+  beforeEach(async () => {
+    if (testDb) await testDb.delete();
+    testDb = new ArgentDb();
+    await testDb.open();
+  });
+
+  it("groups failed entries by table", async () => {
+    await testDb._syncQueue.bulkAdd([
+      {
+        table: "cameras",
+        entity_id: "A",
+        operation: "create",
+        status: "failed",
+        retry_count: 5,
+        last_attempt: Date.now(),
+        payload: null,
+      },
+      {
+        table: "cameras",
+        entity_id: "B",
+        operation: "update",
+        status: "failed",
+        retry_count: 5,
+        last_attempt: Date.now(),
+        payload: null,
+      },
+      {
+        table: "lenses",
+        entity_id: "C",
+        operation: "create",
+        status: "failed",
+        retry_count: 5,
+        last_attempt: Date.now(),
+        payload: null,
+      },
+      {
+        table: "cameras",
+        entity_id: "D",
+        operation: "create",
+        status: "pending",
+        retry_count: 0,
+        last_attempt: null,
+        payload: null,
+      },
+    ]);
+
+    const summary = await getFailedEntrySummary();
+
+    expect(summary.get("cameras")).toEqual({
+      count: 2,
+      entities: [
+        { id: "A", operation: "create" },
+        { id: "B", operation: "update" },
+      ],
+    });
+    expect(summary.get("lenses")).toEqual({
+      count: 1,
+      entities: [{ id: "C", operation: "create" }],
+    });
+    expect(summary.has("films")).toBe(false);
+  });
+
+  it("returns empty map when no failed entries", async () => {
+    const summary = await getFailedEntrySummary();
+    expect(summary.size).toBe(0);
+  });
+});
+
+// ---------- withTimeout ----------
+
+describe("withTimeout", () => {
+  it("resolves when promise completes within timeout", async () => {
+    const result = await withTimeout(
+      Promise.resolve("ok"),
+      1000,
+    );
+    expect(result).toBe("ok");
+  });
+
+  it("rejects when promise exceeds timeout", async () => {
+    const slow = new Promise<string>((resolve) => {
+      setTimeout(() => resolve("late"), 5000);
+    });
+
+    await expect(withTimeout(slow, 50)).rejects.toThrow(/timed out/i);
+  });
+
+  it("uses default timeout of 30s", async () => {
+    // Just verify it doesn't throw for a fast promise with default timeout
+    const result = await withTimeout(Promise.resolve(42));
+    expect(result).toBe(42);
   });
 });
 
