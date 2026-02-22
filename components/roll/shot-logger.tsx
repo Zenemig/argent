@@ -908,7 +908,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
           if (!open) setPreviewImage(null);
         }}
       >
-        <DialogContent className="flex h-[80vh] w-[80vw] sm:max-w-none flex-col overflow-hidden">
+        <DialogContent scrollable={false} className="h-[80vh] w-[80vw] gap-4 p-6 sm:max-w-none">
           <DialogHeader className="shrink-0">
             <DialogTitle>
               {previewImage?.frameNumber

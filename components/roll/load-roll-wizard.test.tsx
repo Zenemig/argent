@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
@@ -44,6 +44,31 @@ vi.mock("@/lib/constants", () => ({
   DEFAULT_FRAME_COUNTS: { "35mm": 36, "120": 12, "4x5": 1 },
 }));
 
+vi.mock("@/lib/analytics/track-event", () => ({
+  trackEvent: vi.fn(),
+}));
+
+let mockOnCreated: ((id: string) => void) | undefined;
+let mockOnDone: (() => void) | undefined;
+let mockOnCancel: (() => void) | undefined;
+
+vi.mock("@/components/gear/camera-form", () => ({
+  CameraForm: ({
+    onDone,
+    onCreated,
+    onCancel,
+  }: {
+    onDone: () => void;
+    onCreated?: (id: string) => void;
+    onCancel?: () => void;
+  }) => {
+    mockOnCreated = onCreated;
+    mockOnDone = onDone;
+    mockOnCancel = onCancel;
+    return <div data-testid="camera-form">CameraForm</div>;
+  },
+}));
+
 import { LoadRollWizard } from "./load-roll-wizard";
 
 describe("LoadRollWizard", () => {
@@ -54,6 +79,9 @@ describe("LoadRollWizard", () => {
     queryCallIndex = 0;
     mockQueryResults.length = 0;
     mockUserId = "user-123";
+    mockOnCreated = undefined;
+    mockOnDone = undefined;
+    mockOnCancel = undefined;
   });
 
   it("renders dialog with title when open", () => {
@@ -236,6 +264,71 @@ describe("LoadRollWizard", () => {
       expect(screen.getByText("Nikon FM2")).toBeDefined();
       expect(screen.getByText("Canon AE-1")).toBeDefined();
       expect(screen.getByText("Hasselblad 500C")).toBeDefined();
+    });
+  });
+
+  describe("add-camera step", () => {
+    it("shows Add Camera button in empty state", () => {
+      mockQueryResults.push([], [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      expect(
+        screen.getByRole("button", { name: /addCamera/ }),
+      ).toBeDefined();
+    });
+
+    it("shows Add Camera button below camera list when cameras exist", () => {
+      const cameras = [
+        {
+          id: "cam-1",
+          name: "Nikon FM2",
+          make: "Nikon",
+          format: "35mm",
+          default_frame_count: 36,
+        },
+      ];
+      mockQueryResults.push(cameras, [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      expect(
+        screen.getByRole("button", { name: /addCamera/ }),
+      ).toBeDefined();
+      expect(screen.getByText("Nikon FM2")).toBeDefined();
+    });
+
+    it("navigates to add-camera step when Add Camera is clicked", () => {
+      mockQueryResults.push([], [], [], [], [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      fireEvent.click(screen.getByRole("button", { name: /addCamera/ }));
+      expect(screen.getByTestId("camera-form")).toBeDefined();
+    });
+
+    it("back button from add-camera step returns to camera list", () => {
+      mockQueryResults.push([], [], [], [], [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      fireEvent.click(screen.getByRole("button", { name: /addCamera/ }));
+      expect(screen.getByTestId("camera-form")).toBeDefined();
+      fireEvent.click(screen.getByRole("button", { name: "back" }));
+      expect(screen.getByText("selectCamera")).toBeDefined();
+    });
+
+    it("auto-selects camera and advances to film step after creation", () => {
+      mockQueryResults.push([], [], [], [], [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      fireEvent.click(screen.getByRole("button", { name: /addCamera/ }));
+      act(() => {
+        mockOnCreated!("new-cam-ulid");
+        mockOnDone!();
+      });
+      expect(screen.getByText("selectFilm")).toBeDefined();
+    });
+
+    it("cancel from camera form returns to camera list", () => {
+      mockQueryResults.push([], [], [], [], [], []);
+      render(<LoadRollWizard open={true} onOpenChange={onOpenChange} />);
+      fireEvent.click(screen.getByRole("button", { name: /addCamera/ }));
+      act(() => {
+        mockOnCancel!();
+      });
+      expect(screen.getByText("selectCamera")).toBeDefined();
     });
   });
 });

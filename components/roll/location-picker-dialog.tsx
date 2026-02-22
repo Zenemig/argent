@@ -172,7 +172,7 @@ export function LocationPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0">
+      <DialogContent scrollable={false} className="w-full max-w-lg p-0">
         <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
