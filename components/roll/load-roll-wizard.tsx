@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ulid } from "ulid";
-import { Camera, Film, Settings2, Check, Search } from "lucide-react";
+import { Camera, Film, Settings2, Check, Search, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,13 +33,14 @@ import { DEFAULT_FRAME_COUNTS } from "@/lib/constants";
 import type { Camera as CameraType, FilmFormat } from "@/lib/types";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics/track-event";
+import { CameraForm } from "@/components/gear/camera-form";
 
 interface LoadRollWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type Step = "camera" | "film" | "configure";
+type Step = "camera" | "add-camera" | "film" | "configure";
 
 interface FilmOption {
   id: string;
@@ -238,30 +239,29 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
         </DialogHeader>
 
         <div className="mb-4 flex items-center gap-2">
-          {(["camera", "film", "configure"] as Step[]).map((s, i) => (
-            <div key={s} className="flex items-center gap-2">
-              {i > 0 && (
-                <div className="h-px w-4 bg-border" />
-              )}
-              <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${
-                  step === s
-                    ? "bg-primary text-primary-foreground"
-                    : (s === "camera" && (step === "film" || step === "configure")) ||
-                        (s === "film" && step === "configure")
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {(s === "camera" && (step === "film" || step === "configure")) ||
-                (s === "film" && step === "configure") ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  i + 1
-                )}
+          {(["camera", "film", "configure"] as const).map((s, i) => {
+            const displayStep = step === "add-camera" ? "camera" : step;
+            const isActive = displayStep === s;
+            const isCompleted =
+              (s === "camera" && (displayStep === "film" || displayStep === "configure")) ||
+              (s === "film" && displayStep === "configure");
+            return (
+              <div key={s} className="flex items-center gap-2">
+                {i > 0 && <div className="h-px w-4 bg-border" />}
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : isCompleted
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {isCompleted ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {step === "camera" && (
@@ -270,9 +270,19 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
               {t("selectCamera")}
             </p>
             {!cameras || cameras.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                {t("noCamera")}
-              </p>
+              <div className="flex flex-col items-center gap-3 py-4">
+                <p className="text-center text-sm text-muted-foreground">
+                  {t("noCamera")}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStep("add-camera")}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t("addCamera")}
+                </Button>
+              </div>
             ) : (
               <>
                 <div className="relative">
@@ -336,8 +346,40 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                     </Card>
                   ))
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-1 w-full"
+                  onClick={() => setStep("add-camera")}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t("addCamera")}
+                </Button>
               </>
             )}
+          </div>
+        )}
+
+        {step === "add-camera" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{t("addCamera")}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep("camera")}
+              >
+                {tc("back")}
+              </Button>
+            </div>
+            <CameraForm
+              onCreated={(id) => {
+                setCameraId(id);
+                setFilmId("");
+              }}
+              onDone={() => setStep("film")}
+              onCancel={() => setStep("camera")}
+            />
           </div>
         )}
 

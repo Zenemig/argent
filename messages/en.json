@@ -15,7 +15,8 @@
     "filter": "Filter",
     "noResults": "No results found",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "error": "Something went wrong"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -205,6 +206,7 @@
     "allFormats": "All",
     "noCameraMatch": "No cameras match your search",
     "noCamera": "Add a camera first",
+    "addCamera": "Add Camera",
     "noFilm": "No compatible films found",
     "undoStatus": "Undo",
     "statusUpdated": "Status updated",
