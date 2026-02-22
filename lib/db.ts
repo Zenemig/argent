@@ -69,6 +69,10 @@ export class ArgentDb extends Dexie {
     // v6: gear constraint fields (shutter_speed_min/max, metering_modes, aperture_min)
     // No new indexes — fields aren't queried by index
     this.version(6).stores({});
+
+    // v7: add is_blank to frames, make shutter_speed/aperture nullable
+    // No new indexes — is_blank is not queried by index
+    this.version(7).stores({});
   }
 }
 

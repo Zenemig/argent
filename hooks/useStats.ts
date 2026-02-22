@@ -34,7 +34,8 @@ export function useStats() {
   const frames = useLiveQuery(async () => {
     if (!rolls || rolls.length === 0) return [];
     const rollIds = rolls.map((r) => r.id);
-    return db.frames.where("roll_id").anyOf(rollIds).toArray();
+    const all = await db.frames.where("roll_id").anyOf(rollIds).toArray();
+    return all.filter((f) => !f.is_blank && f.deleted_at == null);
   }, [rolls]);
 
   const cameras = useLiveQuery(

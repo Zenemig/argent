@@ -41,7 +41,12 @@ export function RollDetail({ rollId }: RollDetailProps) {
     [roll?.camera_id],
   );
   const frameCount = useLiveQuery(
-    () => db.frames.where("roll_id").equals(rollId).count(),
+    () =>
+      db.frames
+        .where("roll_id")
+        .equals(rollId)
+        .filter((f) => f.deleted_at == null && !f.is_blank)
+        .count(),
     [rollId],
   );
 

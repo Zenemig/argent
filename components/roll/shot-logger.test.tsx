@@ -561,4 +561,167 @@ describe("ShotLogger", () => {
     });
   });
 
+  // --- Blank/skipped frames tests ---
+
+  it("renders skip button for active roll", () => {
+    pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByText("skipFrame")).toBeDefined();
+  });
+
+  it("does not render skip button for finished roll", () => {
+    pushQueryCycle();
+    render(<ShotLogger roll={makeRoll({ status: "finished" })} />);
+    expect(screen.queryByText("skipFrame")).toBeNull();
+  });
+
+  it("does not render skip button in edit mode", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+
+    expect(screen.queryByText("skipFrame")).toBeNull();
+  });
+
+  it("clicking skip frame calls syncAdd with is_blank: true", async () => {
+    for (let i = 0; i < 3; i++) pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByText("skipFrame"));
+
+    await waitFor(() => {
+      expect(mockSyncAdd).toHaveBeenCalledWith(
+        "frames",
+        expect.objectContaining({
+          is_blank: true,
+          shutter_speed: null,
+          aperture: null,
+          frame_number: 1,
+        }),
+      );
+    });
+  });
+
+  it("blank frame appears in timeline with skipped label", () => {
+    const frames = [
+      makeFrame({
+        id: "f-blank",
+        frame_number: 1,
+        is_blank: true,
+        shutter_speed: null,
+        aperture: null,
+      }),
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    expect(screen.getByText("#1")).toBeDefined();
+    expect(screen.getByText("skippedLabel")).toBeDefined();
+  });
+
+  it("blank frame does not show shutter speed or aperture", () => {
+    const frames = [
+      makeFrame({
+        id: "f-blank",
+        frame_number: 1,
+        is_blank: true,
+        shutter_speed: null,
+        aperture: null,
+      }),
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    // Should not render "null" or "f/null" for blank frames
+    expect(screen.queryByText("f/null")).toBeNull();
+  });
+
+  it("nextFrameNumber uses max frame_number, not count", () => {
+    const frames = [
+      makeFrame({ id: "f1", frame_number: 1 }),
+      makeFrame({ id: "f2", frame_number: 2 }),
+      makeFrame({ id: "f5", frame_number: 5, is_blank: true, shutter_speed: null, aperture: null }),
+    ];
+    for (let i = 0; i < 3; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    // Frame counter should show 6 (max 5 + 1), not 4 (count 3 + 1)
+    expect(screen.getByText("frameNumber:{\"number\":6}")).toBeDefined();
+  });
+
+  it("renders skip-to button for active roll", () => {
+    pushQueryCycle();
+    render(<ShotLogger roll={makeRoll()} />);
+    expect(screen.getByText("skipTo")).toBeDefined();
+  });
+
+  it("does not render skip-to button in edit mode", async () => {
+    const frames = [makeFrame()];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+
+    expect(screen.queryByText("skipTo")).toBeNull();
+  });
+
+  it("clicking blank frame enters edit mode", async () => {
+    const frames = [
+      makeFrame({
+        id: "f-blank",
+        frame_number: 1,
+        is_blank: true,
+        shutter_speed: null,
+        aperture: null,
+      }),
+    ];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editBlankFrame:{"number":1}'));
+
+    await waitFor(() => {
+      expect(screen.getAllByText('editingFrame:{"number":1}').length).toBeGreaterThan(0);
+    });
+  });
+
+  it("saving a blank frame in edit mode sets is_blank to false", async () => {
+    const frames = [
+      makeFrame({
+        id: "f-blank",
+        frame_number: 1,
+        is_blank: true,
+        shutter_speed: null,
+        aperture: null,
+      }),
+    ];
+    for (let i = 0; i < 10; i++) pushQueryCycle(frames);
+    render(<ShotLogger roll={makeRoll()} />);
+
+    await userEvent.click(screen.getByLabelText('editBlankFrame:{"number":1}'));
+    await waitFor(() => {
+      expect(screen.getByText("update")).toBeDefined();
+    });
+
+    await userEvent.click(screen.getByText("update"));
+
+    await waitFor(() => {
+      expect(mockSyncUpdate).toHaveBeenCalledWith(
+        "frames",
+        "f-blank",
+        expect.objectContaining({
+          is_blank: false,
+        }),
+      );
+    });
+  });
+
 });
