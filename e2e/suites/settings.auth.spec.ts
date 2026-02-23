@@ -34,9 +34,7 @@ test.describe("Settings Persistence", () => {
     await page.reload();
     await expect(page.getByRole("heading", { name: /Settings/i })).toBeVisible();
 
-    // Wait for settings to load from IndexedDB
-    await page.waitForTimeout(1000);
-    await expect(page.getByPlaceholder(/Display Name/i)).toHaveValue("E2E Test Photographer");
+    await expect(page.getByPlaceholder(/Display Name/i)).toHaveValue("E2E Test Photographer", { timeout: 5_000 });
   });
 
   test("copyright saves on blur", async ({ page }) => {
@@ -51,9 +49,8 @@ test.describe("Settings Persistence", () => {
     // Reload and verify persisted
     await page.reload();
     await expect(page.getByRole("heading", { name: /Settings/i })).toBeVisible();
-    await page.waitForTimeout(1000);
 
-    await expect(page.getByPlaceholder("© 2026 Your Name")).toHaveValue("© 2026 E2E Tester");
+    await expect(page.getByPlaceholder("© 2026 Your Name")).toHaveValue("© 2026 E2E Tester", { timeout: 5_000 });
   });
 
   test("version number displayed", async ({ page }) => {

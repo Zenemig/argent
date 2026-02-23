@@ -34,8 +34,6 @@ test.describe("Gear Management", () => {
     // Verify the deleted camera no longer appears after a fresh navigation
     await page.goto("/gear", { waitUntil: "networkidle" });
     await expect(page.locator("h1")).toBeVisible();
-    // Wait for camera list to load from Dexie
-    await page.waitForTimeout(1500);
 
     const cards = page.locator("[data-slot='card']").filter({ hasText: "E2E Pentax K1000" });
     await expect(cards).toHaveCount(0, { timeout: 5_000 });
@@ -104,7 +102,6 @@ test.describe("Gear Management", () => {
     await page.goto("/gear", { waitUntil: "networkidle" });
     await expect(page.locator("h1")).toBeVisible();
     await page.getByRole("tab", { name: /Lenses/i }).click();
-    await page.waitForTimeout(1500);
 
     const cards = page.locator("[data-slot='card']").filter({ hasText: "E2E SMC Takumar 55mm" });
     await expect(cards).toHaveCount(0, { timeout: 5_000 });
@@ -138,7 +135,6 @@ test.describe("Gear Management", () => {
     await page.goto("/gear", { waitUntil: "networkidle" });
     await expect(page.locator("h1")).toBeVisible();
     await page.getByRole("tab", { name: /Films/i }).click();
-    await page.waitForTimeout(2000);
 
     const cards = page.locator("[data-slot='card']").filter({ hasText: filmName });
     await expect(cards).toHaveCount(0, { timeout: 10_000 });

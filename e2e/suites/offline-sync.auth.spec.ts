@@ -17,8 +17,8 @@ test.describe("Offline Resilience & Sync", () => {
     // Dismiss any dev overlay before going offline
     await dismissDevOverlay(page);
 
-    // Wait a moment for the page to stabilize before going offline
-    await page.waitForTimeout(2000);
+    // Wait for sync to complete before going offline
+    await waitForSync(page);
 
     // Go offline (blocks Supabase, keeps dev server alive)
     await goOffline(page);
@@ -52,8 +52,8 @@ test.describe("Offline Resilience & Sync", () => {
     await waitForAuth(page);
     await dismissDevOverlay(page);
 
-    // Wait a moment for the page to stabilize before going offline
-    await page.waitForTimeout(2000);
+    // Wait for sync to complete before going offline
+    await waitForSync(page);
 
     // Go offline (blocks Supabase, keeps dev server alive)
     await goOffline(page);
@@ -61,8 +61,6 @@ test.describe("Offline Resilience & Sync", () => {
     // Create camera while offline
     await page.getByRole("button", { name: /Add Camera/i }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
-    // Wait for CameraForm's useUserId() onAuthStateChange to fire with cached session
-    await page.waitForTimeout(500);
     await page.getByLabel(/^Name$/i).fill("E2E Offline Camera");
     await page.getByLabel(/^Make$/i).fill("Offline Brand");
     await page.getByRole("button", { name: /^Add$/i }).click();
