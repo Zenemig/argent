@@ -4,14 +4,15 @@ import { createClient } from "@supabase/supabase-js";
 loadEnvConfig(process.cwd());
 
 const LOG = "[e2e-cleanup]";
+const MAX_PAGES = 200; // Safety guard: 200 × 50 = 10,000 users max
+const E2E_EMAIL_PREFIX = "e2e-";
+const E2E_EMAIL_DOMAIN = "@example.com";
 
-export async function cleanupE2eData(): Promise<void> {
-  const email = process.env.E2E_USER_EMAIL;
+function makeAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   const missing = [
-    !email && "E2E_USER_EMAIL",
     !url && "NEXT_PUBLIC_SUPABASE_URL",
     !key && "SUPABASE_SERVICE_ROLE_KEY",
   ].filter(Boolean);
@@ -22,16 +23,157 @@ export async function cleanupE2eData(): Promise<void> {
     );
   }
 
-  const admin = createClient(url!, key!, {
+  return createClient(url!, key!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+// ─── User lifecycle (CI only) ────────────────────────────────────────────────
+
+export async function createE2eUser(): Promise<void> {
+  const email = process.env.E2E_USER_EMAIL;
+  const password = process.env.E2E_USER_PASSWORD;
+
+  const missing = [
+    !email && "E2E_USER_EMAIL",
+    !password && "E2E_USER_PASSWORD",
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `${LOG} Missing required env vars: ${missing.join(", ")}`,
+    );
+  }
+
+  const admin = makeAdminClient();
+
+  const { error } = await admin.auth.admin.createUser({
+    email: email!,
+    password: password!,
+    email_confirm: true,
+  });
+
+  if (error) {
+    throw new Error(`${LOG} createUser failed: ${error.message}`);
+  }
+
+  console.log(`${LOG} Created ephemeral user ${email}`);
+}
+
+export async function deleteE2eUser(): Promise<void> {
+  const email = process.env.E2E_USER_EMAIL;
+
+  if (!email) {
+    throw new Error(`${LOG} Missing required env var: E2E_USER_EMAIL`);
+  }
+
+  const admin = makeAdminClient();
+
+  let userId: string | undefined;
+  let page = 1;
+  const perPage = 50;
+
+  while (!userId && page <= MAX_PAGES) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      throw new Error(
+        `${LOG} listUsers failed on page ${page}: ${error.message}`,
+      );
+    }
+
+    const users = data.users ?? [];
+    const match = users.find((u) => u.email === email);
+    if (match) {
+      userId = match.id;
+      break;
+    }
+
+    if (users.length < perPage) {
+      console.log(`${LOG} User ${email} not found — already deleted`);
+      return;
+    }
+
+    page++;
+  }
+
+  if (!userId) {
+    console.log(`${LOG} User ${email} not found after ${MAX_PAGES} pages`);
+    return;
+  }
+
+  const { error: delErr } = await admin.auth.admin.deleteUser(userId);
+  if (delErr) {
+    throw new Error(`${LOG} deleteUser failed: ${delErr.message}`);
+  }
+
+  console.log(`${LOG} Deleted ephemeral user ${email} (${userId})`);
+}
+
+export async function cleanupOrphanE2eUsers(): Promise<void> {
+  const admin = makeAdminClient();
+
+  let page = 1;
+  const perPage = 50;
+  let orphanCount = 0;
+
+  while (page <= MAX_PAGES) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.warn(
+        `${LOG} listUsers failed on page ${page}: ${error.message}`,
+      );
+      break;
+    }
+
+    const users = data.users ?? [];
+    const orphans = users.filter(
+      (u) =>
+        u.email?.startsWith(E2E_EMAIL_PREFIX) &&
+        u.email.endsWith(E2E_EMAIL_DOMAIN),
+    );
+
+    for (const orphan of orphans) {
+      const { error: delErr } = await admin.auth.admin.deleteUser(orphan.id);
+      if (delErr) {
+        console.warn(
+          `${LOG} Failed to delete orphan ${orphan.email}: ${delErr.message}`,
+        );
+      } else {
+        orphanCount++;
+        console.log(`${LOG} Deleted orphan ${orphan.email}`);
+      }
+    }
+
+    if (users.length < perPage) break;
+    page++;
+  }
+
+  console.log(
+    `${LOG} Orphan cleanup complete — removed ${orphanCount} users`,
+  );
+}
+
+// ─── Data cleanup ────────────────────────────────────────────────────────────
+
+export async function cleanupE2eData(): Promise<void> {
+  const email = process.env.E2E_USER_EMAIL;
+
+  if (!email) {
+    throw new Error(
+      `${LOG} Missing required env vars: E2E_USER_EMAIL`,
+    );
+  }
+
+  const admin = makeAdminClient();
 
   // Resolve user UUID from email — paginate through all users
   let userId: string | undefined;
   let page = 1;
   const perPage = 50;
 
-  while (!userId) {
+  while (!userId && page <= MAX_PAGES) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
 
     if (error) {
@@ -55,6 +197,11 @@ export async function cleanupE2eData(): Promise<void> {
 
     page++;
   }
+
+  if (!userId) {
+    throw new Error(`${LOG} User ${email} not found after ${MAX_PAGES} pages`);
+  }
+
   console.log(`${LOG} Cleaning data for ${email} (${userId})`);
 
   // 1. Clean storage: list top-level, recurse into subfolders
