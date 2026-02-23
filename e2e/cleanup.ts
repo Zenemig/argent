@@ -47,7 +47,7 @@ export async function createE2eUser(): Promise<void> {
 
   const admin = makeAdminClient();
 
-  const { error } = await admin.auth.admin.createUser({
+  const { data, error } = await admin.auth.admin.createUser({
     email: email!,
     password: password!,
     email_confirm: true,
@@ -57,7 +57,17 @@ export async function createE2eUser(): Promise<void> {
     throw new Error(`${LOG} createUser failed: ${error.message}`);
   }
 
-  console.log(`${LOG} Created ephemeral user ${email}`);
+  // Grant Pro tier so sync-dependent E2E tests work
+  const { error: tierErr } = await admin
+    .from("user_profiles")
+    .update({ tier: "pro" })
+    .eq("id", data.user.id);
+
+  if (tierErr) {
+    throw new Error(`${LOG} Failed to set Pro tier: ${tierErr.message}`);
+  }
+
+  console.log(`${LOG} Created ephemeral user ${email} (Pro tier)`);
 }
 
 export async function deleteE2eUser(): Promise<void> {

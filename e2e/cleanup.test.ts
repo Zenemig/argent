@@ -9,6 +9,7 @@ const mockStorageList = vi.fn();
 const mockStorageRemove = vi.fn();
 const mockStorageFrom = vi.fn();
 const mockFrom = vi.fn();
+const mockUpdate = vi.fn();
 
 vi.mock("@next/env", () => ({
   loadEnvConfig: vi.fn(),
@@ -35,6 +36,10 @@ vi.mock("@supabase/supabase-js", () => ({
     from: (table: string) => {
       const chain = {
         delete: () => chain,
+        update: (data: unknown) => {
+          mockUpdate(table, data);
+          return chain;
+        },
         eq: (...args: unknown[]) => {
           return mockFrom(table, ...args);
         },
@@ -264,6 +269,7 @@ describe("createE2eUser", () => {
       data: { user: { id: "new-uuid" } },
       error: null,
     });
+    mockFrom.mockReturnValue(Promise.resolve({ error: null }));
   });
 
   it("throws when E2E_USER_EMAIL is missing", async () => {
@@ -292,6 +298,15 @@ describe("createE2eUser", () => {
       error: { message: "already exists" },
     });
     await expect(createE2eUser()).rejects.toThrow(/createUser failed/);
+  });
+
+  it("sets user tier to pro after creation", async () => {
+    mockFrom.mockReturnValue(Promise.resolve({ error: null }));
+    await createE2eUser();
+    expect(mockUpdate).toHaveBeenCalledWith("user_profiles", {
+      tier: "pro",
+    });
+    expect(mockFrom).toHaveBeenCalledWith("user_profiles", "id", "new-uuid");
   });
 });
 
