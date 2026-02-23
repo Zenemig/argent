@@ -10,7 +10,8 @@ const MIGRATION_SENTINEL = "migrated_from_legacy";
  * Copies all rows where user_id === userId (and frames via roll_id).
  * Also migrates pending _syncQueue entries so queued uploads are not lost.
  * Idempotent via sentinel key in the target database.
- * Deletes the legacy database after successful migration.
+ * The legacy database is intentionally NOT deleted — other users on the
+ * same device may still need to migrate their data from it.
  */
 export async function migrateFromLegacyDb(
   userId: string,
@@ -94,10 +95,6 @@ export async function migrateFromLegacyDb(
       key: MIGRATION_SENTINEL,
       value: new Date().toISOString(),
     });
-
-    // Delete legacy database to prevent stale data from being re-imported
-    legacyDb.close();
-    await Dexie.delete(LEGACY_DB_NAME);
 
     return { migrated: true, rowCount };
   } catch (err) {
