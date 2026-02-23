@@ -30,19 +30,29 @@ jobs:
         run: npm run lint
 
       - name: Run unit tests
-        run: npm test -- --run
-
-      - name: Run unit tests with coverage
         run: npm test -- --run --coverage --coverage.reporter=json-summary
 
       - name: Production build
+        if: github.event_name == 'pull_request'
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
+      - name: Upload build artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: |
+            .next/
+            public/
+          include-hidden-files: true
+          retention-days: 1
+
   e2e-tests:
     name: E2E Tests (Playwright)
+    needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -95,9 +105,11 @@ jobs:
         if: steps.changes.outputs.app == 'true'
         run: npm ci
 
-      - name: Build for E2E
+      - name: Download build artifact
         if: steps.changes.outputs.app == 'true'
-        run: npm run build
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
 
       - name: Cache Playwright browsers
         if: steps.changes.outputs.app == 'true'
