@@ -27,6 +27,20 @@ vi.mock("@/lib/sync-engine", () => ({
 
 let mockIsPersisted: boolean | null = true;
 vi.mock("@/components/db-provider", () => ({
+  useDb: () => ({
+    _syncConflicts: {
+      orderBy: () => ({
+        reverse: () => ({
+          limit: () => ({
+            toArray: () => Promise.resolve([]),
+          }),
+        }),
+      }),
+    },
+    _syncMeta: {
+      get: () => Promise.resolve(undefined),
+    },
+  }),
   useStoragePersisted: () => mockIsPersisted,
 }));
 
@@ -45,22 +59,6 @@ vi.mock("dexie-react-hooks", () => ({
   },
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    _syncConflicts: {
-      orderBy: () => ({
-        reverse: () => ({
-          limit: () => ({
-            toArray: () => Promise.resolve(mockConflicts),
-          }),
-        }),
-      }),
-    },
-    _syncMeta: {
-      get: () => Promise.resolve(undefined),
-    },
-  },
-}));
 
 // Mock radix dialog (Sheet uses Dialog primitive) to render children directly
 vi.mock("radix-ui", () => {

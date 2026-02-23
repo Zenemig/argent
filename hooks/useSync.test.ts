@@ -25,8 +25,8 @@ vi.mock("dexie-react-hooks", () => ({
   useLiveQuery: () => mockQueueStats,
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
+vi.mock("@/components/db-provider", () => {
+  const mockDb = {
     _syncQueue: {
       where: () => ({
         anyOf: () => ({ count: () => Promise.resolve(0) }),
@@ -41,8 +41,9 @@ vi.mock("@/lib/db", () => ({
         return Promise.resolve(undefined);
       },
     },
-  },
-}));
+  };
+  return { useDb: () => mockDb };
+});
 
 import { useSync } from "./useSync";
 

@@ -1,4 +1,4 @@
-import { db } from "./db";
+import type { ArgentDb } from "./db";
 import type { SyncableTable } from "./constants";
 
 /**
@@ -8,6 +8,7 @@ import type { SyncableTable } from "./constants";
  * owning user's ID.
  */
 export async function syncAdd<T extends { id: string }>(
+  db: ArgentDb,
   table: SyncableTable,
   entity: T,
 ): Promise<void> {
@@ -28,6 +29,7 @@ export async function syncAdd<T extends { id: string }>(
  * Update an entity in a Dexie table and enqueue for sync.
  */
 export async function syncUpdate(
+  db: ArgentDb,
   table: SyncableTable,
   id: string,
   changes: Record<string, unknown>,

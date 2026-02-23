@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { syncUpdate } from "@/lib/sync-write";
+import { useDb } from "@/components/db-provider";
 import type { Roll } from "@/lib/types";
 import { DiscardRollDialog } from "./discard-roll-dialog";
 import { toast } from "sonner";
@@ -35,12 +36,13 @@ export function RollActionsMenu({ roll, frameCount }: RollActionsMenuProps) {
   const t = useTranslations("roll");
   const tc = useTranslations("common");
   const router = useRouter();
+  const db = useDb();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   async function handleDelete() {
-    await syncUpdate("rolls", roll.id, {
+    await syncUpdate(db, "rolls", roll.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });

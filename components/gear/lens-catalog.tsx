@@ -37,7 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { syncUpdate } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
 import { LENS_MOUNTS, formatLabel } from "@/lib/constants";
@@ -51,6 +51,7 @@ export function LensCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const userId = useUserId();
+  const db = useDb();
   const [showAdd, setShowAdd] = useState(false);
   const [editLens, setEditLens] = useState<Lens | null>(null);
   const [mountFilter, setMountFilter] = useState<string>("all");
@@ -65,7 +66,7 @@ export function LensCatalog() {
         .filter((l) => l.deleted_at === null || l.deleted_at === undefined)
         .sortBy("created_at");
     },
-    [userId],
+    [userId, db],
   );
 
   const cameras = useLiveQuery(
@@ -77,7 +78,7 @@ export function LensCatalog() {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const filteredLenses = useMemo(() => {
@@ -96,7 +97,7 @@ export function LensCatalog() {
   }, [lenses, mountFilter, cameraFilter]);
 
   async function handleDelete(lens: Lens) {
-    await syncUpdate("lenses", lens.id, {
+    await syncUpdate(db, "lenses", lens.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });

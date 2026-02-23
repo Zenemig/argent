@@ -13,15 +13,15 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
+vi.mock("@/components/db-provider", () => ({
+  useDb: () => ({
     rolls: { get: vi.fn() },
     frames: { where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ sortBy: vi.fn().mockResolvedValue([]) }) }) },
     cameras: { get: vi.fn() },
     films: { get: vi.fn() },
     filmStock: { get: vi.fn() },
     lenses: { bulkGet: vi.fn().mockResolvedValue([]) },
-  },
+  }),
 }));
 
 vi.mock("@/lib/settings-helpers", () => ({

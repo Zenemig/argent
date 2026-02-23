@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getUserAvatar, type AvatarIcon } from "@/lib/user-avatar";
 import { signOut, joinWaitlist } from "@/app/(app)/settings/actions";
-import { clearGlobalAvatarKey } from "@/lib/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -111,7 +110,6 @@ export function UserMenu({ userId, email, tier, displayName, avatarUrl }: UserMe
         )}
         <DropdownMenuItem
           onSelect={() => startTransition(async () => {
-            await clearGlobalAvatarKey();
             await signOut();
           })}
           disabled={pending}

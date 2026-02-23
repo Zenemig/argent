@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
+import type { ArgentDb } from "@/lib/db";
 import { getSetting } from "@/lib/settings-helpers";
 import type { ExportInput, ExportOptions } from "@/lib/exporters/types";
 
@@ -87,6 +88,7 @@ const FORMAT_TITLES: Record<ExportFormat, string> = {
 
 /** Fetch all data needed for export from Dexie. */
 async function fetchExportData(
+  db: ArgentDb,
   rollId: string,
   mode: "pattern" | "list",
   pattern: string,
@@ -130,8 +132,8 @@ async function fetchExportData(
       .map((l) => [l.id, l]),
   );
 
-  const displayName = await getSetting("displayName");
-  const copyright = await getSetting("copyright");
+  const displayName = await getSetting(db, "displayName");
+  const copyright = await getSetting(db, "copyright");
 
   const inputs: ExportInput[] = frames.map((frame, i) => {
     const lensRecord =
@@ -250,6 +252,7 @@ export function ExportDialog({
   onOpenChange,
 }: ExportDialogProps) {
   const t = useTranslations("export");
+  const db = useDb();
 
   const [mode, setMode] = useState<"pattern" | "list">("pattern");
   const [pattern, setPattern] = useState("scan_{frame_number}.tif");
@@ -301,6 +304,7 @@ export function ExportDialog({
       }
 
       const { inputs, options, filmLabel } = await fetchExportData(
+        db,
         rollId,
         mode,
         pattern,
@@ -323,6 +327,7 @@ export function ExportDialog({
       setIsGenerating(false);
     }
   }, [
+    db,
     rollId,
     format,
     mode,

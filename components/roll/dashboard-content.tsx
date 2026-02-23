@@ -7,7 +7,7 @@ import { Plus, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { useUserId } from "@/hooks/useUserId";
 import { filterAndSortRolls, buildFilmMap } from "@/lib/filter-rolls";
 import { RollCard } from "./roll-card";
@@ -17,6 +17,7 @@ import { LoadRollWizard } from "./load-roll-wizard";
 export function DashboardContent() {
   const t = useTranslations("roll");
   const userId = useUserId();
+  const db = useDb();
   const [showWizard, setShowWizard] = useState(false);
 
   // Filter state
@@ -38,7 +39,7 @@ export function DashboardContent() {
         .filter((r) => r.deleted_at === null || r.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const cameras = useLiveQuery(
@@ -50,7 +51,7 @@ export function DashboardContent() {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const customFilms = useLiveQuery(
@@ -62,10 +63,10 @@ export function DashboardContent() {
         .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
-  const seedFilms = useLiveQuery(() => db.filmStock.toArray(), []);
+  const seedFilms = useLiveQuery(() => db.filmStock.toArray(), [db]);
 
   // Build film lookup and options
   const filmMap = useMemo(

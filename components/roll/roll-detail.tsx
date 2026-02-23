@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { ShotLogger } from "./shot-logger";
 import { RollLifecycle } from "./roll-lifecycle";
 import { RollActionsMenu } from "./roll-actions-menu";
@@ -33,12 +33,13 @@ export function RollDetail({ rollId }: RollDetailProps) {
   const t = useTranslations("roll");
   const tExport = useTranslations("export");
 
+  const db = useDb();
   const [exportFormat, setExportFormat] = useState<ExportFormat | null>(null);
 
-  const roll = useLiveQuery(() => db.rolls.get(rollId), [rollId]);
+  const roll = useLiveQuery(() => db.rolls.get(rollId), [rollId, db]);
   const camera = useLiveQuery(
     () => (roll ? db.cameras.get(roll.camera_id) : undefined),
-    [roll?.camera_id],
+    [roll?.camera_id, db],
   );
   const frameCount = useLiveQuery(
     () =>
@@ -47,7 +48,7 @@ export function RollDetail({ rollId }: RollDetailProps) {
         .equals(rollId)
         .filter((f) => f.deleted_at == null && !f.is_blank)
         .count(),
-    [rollId],
+    [rollId, db],
   );
 
   const film = useLiveQuery(async () => {
@@ -57,7 +58,7 @@ export function RollDetail({ rollId }: RollDetailProps) {
     const stock = await db.filmStock.get(roll.film_id);
     if (stock) return { brand: stock.brand, name: stock.name };
     return undefined;
-  }, [roll?.film_id]);
+  }, [roll?.film_id, db]);
 
   if (!roll) {
     return (

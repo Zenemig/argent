@@ -9,6 +9,8 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),
@@ -125,6 +127,7 @@ describe("RollLifecycle", () => {
     render(<RollLifecycle roll={makeRoll({ status: "active" })} />);
     fireEvent.click(screen.getByText("actions.finish"));
     expect(mockSyncUpdate).toHaveBeenCalledWith(
+      expect.anything(),
       "rolls",
       "roll-001",
       expect.objectContaining({ status: "finished" }),

@@ -255,7 +255,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     expect(result.downloaded).toBe(1);
     expect(result.conflicts).toBe(0);
@@ -298,7 +298,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     expect(result.downloaded).toBe(1);
 
@@ -345,7 +345,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    await processDownloadSync(mockSupabase as never);
+    await processDownloadSync(testDb, mockSupabase as never);
 
     const meta = await testDb._syncMeta.get("lastDownloadSync");
     expect(meta).toBeDefined();
@@ -405,7 +405,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     expect(result.conflicts).toBe(1);
     expect(result.downloaded).toBe(1);
@@ -498,7 +498,7 @@ describe("processDownloadSync", () => {
       frames: serverFrames,
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     // Should detect a conflict because of the failed queue entry
     expect(result.conflicts).toBe(1);
@@ -566,7 +566,7 @@ describe("processDownloadSync", () => {
       frames: serverFrames,
     });
 
-    await processDownloadSync(mockSupabase as never);
+    await processDownloadSync(testDb, mockSupabase as never);
 
     // Verify thumbnail was preserved
     const frame = await testDb.frames.get("01HTEST_FRAME_00000000000001");
@@ -597,7 +597,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     expect(result.downloaded).toBe(0);
     expect(result.conflicts).toBe(0);
@@ -646,7 +646,7 @@ describe("processDownloadSync", () => {
       frames: [],
     });
 
-    const result = await processDownloadSync(mockSupabase as never);
+    const result = await processDownloadSync(testDb, mockSupabase as never);
 
     expect(result.downloaded).toBe(2);
 

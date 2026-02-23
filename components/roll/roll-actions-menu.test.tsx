@@ -14,6 +14,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),

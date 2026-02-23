@@ -18,6 +18,8 @@ vi.mock("ulid", () => ({
   ulid: () => "test-lens-ulid",
 }));
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 vi.mock("@/components/ui/checkbox", () => ({
   Checkbox: ({
     id,

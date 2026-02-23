@@ -16,16 +16,17 @@ vi.mock("dexie-react-hooks", () => ({
   },
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
+vi.mock("@/components/db-provider", () => {
+  const mockDb = {
     rolls: { where: () => ({ equals: () => ({ filter: () => ({ toArray: () => Promise.resolve([]) }) }) }) },
     frames: { where: () => ({ anyOf: () => ({ toArray: () => Promise.resolve([]) }) }) },
     cameras: { where: () => ({ equals: () => ({ filter: () => ({ toArray: () => Promise.resolve([]) }) }) }) },
     lenses: { where: () => ({ equals: () => ({ filter: () => ({ toArray: () => Promise.resolve([]) }) }) }) },
     films: { where: () => ({ equals: () => ({ filter: () => ({ toArray: () => Promise.resolve([]) }) }) }) },
     filmStock: { toArray: () => Promise.resolve([]) },
-  },
-}));
+  };
+  return { useDb: () => mockDb };
+});
 
 vi.mock("@/lib/stats", () => ({
   computeFilmUsage: vi.fn().mockReturnValue([]),

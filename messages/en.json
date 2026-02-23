@@ -232,7 +232,10 @@
       "damaged": "Damaged",
       "lab_error": "Lab error",
       "other": "Other"
-    }
+    },
+    "filmInfo": "ISO {iso} · {process}",
+    "pushPullNormal": "Normal",
+    "custom": "Custom"
   },
   "frame": {
     "log": "Log Shot",
@@ -348,7 +351,8 @@
     "deleteAccountConfirmPlaceholder": "your@email.com",
     "deleteAccountConfirming": "Deleting...",
     "deleteAccountError": "Failed to delete account. Please try again.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "copyrightPlaceholder": "© 2026 Your Name"
   },
   "upgrade": {
     "title": "Upgrade to Pro",

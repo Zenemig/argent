@@ -24,7 +24,7 @@ vi.mock("dexie-react-hooks", () => ({
   },
 }));
 
-vi.mock("@/lib/db", () => ({ db: {} }));
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
 
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({

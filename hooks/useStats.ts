@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { useUserId } from "./useUserId";
 import {
   computeFilmUsage,
@@ -14,6 +14,7 @@ import {
 
 export function useStats() {
   const userId = useUserId();
+  const db = useDb();
 
   const rolls = useLiveQuery(
     () => {
@@ -28,7 +29,7 @@ export function useStats() {
         )
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const frames = useLiveQuery(async () => {
@@ -36,7 +37,7 @@ export function useStats() {
     const rollIds = rolls.map((r) => r.id);
     const all = await db.frames.where("roll_id").anyOf(rollIds).toArray();
     return all.filter((f) => !f.is_blank && f.deleted_at == null);
-  }, [rolls]);
+  }, [rolls, db]);
 
   const cameras = useLiveQuery(
     () => {
@@ -47,7 +48,7 @@ export function useStats() {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const lenses = useLiveQuery(
@@ -59,7 +60,7 @@ export function useStats() {
         .filter((l) => l.deleted_at === null || l.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const customFilms = useLiveQuery(
@@ -71,10 +72,10 @@ export function useStats() {
         .filter((f) => f.deleted_at === null || f.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
-  const seedFilms = useLiveQuery(() => db.filmStock.toArray(), []);
+  const seedFilms = useLiveQuery(() => db.filmStock.toArray(), [db]);
 
   const isLoading =
     userId === undefined || !rolls || !frames || !cameras || !lenses || !customFilms || !seedFilms;

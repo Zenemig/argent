@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { processDownloadSync, processUploadQueue } from "@/lib/sync-engine";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,6 +27,7 @@ interface UseSyncResult {
  */
 export function useSync(userId: string | null, options?: UseSyncOptions): UseSyncResult {
   const enabled = options?.enabled ?? true;
+  const db = useDb();
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
@@ -45,7 +46,7 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
       .equals("failed")
       .count();
     return { pending, failed };
-  }, []);
+  }, [db]);
 
   const pendingCount = queueStats?.pending ?? 0;
   const failedCount = queueStats?.failed ?? 0;
@@ -61,8 +62,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
     try {
       const supabase = createClient();
       // Download first: resolve server-wins conflicts before uploading
-      await processDownloadSync(supabase);
-      await processUploadQueue(supabase);
+      await processDownloadSync(db, supabase);
+      await processUploadQueue(db, supabase);
 
       setLastError(null);
 
@@ -71,8 +72,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
         const { processImageUpload, processImageDownload } = await import(
           "@/lib/image-sync"
         );
-        await processImageUpload(supabase, userId);
-        await processImageDownload(supabase);
+        await processImageUpload(db, supabase, userId);
+        await processImageDownload(db, supabase);
       } catch {
         // Image sync failure should not break data sync state
       }
@@ -85,14 +86,14 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
           "@/lib/settings-helpers"
         );
 
-        const localAvatar = await getLocalAvatar(userId);
-        const avatarUploaded = await getSetting("avatarUploaded");
+        const localAvatar = await getLocalAvatar(db, userId);
+        const avatarUploaded = await getSetting(db, "avatarUploaded");
 
         if (localAvatar && avatarUploaded !== "true") {
           // Upload local avatar that hasn't been synced yet
           const path = await uploadAvatar(supabase, userId, localAvatar);
           if (path) {
-            await setSetting("avatarUploaded", "true");
+            await setSetting(db, "avatarUploaded", "true");
           }
         } else if (!localAvatar) {
           // Download avatar from server if we don't have one locally
@@ -105,8 +106,8 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
           if (profile?.avatar_url) {
             const blob = await downloadAvatar(supabase, profile.avatar_url);
             if (blob) {
-              await setLocalAvatar(userId, blob);
-              await setSetting("avatarUploaded", "true");
+              await setLocalAvatar(db, userId, blob);
+              await setSetting(db, "avatarUploaded", "true");
             }
           }
         }
@@ -119,7 +120,7 @@ export function useSync(userId: string | null, options?: UseSyncOptions): UseSyn
       syncInProgressRef.current = false;
       setIsSyncing(false);
     }
-  }, [shouldSkip, userId]);
+  }, [shouldSkip, userId, db]);
 
   // Online/offline listeners
   useEffect(() => {

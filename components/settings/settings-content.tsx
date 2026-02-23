@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { METERING_MODES } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
 import { useUserTier } from "@/hooks/useUserTier";
@@ -66,6 +66,7 @@ export function SettingsContent() {
   const userId = useUserId();
   const { tier, isProUser, isAuthenticated } = useUserTier();
   const { theme, setTheme } = useTheme();
+  const db = useDb();
 
   const [displayName, setDisplayName] = useState("");
   const [copyright, setCopyright] = useState("");
@@ -86,25 +87,31 @@ export function SettingsContent() {
   // Load settings
   useEffect(() => {
     async function load() {
-      const dn = await getSetting("displayName");
+      const dn = await getSetting(db, "displayName");
       if (dn) setDisplayName(dn);
-      const cr = await getSetting("copyright");
+      const cr = await getSetting(db, "copyright");
       if (cr) setCopyright(cr);
-      const dm = await getSetting("defaultMetering");
+      const dm = await getSetting(db, "defaultMetering");
       setDefaultMetering(dm || "__none__");
     }
     load();
-  }, []);
+  }, [db]);
 
   // Load avatar (scoped to user)
   useEffect(() => {
     if (!userId) return;
-    getLocalAvatar(userId).then((blob) => {
-      if (blob) {
-        setAvatarUrl(URL.createObjectURL(blob));
-      }
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    getLocalAvatar(db, userId).then((blob) => {
+      if (cancelled || !blob) return;
+      objectUrl = URL.createObjectURL(blob);
+      setAvatarUrl(objectUrl);
     });
-  }, [userId]);
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [userId, db]);
 
   const cameras = useLiveQuery(
     () => {
@@ -115,16 +122,16 @@ export function SettingsContent() {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const [defaultCamera, setDefaultCamera] = useState("__none__");
 
   useEffect(() => {
-    getSetting("defaultCamera").then((v) => {
+    getSetting(db, "defaultCamera").then((v) => {
       setDefaultCamera(v || "__none__");
     });
-  }, []);
+  }, [db]);
 
   function handleThemeChange(value: string) {
     setTheme(value);
@@ -149,7 +156,7 @@ export function SettingsContent() {
       }
 
       // Save locally
-      await setLocalAvatar(userId!, result.blob);
+      await setLocalAvatar(db, userId!, result.blob);
       if (avatarUrl) URL.revokeObjectURL(avatarUrl);
       setAvatarUrl(URL.createObjectURL(result.blob));
 
@@ -160,15 +167,15 @@ export function SettingsContent() {
           const supabase = createClient();
           const path = await uploadAvatar(supabase, userId, result.blob);
           if (path) {
-            await setSetting("avatarUploaded", "true");
+            await setSetting(db, "avatarUploaded", "true");
           } else {
-            await setSetting("avatarUploaded", "false");
+            await setSetting(db, "avatarUploaded", "false");
           }
         } finally {
           setIsUploadingAvatar(false);
         }
       } else {
-        await setSetting("avatarUploaded", "false");
+        await setSetting(db, "avatarUploaded", "false");
       }
 
       toast.success(t("saved"));
@@ -179,10 +186,10 @@ export function SettingsContent() {
 
   const saveField = useCallback(
     (key: string, value: string) => {
-      setSetting(key, value);
+      setSetting(db, key, value);
       toast.success(t("saved"));
     },
-    [t],
+    [db, t],
   );
 
   return (
@@ -341,7 +348,7 @@ export function SettingsContent() {
               value={copyright}
               onChange={(e) => setCopyright(e.target.value)}
               onBlur={() => saveField("copyright", copyright)}
-              placeholder="© 2026 Your Name"
+              placeholder={t("copyrightPlaceholder")}
             />
           </SettingRow>
         </div>

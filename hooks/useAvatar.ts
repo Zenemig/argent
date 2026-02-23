@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useDb } from "@/components/db-provider";
 import { getLocalAvatar, migrateGlobalAvatar } from "@/lib/avatar";
 
 /**
@@ -10,16 +11,20 @@ import { getLocalAvatar, migrateGlobalAvatar } from "@/lib/avatar";
  * Cleans up the URL on unmount.
  */
 export function useAvatar(userId: string | null): string | null {
+  const db = useDb();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
 
+    let cancelled = false;
     let url: string | null = null;
 
     async function load() {
-      await migrateGlobalAvatar(userId!);
-      const blob = await getLocalAvatar(userId!);
+      await migrateGlobalAvatar(db, userId!);
+      if (cancelled) return;
+      const blob = await getLocalAvatar(db, userId!);
+      if (cancelled) return;
       if (blob) {
         url = URL.createObjectURL(blob);
         setAvatarUrl(url);
@@ -29,11 +34,12 @@ export function useAvatar(userId: string | null): string | null {
     load();
 
     return () => {
+      cancelled = true;
       if (url) {
         URL.revokeObjectURL(url);
       }
     };
-  }, [userId]);
+  }, [userId, db]);
 
   return avatarUrl;
 }

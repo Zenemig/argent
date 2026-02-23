@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import {
   retryFailedEntries,
   clearFailedEntries,
@@ -52,6 +52,7 @@ export function SyncDetailsSheet({
 }: SyncDetailsSheetProps) {
   const t = useTranslations("sync");
   const tUpgrade = useTranslations("upgrade");
+  const db = useDb();
   const isPersisted = useStoragePersisted();
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [failedSummary, setFailedSummary] = useState<
@@ -65,16 +66,16 @@ export function SyncDetailsSheet({
         .reverse()
         .limit(10)
         .toArray(),
-    [],
+    [db],
   ) as SyncConflict[] | undefined;
 
   const lastUploadMeta = useLiveQuery(
     () => db._syncMeta.get("lastUploadSync"),
-    [],
+    [db],
   );
   const lastDownloadMeta = useLiveQuery(
     () => db._syncMeta.get("lastDownloadSync"),
-    [],
+    [db],
   );
 
   // Show the most recent of upload/download timestamps
@@ -87,12 +88,12 @@ export function SyncDetailsSheet({
 
   useEffect(() => {
     if (open && failedCount > 0) {
-      getFailedEntrySummary().then(setFailedSummary);
+      getFailedEntrySummary(db).then(setFailedSummary);
     }
   }, [open, failedCount]);
 
   async function handleRetry() {
-    await retryFailedEntries();
+    await retryFailedEntries(db);
     await syncNow();
   }
 
@@ -101,7 +102,7 @@ export function SyncDetailsSheet({
       setConfirmDiscard(true);
       return;
     }
-    await clearFailedEntries();
+    await clearFailedEntries(db);
     setConfirmDiscard(false);
   }
 

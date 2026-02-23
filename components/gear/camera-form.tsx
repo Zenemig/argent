@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useDb } from "@/components/db-provider";
 import { FILM_FORMATS, DEFAULT_FRAME_COUNTS, LENS_MOUNTS, CAMERA_TYPES, SHUTTER_SPEEDS, METERING_MODES, formatLabel } from "@/lib/constants";
 
 /** Timed shutter speeds only (no Bulb) — used for constraint selects */
@@ -35,6 +36,7 @@ export function CameraForm({ camera, onDone, onCreated, onCancel }: CameraFormPr
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const userId = useUserId();
+  const db = useDb();
   const isEdit = !!camera;
 
   const [name, setName] = useState(camera?.name ?? "");
@@ -68,7 +70,7 @@ export function CameraForm({ camera, onDone, onCreated, onCancel }: CameraFormPr
 
     try {
       if (isEdit && camera) {
-        await syncUpdate("cameras", camera.id, {
+        await syncUpdate(db, "cameras", camera.id, {
           name: name.trim(),
           make: make.trim(),
           format,
@@ -85,7 +87,7 @@ export function CameraForm({ camera, onDone, onCreated, onCancel }: CameraFormPr
         toast.success(t("cameraUpdated"));
       } else {
         const id = ulid();
-        await syncAdd("cameras", {
+        await syncAdd(db, "cameras", {
           id,
           user_id: userId!,
           name: name.trim(),

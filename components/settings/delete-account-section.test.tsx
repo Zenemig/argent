@@ -28,8 +28,8 @@ vi.mock("@/lib/supabase/client", () => ({
 }));
 
 const mockDbDelete = vi.fn().mockResolvedValue(undefined);
-vi.mock("@/lib/db", () => ({
-  db: { delete: () => mockDbDelete() },
+vi.mock("@/components/db-provider", () => ({
+  useDb: () => ({ delete: () => mockDbDelete() }),
 }));
 
 // Radix AlertDialog doesn't render portal content in jsdom — mock with simple divs

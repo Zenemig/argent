@@ -35,7 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
 import { toBlob } from "@/lib/image-sync";
 import { trackEvent } from "@/lib/analytics/track-event";
@@ -68,6 +68,7 @@ function thumbnailUrl(thumbnail: Frame["thumbnail"]): string | null {
 export function ShotLogger({ roll }: ShotLoggerProps) {
   const t = useTranslations("frame");
   const tc = useTranslations("common");
+  const db = useDb();
 
   const [shutterSpeed, setShutterSpeed] = useState("1/125");
   const [aperture, setAperture] = useState(5.6);
@@ -106,12 +107,12 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   const frames = useLiveQuery(
     () =>
       db.frames.where("roll_id").equals(roll.id).sortBy("frame_number"),
-    [roll.id],
+    [roll.id, db],
   );
 
   const camera = useLiveQuery(
     () => db.cameras.get(roll.camera_id),
-    [roll.camera_id],
+    [roll.camera_id, db],
   );
 
   const lenses = useLiveQuery(async () => {
@@ -127,7 +128,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
       )
       .toArray();
     return all;
-  }, [roll.user_id, roll.camera_id]);
+  }, [roll.user_id, roll.camera_id, db]);
 
   // Auto-fill from last non-blank frame (suppressed in edit mode)
   useEffect(() => {
@@ -282,7 +283,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   async function handleAddImageToFrame(frameId: string) {
     const blob = await captureWithErrorHandling();
     if (!blob) return;
-    await syncUpdate("frames", frameId, { thumbnail: blob, updated_at: Date.now() });
+    await syncUpdate(db, "frames", frameId, { thumbnail: blob, updated_at: Date.now() });
     toast.success(t("imageAdded"));
   }
 
@@ -324,7 +325,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
   async function handleLocationConfirm(lat: number, lon: number, name: string) {
     if (locationPicker?.frameId) {
-      await syncUpdate("frames", locationPicker.frameId, {
+      await syncUpdate(db, "frames", locationPicker.frameId, {
         latitude: lat,
         longitude: lon,
         location_name: name || null,
@@ -340,7 +341,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
   async function handleLocationClear() {
     if (locationPicker?.frameId) {
-      await syncUpdate("frames", locationPicker.frameId, {
+      await syncUpdate(db, "frames", locationPicker.frameId, {
         latitude: null,
         longitude: null,
         location_name: null,
@@ -371,7 +372,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     const now = Date.now();
     const loc = locationRef.current;
 
-    await syncAdd("frames", {
+    await syncAdd(db, "frames", {
       id: ulid(),
       roll_id: roll.id,
       frame_number: nextFrameNumber,
@@ -395,7 +396,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
 
     // Update roll status to active if it's loaded
     if (roll.status === "loaded") {
-      await syncUpdate("rolls", roll.id, {
+      await syncUpdate(db, "rolls", roll.id, {
         status: "active",
         updated_at: now,
       });
@@ -417,6 +418,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     filter,
     note,
     capturedThumbnail,
+    db,
     t,
   ]);
 
@@ -456,7 +458,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     if (!editingFrame) return;
     const now = Date.now();
     const loc = locationRef.current;
-    await syncUpdate("frames", editingFrame.id, {
+    await syncUpdate(db, "frames", editingFrame.id, {
       shutter_speed: shutterSpeed,
       aperture,
       is_blank: false,
@@ -484,7 +486,7 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     if (!editingFrame) return;
     const now = Date.now();
     const frameNum = editingFrame.frame_number;
-    await syncUpdate("frames", editingFrame.id, {
+    await syncUpdate(db, "frames", editingFrame.id, {
       deleted_at: now,
       updated_at: now,
     });
@@ -495,10 +497,10 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
   async function handleSkipFrame() {
     const now = Date.now();
     const blankData = createBlankFrame(roll.id, nextFrameNumber);
-    await syncAdd("frames", { id: ulid(), ...blankData });
+    await syncAdd(db, "frames", { id: ulid(), ...blankData });
 
     if (roll.status === "loaded") {
-      await syncUpdate("rolls", roll.id, { status: "active", updated_at: now });
+      await syncUpdate(db, "rolls", roll.id, { status: "active", updated_at: now });
     }
     toast.success(t("frameSkipped", { number: nextFrameNumber }));
   }
@@ -514,11 +516,11 @@ export function ShotLogger({ roll }: ShotLoggerProps) {
     const now = Date.now();
     for (let n = nextFrameNumber; n < target; n++) {
       const blankData = createBlankFrame(roll.id, n);
-      await syncAdd("frames", { id: ulid(), ...blankData });
+      await syncAdd(db, "frames", { id: ulid(), ...blankData });
     }
 
     if (roll.status === "loaded") {
-      await syncUpdate("rolls", roll.id, { status: "active", updated_at: now });
+      await syncUpdate(db, "rolls", roll.id, { status: "active", updated_at: now });
     }
 
     setShowSkipTo(false);

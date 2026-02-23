@@ -18,6 +18,8 @@ vi.mock("ulid", () => ({
   ulid: () => "test-camera-ulid",
 }));
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 const mockSyncAdd = vi.fn().mockResolvedValue(undefined);
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
