@@ -4,15 +4,13 @@ const mockGet = vi.fn();
 const mockPut = vi.fn();
 const mockDelete = vi.fn();
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    _syncMeta: {
-      get: (...args: unknown[]) => mockGet(...args),
-      put: (...args: unknown[]) => mockPut(...args),
-      delete: (...args: unknown[]) => mockDelete(...args),
-    },
+const db = {
+  _syncMeta: {
+    get: (...args: unknown[]) => mockGet(...args),
+    put: (...args: unknown[]) => mockPut(...args),
+    delete: (...args: unknown[]) => mockDelete(...args),
   },
-}));
+} as never;
 
 vi.mock("@/lib/image-sync", () => ({
   compressImage: vi.fn().mockResolvedValue(new Blob(["compressed"], { type: "image/jpeg" })),
@@ -23,7 +21,6 @@ import {
   setLocalAvatar,
   removeLocalAvatar,
   migrateGlobalAvatar,
-  clearGlobalAvatarKey,
   uploadAvatar,
   downloadAvatar,
 } from "./avatar";
@@ -38,7 +35,7 @@ describe("avatar helpers", () => {
       const blob = new Blob(["img"], { type: "image/jpeg" });
       mockGet.mockResolvedValue({ key: "avatarBlob:user-123", value: blob });
 
-      const result = await getLocalAvatar("user-123");
+      const result = await getLocalAvatar(db, "user-123");
       expect(result).toBe(blob);
       expect(mockGet).toHaveBeenCalledWith("avatarBlob:user-123");
     });
@@ -46,7 +43,7 @@ describe("avatar helpers", () => {
     it("returns null when no avatar stored", async () => {
       mockGet.mockResolvedValue(undefined);
 
-      const result = await getLocalAvatar("user-123");
+      const result = await getLocalAvatar(db, "user-123");
       expect(result).toBeNull();
     });
   });
@@ -54,7 +51,7 @@ describe("avatar helpers", () => {
   describe("setLocalAvatar", () => {
     it("stores blob under user-scoped key", async () => {
       const blob = new Blob(["img"], { type: "image/jpeg" });
-      await setLocalAvatar("user-123", blob);
+      await setLocalAvatar(db, "user-123", blob);
       expect(mockPut).toHaveBeenCalledWith({
         key: "avatarBlob:user-123",
         value: blob,
@@ -64,7 +61,7 @@ describe("avatar helpers", () => {
 
   describe("removeLocalAvatar", () => {
     it("deletes user-scoped key from _syncMeta", async () => {
-      await removeLocalAvatar("user-123");
+      await removeLocalAvatar(db, "user-123");
       expect(mockDelete).toHaveBeenCalledWith("avatarBlob:user-123");
     });
   });
@@ -77,7 +74,7 @@ describe("avatar helpers", () => {
         return Promise.resolve(undefined);
       });
 
-      await migrateGlobalAvatar("user-123");
+      await migrateGlobalAvatar(db, "user-123");
 
       expect(mockPut).toHaveBeenCalledWith({
         key: "avatarBlob:user-123",
@@ -94,7 +91,7 @@ describe("avatar helpers", () => {
         return Promise.resolve(undefined);
       });
 
-      await migrateGlobalAvatar("user-123");
+      await migrateGlobalAvatar(db, "user-123");
 
       expect(mockPut).not.toHaveBeenCalled();
       expect(mockDelete).toHaveBeenCalledWith("avatarBlob");
@@ -103,7 +100,7 @@ describe("avatar helpers", () => {
     it("does nothing when no global key exists", async () => {
       mockGet.mockResolvedValue(undefined);
 
-      await migrateGlobalAvatar("user-123");
+      await migrateGlobalAvatar(db, "user-123");
 
       expect(mockPut).not.toHaveBeenCalled();
       expect(mockDelete).not.toHaveBeenCalled();
@@ -117,15 +114,8 @@ describe("avatar helpers", () => {
         return Promise.resolve(undefined);
       });
 
-      await migrateGlobalAvatar("user-456");
+      await migrateGlobalAvatar(db, "user-456");
 
-      expect(mockDelete).toHaveBeenCalledWith("avatarBlob");
-    });
-  });
-
-  describe("clearGlobalAvatarKey", () => {
-    it("deletes the global avatarBlob key", async () => {
-      await clearGlobalAvatarKey();
       expect(mockDelete).toHaveBeenCalledWith("avatarBlob");
     });
   });

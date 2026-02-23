@@ -23,7 +23,7 @@ vi.mock("dexie-react-hooks", () => ({
   },
 }));
 
-vi.mock("@/lib/db", () => ({ db: {} }));
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
 
 vi.mock("@/lib/gear-filters", () => ({
   filterShutterSpeeds: (
@@ -471,6 +471,7 @@ describe("ShotLogger", () => {
 
     await waitFor(() => {
       expect(mockSyncUpdate).toHaveBeenCalledWith(
+        expect.anything(),
         "frames",
         "f-edit",
         expect.objectContaining({
@@ -522,6 +523,7 @@ describe("ShotLogger", () => {
 
     await waitFor(() => {
       expect(mockSyncUpdate).toHaveBeenCalledWith(
+        expect.anything(),
         "frames",
         "f-img",
         expect.objectContaining({
@@ -551,6 +553,7 @@ describe("ShotLogger", () => {
 
     await waitFor(() => {
       expect(mockSyncUpdate).toHaveBeenCalledWith(
+        expect.anything(),
         "frames",
         "f-del",
         expect.objectContaining({
@@ -596,6 +599,7 @@ describe("ShotLogger", () => {
 
     await waitFor(() => {
       expect(mockSyncAdd).toHaveBeenCalledWith(
+        expect.anything(),
         "frames",
         expect.objectContaining({
           is_blank: true,
@@ -715,6 +719,7 @@ describe("ShotLogger", () => {
 
     await waitFor(() => {
       expect(mockSyncUpdate).toHaveBeenCalledWith(
+        expect.anything(),
         "frames",
         "f-blank",
         expect.objectContaining({

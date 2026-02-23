@@ -1,4 +1,4 @@
-import { db } from "./db";
+import type { ArgentDb } from "./db";
 import { syncUpdate } from "./sync-write";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -91,6 +91,7 @@ export function toBlob(value: unknown): Blob | null {
  * @returns Number of successfully uploaded images.
  */
 export async function processImageUpload(
+  db: ArgentDb,
   supabase: SupabaseClient,
   userId: string,
 ): Promise<number> {
@@ -123,7 +124,7 @@ export async function processImageUpload(
       }
 
       // Update image_url and enqueue sync so the path reaches the server
-      await syncUpdate("frames", frame.id, { image_url: path, updated_at: Date.now() });
+      await syncUpdate(db, "frames", frame.id, { image_url: path, updated_at: Date.now() });
       successCount++;
     } catch (err) {
       console.warn(
@@ -144,6 +145,7 @@ export async function processImageUpload(
  * @returns Number of successfully downloaded images.
  */
 export async function processImageDownload(
+  db: ArgentDb,
   supabase: SupabaseClient,
 ): Promise<number> {
   const frames = await db.frames.toArray();

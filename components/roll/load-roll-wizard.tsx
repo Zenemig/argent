@@ -26,7 +26,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { syncAdd } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
 import { DEFAULT_FRAME_COUNTS } from "@/lib/constants";
@@ -56,6 +56,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
   const t = useTranslations("roll");
   const tc = useTranslations("common");
   const userId = useUserId();
+  const db = useDb();
 
   const [step, setStep] = useState<Step>("camera");
   const [cameraId, setCameraId] = useState("");
@@ -76,7 +77,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .toArray();
     },
-    [userId],
+    [userId, db],
   );
 
   const uniqueFormats = useMemo(() => {
@@ -120,7 +121,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
         )
         .toArray();
     },
-    [userId, cameraId],
+    [userId, cameraId, db],
   );
 
   const filmOptions = useLiveQuery(async (): Promise<FilmOption[]> => {
@@ -161,7 +162,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     ];
 
     return options;
-  }, [selectedCamera, userId]);
+  }, [selectedCamera, userId, db]);
 
   const selectedFilm = useMemo(
     () => filmOptions?.find((f) => f.id === filmId) ?? null,
@@ -187,7 +188,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
     const now = Date.now();
     const id = ulid();
 
-    await syncAdd("rolls", {
+    await syncAdd(db, "rolls", {
       id,
       user_id: userId!,
       camera_id: cameraId,
@@ -339,7 +340,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                           <p className="font-medium">{cam.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {cam.make} &middot; {cam.format} &middot;{" "}
-                            {cam.default_frame_count} frames
+                            {t("frames", { count: cam.default_frame_count })}
                           </p>
                         </div>
                       </CardContent>
@@ -420,12 +421,12 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                         {film.brand} {film.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        ISO {film.iso} &middot; {film.process}
+                        {t("filmInfo", { iso: film.iso, process: film.process })}
                       </p>
                     </div>
                     {film.isCustom && (
                       <Badge variant="secondary" className="text-xs">
-                        Custom
+                        {t("custom")}
                       </Badge>
                     )}
                   </div>
@@ -490,7 +491,7 @@ export function LoadRollWizard({ open, onOpenChange }: LoadRollWizardProps) {
                   <SelectContent>
                     {[-3, -2, -1, 0, 1, 2, 3].map((v) => (
                       <SelectItem key={v} value={String(v)}>
-                        {v === 0 ? "Normal" : v > 0 ? `+${v}` : String(v)}
+                        {v === 0 ? t("pushPullNormal") : v > 0 ? `+${v}` : String(v)}
                       </SelectItem>
                     ))}
                   </SelectContent>

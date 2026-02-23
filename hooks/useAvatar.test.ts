@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 let mockAvatarBlob: Blob | null = null;
 const mockMigrateGlobalAvatar = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@/lib/avatar", () => ({
-  getLocalAvatar: () => Promise.resolve(mockAvatarBlob),
+  getLocalAvatar: (_db: unknown) => Promise.resolve(mockAvatarBlob),
   migrateGlobalAvatar: (...args: unknown[]) => mockMigrateGlobalAvatar(...args),
 }));
 
@@ -42,7 +44,7 @@ describe("useAvatar", () => {
     await waitFor(() => {
       expect(result.current).toBeNull();
     });
-    expect(mockMigrateGlobalAvatar).toHaveBeenCalledWith("user-123");
+    expect(mockMigrateGlobalAvatar).toHaveBeenCalledWith(expect.anything(), "user-123");
   });
 
   it("returns object URL when avatar blob exists", async () => {
@@ -53,7 +55,7 @@ describe("useAvatar", () => {
       expect(result.current).toBe("blob:mock-url");
     });
     expect(createObjectURL).toHaveBeenCalledWith(mockAvatarBlob);
-    expect(mockMigrateGlobalAvatar).toHaveBeenCalledWith("user-123");
+    expect(mockMigrateGlobalAvatar).toHaveBeenCalledWith(expect.anything(), "user-123");
   });
 
   it("revokes object URL on unmount", async () => {

@@ -18,12 +18,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { toast } from "sonner";
 
 export function DeleteAccountSection() {
   const t = useTranslations("settings");
   const router = useRouter();
+  const db = useDb();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);

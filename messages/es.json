@@ -232,7 +232,10 @@
       "damaged": "Dañado",
       "lab_error": "Error de laboratorio",
       "other": "Otro"
-    }
+    },
+    "filmInfo": "ISO {iso} · {process}",
+    "pushPullNormal": "Normal",
+    "custom": "Personalizado"
   },
   "frame": {
     "log": "Registrar Foto",
@@ -348,7 +351,8 @@
     "deleteAccountConfirmPlaceholder": "tu@correo.com",
     "deleteAccountConfirming": "Eliminando...",
     "deleteAccountError": "Error al eliminar la cuenta. Inténtalo de nuevo.",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "copyrightPlaceholder": "© 2026 Tu Nombre"
   },
   "upgrade": {
     "title": "Mejora a Pro",

@@ -26,8 +26,8 @@ vi.mock("dexie-react-hooks", () => ({
   },
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {},
+vi.mock("@/components/db-provider", () => ({
+  useDb: () => ({}),
 }));
 
 vi.mock("@/lib/roll-lifecycle", () => ({

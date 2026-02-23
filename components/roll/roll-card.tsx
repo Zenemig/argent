@@ -7,17 +7,18 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import type { Roll } from "@/lib/types";
 import { STATUS_COLORS } from "@/lib/roll-lifecycle";
 import { format } from "date-fns";
 
 export function RollCard({ roll }: { roll: Roll }) {
   const t = useTranslations("roll");
+  const db = useDb();
 
   const camera = useLiveQuery(
     () => db.cameras.get(roll.camera_id),
-    [roll.camera_id],
+    [roll.camera_id, db],
   );
 
   const film = useLiveQuery(async () => {
@@ -26,11 +27,11 @@ export function RollCard({ roll }: { roll: Roll }) {
     const stock = await db.filmStock.get(roll.film_id);
     if (stock) return { brand: stock.brand, name: stock.name };
     return null;
-  }, [roll.film_id]);
+  }, [roll.film_id, db]);
 
   const frameCount = useLiveQuery(
     () => db.frames.where("roll_id").equals(roll.id).count(),
-    [roll.id],
+    [roll.id, db],
   );
 
   return (

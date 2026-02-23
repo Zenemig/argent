@@ -1,9 +1,10 @@
-import { db } from "./db";
+import type { ArgentDb } from "./db";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const STORAGE_BUCKET = "reference-images";
 const AVATAR_KEY_PREFIX = "avatarBlob";
-const GLOBAL_AVATAR_KEY = "avatarBlob";
+// The legacy (pre-isolation) global key was the bare prefix with no user scope
+const GLOBAL_AVATAR_KEY = AVATAR_KEY_PREFIX;
 
 function avatarKey(userId: string): string {
   return `${AVATAR_KEY_PREFIX}:${userId}`;
@@ -12,7 +13,7 @@ function avatarKey(userId: string): string {
 /**
  * Read the local avatar blob from IndexedDB (_syncMeta table).
  */
-export async function getLocalAvatar(userId: string): Promise<Blob | null> {
+export async function getLocalAvatar(db: ArgentDb, userId: string): Promise<Blob | null> {
   const row = await db._syncMeta.get(avatarKey(userId));
   return (row?.value as unknown as Blob) ?? null;
 }
@@ -20,14 +21,14 @@ export async function getLocalAvatar(userId: string): Promise<Blob | null> {
 /**
  * Save an avatar blob to local IndexedDB, scoped to the user.
  */
-export async function setLocalAvatar(userId: string, blob: Blob): Promise<void> {
+export async function setLocalAvatar(db: ArgentDb, userId: string, blob: Blob): Promise<void> {
   await db._syncMeta.put({ key: avatarKey(userId), value: blob as never });
 }
 
 /**
  * Remove the local avatar blob from IndexedDB.
  */
-export async function removeLocalAvatar(userId: string): Promise<void> {
+export async function removeLocalAvatar(db: ArgentDb, userId: string): Promise<void> {
   await db._syncMeta.delete(avatarKey(userId));
 }
 
@@ -36,7 +37,7 @@ export async function removeLocalAvatar(userId: string): Promise<void> {
  * Called once on load to handle existing users who upgraded.
  * Also cleans up the global key to prevent cross-user leakage.
  */
-export async function migrateGlobalAvatar(userId: string): Promise<void> {
+export async function migrateGlobalAvatar(db: ArgentDb, userId: string): Promise<void> {
   const globalRow = await db._syncMeta.get(GLOBAL_AVATAR_KEY);
   if (!globalRow) return;
 
@@ -50,13 +51,6 @@ export async function migrateGlobalAvatar(userId: string): Promise<void> {
   }
 
   // Always clean up the global key
-  await db._syncMeta.delete(GLOBAL_AVATAR_KEY);
-}
-
-/**
- * Remove the old global avatar key (call on sign-out to prevent leakage).
- */
-export async function clearGlobalAvatarKey(): Promise<void> {
   await db._syncMeta.delete(GLOBAL_AVATAR_KEY);
 }
 

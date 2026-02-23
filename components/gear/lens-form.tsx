@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { syncAdd, syncUpdate } from "@/lib/sync-write";
+import { useDb } from "@/components/db-provider";
 import { LENS_MOUNTS, formatLabel } from "@/lib/constants";
 import { useUserId } from "@/hooks/useUserId";
 import type { Lens, Camera, LensMount } from "@/lib/types";
@@ -31,6 +32,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const userId = useUserId();
+  const db = useDb();
   const isEdit = !!lens;
 
   const [name, setName] = useState(lens?.name ?? "");
@@ -55,7 +57,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
       : { focal_length_max: null, min_aperture: null };
 
     if (isEdit && lens) {
-      await syncUpdate("lenses", lens.id, {
+      await syncUpdate(db, "lenses", lens.id, {
         name: name.trim(),
         make: make.trim(),
         mount: mount === "__none__" ? null : mount,
@@ -68,7 +70,7 @@ export function LensForm({ lens, cameras, onDone }: LensFormProps) {
       });
       toast.success(t("lensUpdated"));
     } else {
-      await syncAdd("lenses", {
+      await syncAdd(db, "lenses", {
         id: ulid(),
         user_id: userId!,
         name: name.trim(),

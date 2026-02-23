@@ -22,9 +22,6 @@ vi.mock("@/app/(app)/settings/actions", () => ({
   joinWaitlist: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-vi.mock("@/lib/avatar", () => ({
-  clearGlobalAvatarKey: vi.fn(),
-}));
 
 import { UserMenu } from "./user-menu";
 import userEvent from "@testing-library/user-event";

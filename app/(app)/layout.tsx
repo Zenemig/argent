@@ -52,7 +52,7 @@ export default async function AppLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <DbProvider>
+      <DbProvider userId={user!.id}>
         <UserTierProvider>
           <SkipLink />
           <SidebarNav userMenu={userMenu} />

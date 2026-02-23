@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { syncUpdate } from "@/lib/sync-write";
+import { useDb } from "@/components/db-provider";
 import { toast } from "sonner";
 
 const DISCARD_REASONS = [
@@ -37,12 +38,13 @@ export function DiscardRollDialog({
 }: DiscardRollDialogProps) {
   const t = useTranslations("roll");
   const tc = useTranslations("common");
+  const db = useDb();
 
   const [reason, setReason] = useState<string>(DISCARD_REASONS[0]);
   const [notes, setNotes] = useState("");
 
   async function handleConfirm() {
-    await syncUpdate("rolls", rollId, {
+    await syncUpdate(db, "rolls", rollId, {
       status: "discarded",
       discard_reason: reason,
       discard_notes: notes.trim() || null,

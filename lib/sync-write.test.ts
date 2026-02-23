@@ -37,7 +37,7 @@ describe("syncAdd", () => {
       created_at: Date.now(),
     };
 
-    await syncAdd("cameras", camera);
+    await syncAdd(testDb, "cameras", camera);
 
     const stored = await testDb.cameras.get("cam-001");
     expect(stored).toBeDefined();
@@ -74,7 +74,7 @@ describe("syncAdd", () => {
       created_at: Date.now(),
     };
 
-    await syncAdd("frames", frame);
+    await syncAdd(testDb, "frames", frame);
 
     const stored = await testDb.frames.get("frame-001");
     expect(stored).toBeDefined();
@@ -107,7 +107,7 @@ describe("syncUpdate", () => {
       created_at: Date.now(),
     });
 
-    await syncUpdate("cameras", "cam-002", {
+    await syncUpdate(testDb, "cameras", "cam-002", {
       name: "Canon AE-1 Program",
       updated_at: Date.now(),
     });
@@ -137,8 +137,8 @@ describe("syncUpdate", () => {
       created_at: Date.now(),
     });
 
-    await syncUpdate("cameras", "cam-003", { name: "Updated 1" });
-    await syncUpdate("cameras", "cam-003", { name: "Updated 2" });
+    await syncUpdate(testDb, "cameras", "cam-003", { name: "Updated 1" });
+    await syncUpdate(testDb, "cameras", "cam-003", { name: "Updated 2" });
 
     const queue = await testDb._syncQueue.toArray();
     expect(queue).toHaveLength(2);

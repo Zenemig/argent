@@ -37,7 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { db } from "@/lib/db";
+import { useDb } from "@/components/db-provider";
 import { syncUpdate } from "@/lib/sync-write";
 import { useUserId } from "@/hooks/useUserId";
 import { FILM_FORMATS, LENS_MOUNTS, CAMERA_TYPES, formatLabel } from "@/lib/constants";
@@ -50,6 +50,7 @@ export function CameraCatalog() {
   const t = useTranslations("gear");
   const tc = useTranslations("common");
   const userId = useUserId();
+  const db = useDb();
   const [showAdd, setShowAdd] = useState(false);
   const [editCamera, setEditCamera] = useState<Camera | null>(null);
   const [formatFilter, setFormatFilter] = useState<string>("all");
@@ -65,7 +66,7 @@ export function CameraCatalog() {
         .filter((c) => c.deleted_at === null || c.deleted_at === undefined)
         .sortBy("created_at");
     },
-    [userId],
+    [userId, db],
   );
 
   const filteredCameras = useMemo(() => {
@@ -79,7 +80,7 @@ export function CameraCatalog() {
   }, [cameras, formatFilter, mountFilter, typeFilter]);
 
   async function handleDelete(camera: Camera) {
-    await syncUpdate("cameras", camera.id, {
+    await syncUpdate(db, "cameras", camera.id, {
       deleted_at: Date.now(),
       updated_at: Date.now(),
     });

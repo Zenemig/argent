@@ -9,6 +9,8 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
+vi.mock("@/components/db-provider", () => ({ useDb: () => ({}) }));
+
 const mockSyncUpdate = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/sync-write", () => ({
   syncUpdate: (...args: unknown[]) => mockSyncUpdate(...args),
@@ -76,6 +78,7 @@ describe("DiscardRollDialog", () => {
     fireEvent.click(confirmButton!);
 
     expect(mockSyncUpdate).toHaveBeenCalledWith(
+      expect.anything(),
       "rolls",
       "roll-001",
       expect.objectContaining({

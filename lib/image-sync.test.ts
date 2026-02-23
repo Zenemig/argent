@@ -244,7 +244,7 @@ describe("processImageUpload", () => {
 
   it("returns 0 when no frames need upload", async () => {
     const supabase = createMockSupabaseStorage();
-    const count = await processImageUpload(supabase as never, "user-1");
+    const count = await processImageUpload(testDb, supabase as never, "user-1");
     expect(count).toBe(0);
   });
 
@@ -257,7 +257,7 @@ describe("processImageUpload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    const count = await processImageUpload(supabase as never, "user-1");
+    const count = await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(count).toBe(0);
     expect(supabase._mocks.uploadFn).not.toHaveBeenCalled();
@@ -267,7 +267,7 @@ describe("processImageUpload", () => {
     await testDb.frames.add(makeFrame({ thumbnail: null, image_url: null }));
 
     const supabase = createMockSupabaseStorage();
-    const count = await processImageUpload(supabase as never, "user-1");
+    const count = await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(count).toBe(0);
   });
@@ -278,7 +278,7 @@ describe("processImageUpload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    const count = await processImageUpload(supabase as never, "user-1");
+    const count = await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(count).toBe(1);
     expect(supabase._mocks.uploadFn).toHaveBeenCalledWith(
@@ -298,7 +298,7 @@ describe("processImageUpload", () => {
     await testDb.frames.add(frame);
 
     const supabase = createMockSupabaseStorage();
-    await processImageUpload(supabase as never, "user-abc");
+    await processImageUpload(testDb, supabase as never, "user-abc");
 
     expect(supabase._mocks.uploadFn).toHaveBeenCalledWith(
       "user-abc/01HTEST00000000ROLL0000002/01HTEST00000000FRAME000002.jpg",
@@ -313,9 +313,10 @@ describe("processImageUpload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    await processImageUpload(supabase as never, "user-1");
+    await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(mockSyncUpdate).toHaveBeenCalledWith(
+      testDb,
       "frames",
       "01HTEST0000000000000000001",
       {
@@ -350,7 +351,7 @@ describe("processImageUpload", () => {
       },
     };
 
-    const count = await processImageUpload(supabase as never, "user-1");
+    const count = await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(count).toBe(1);
     expect(uploadFn).toHaveBeenCalledTimes(2);
@@ -362,7 +363,7 @@ describe("processImageUpload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    await processImageUpload(supabase as never, "user-1");
+    await processImageUpload(testDb, supabase as never, "user-1");
 
     expect(supabase._mocks.uploadFn).toHaveBeenCalledWith(
       expect.any(String),
@@ -386,7 +387,7 @@ describe("processImageDownload", () => {
 
   it("returns 0 when no frames need download", async () => {
     const supabase = createMockSupabaseStorage();
-    const count = await processImageDownload(supabase as never);
+    const count = await processImageDownload(testDb, supabase as never);
     expect(count).toBe(0);
   });
 
@@ -401,7 +402,7 @@ describe("processImageDownload", () => {
     const supabase = createMockSupabaseStorage({
       downloadData: new Blob(["image-data"], { type: "image/jpeg" }),
     });
-    const count = await processImageDownload(supabase as never);
+    const count = await processImageDownload(testDb, supabase as never);
 
     expect(count).toBe(1);
 
@@ -418,7 +419,7 @@ describe("processImageDownload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    await processImageDownload(supabase as never);
+    await processImageDownload(testDb, supabase as never);
 
     expect(mockSyncUpdate).not.toHaveBeenCalled();
   });
@@ -432,7 +433,7 @@ describe("processImageDownload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    const count = await processImageDownload(supabase as never);
+    const count = await processImageDownload(testDb, supabase as never);
 
     expect(count).toBe(0);
     expect(supabase._mocks.downloadFn).not.toHaveBeenCalled();
@@ -444,7 +445,7 @@ describe("processImageDownload", () => {
     );
 
     const supabase = createMockSupabaseStorage();
-    const count = await processImageDownload(supabase as never);
+    const count = await processImageDownload(testDb, supabase as never);
 
     expect(count).toBe(0);
   });
@@ -473,7 +474,7 @@ describe("processImageDownload", () => {
       },
     };
 
-    const count = await processImageDownload(supabase as never);
+    const count = await processImageDownload(testDb, supabase as never);
 
     expect(count).toBe(1);
     expect(downloadFn).toHaveBeenCalledTimes(2);

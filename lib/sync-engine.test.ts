@@ -187,7 +187,7 @@ describe("processUploadQueue", () => {
 
   it("returns 0 when queue is empty", async () => {
     const mockSupabase = createMockSupabase();
-    const synced = await processUploadQueue(mockSupabase as never);
+    const synced = await processUploadQueue(testDb, mockSupabase as never);
     expect(synced).toBe(0);
   });
 
@@ -216,7 +216,7 @@ describe("processUploadQueue", () => {
     });
 
     const mockSupabase = createMockSupabase();
-    const synced = await processUploadQueue(mockSupabase as never);
+    const synced = await processUploadQueue(testDb, mockSupabase as never);
 
     expect(synced).toBe(1);
     expect(mockSupabase.from).toHaveBeenCalledWith("cameras");
@@ -256,7 +256,7 @@ describe("processUploadQueue", () => {
       error: { message: "Network error", code: "500" },
     });
 
-    const synced = await processUploadQueue(mockSupabase as never);
+    const synced = await processUploadQueue(testDb, mockSupabase as never);
     expect(synced).toBe(0);
 
     const entry = await testDb._syncQueue.get(queueId);
@@ -293,7 +293,7 @@ describe("processUploadQueue", () => {
       error: { message: "Server error", code: "500" },
     });
 
-    await processUploadQueue(mockSupabase as never);
+    await processUploadQueue(testDb, mockSupabase as never);
 
     const entry = await testDb._syncQueue.get(queueId);
     expect(entry!.status).toBe("failed");
@@ -330,7 +330,7 @@ describe("processUploadQueue", () => {
       upsertedData = data;
     });
 
-    await processUploadQueue(mockSupabase as never);
+    await processUploadQueue(testDb, mockSupabase as never);
 
     expect(upsertedData.length).toBe(1);
     expect(upsertedData[0].created_at).toBe(new Date(ts).toISOString());
@@ -363,7 +363,7 @@ describe("processUploadQueue", () => {
     });
 
     const mockSupabase = createMockSupabase();
-    const synced = await processUploadQueue(mockSupabase as never);
+    const synced = await processUploadQueue(testDb, mockSupabase as never);
     expect(synced).toBe(0);
 
     // Should be reset to pending so it gets picked up on next cycle
@@ -384,7 +384,7 @@ describe("processUploadQueue", () => {
     });
 
     const mockSupabase = createMockSupabase();
-    await processUploadQueue(mockSupabase as never);
+    await processUploadQueue(testDb, mockSupabase as never);
 
     const entry = await testDb._syncQueue.get(queueId);
     expect(entry).toBeUndefined();
@@ -399,7 +399,7 @@ describe("getQueueStats", () => {
   });
 
   it("returns zeros for empty queue", async () => {
-    const stats = await getQueueStats();
+    const stats = await getQueueStats(testDb);
     expect(stats).toEqual({ pending: 0, failed: 0 });
   });
 
@@ -434,7 +434,7 @@ describe("getQueueStats", () => {
       },
     ]);
 
-    const stats = await getQueueStats();
+    const stats = await getQueueStats(testDb);
     expect(stats.pending).toBe(2);
     expect(stats.failed).toBe(1);
   });
@@ -479,7 +479,7 @@ describe("retryFailedEntries", () => {
       payload: null,
     });
 
-    await retryFailedEntries();
+    await retryFailedEntries(testDb);
 
     const entry1 = await testDb._syncQueue.get(id1);
     expect(entry1!.status).toBe("pending");
@@ -501,7 +501,7 @@ describe("retryFailedEntries", () => {
       payload: null,
     });
 
-    await retryFailedEntries();
+    await retryFailedEntries(testDb);
 
     const count = await testDb._syncQueue.count();
     expect(count).toBe(1);
@@ -548,7 +548,7 @@ describe("clearFailedEntries", () => {
       },
     ]);
 
-    await clearFailedEntries();
+    await clearFailedEntries(testDb);
 
     const remaining = await testDb._syncQueue.toArray();
     expect(remaining).toHaveLength(1);
@@ -605,7 +605,7 @@ describe("getFailedEntrySummary", () => {
       },
     ]);
 
-    const summary = await getFailedEntrySummary();
+    const summary = await getFailedEntrySummary(testDb);
 
     expect(summary.get("cameras")).toEqual({
       count: 2,
@@ -622,7 +622,7 @@ describe("getFailedEntrySummary", () => {
   });
 
   it("returns empty map when no failed entries", async () => {
-    const summary = await getFailedEntrySummary();
+    const summary = await getFailedEntrySummary(testDb);
     expect(summary.size).toBe(0);
   });
 });

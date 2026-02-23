@@ -1,10 +1,10 @@
-import { db } from "./db";
+import type { ArgentDb } from "./db";
 
 /**
  * Read a setting from the _syncMeta table.
  * Returns null if the key doesn't exist.
  */
-export async function getSetting(key: string): Promise<string | null> {
+export async function getSetting(db: ArgentDb, key: string): Promise<string | null> {
   const row = await db._syncMeta.get(key);
   return row?.value ?? null;
 }
@@ -13,6 +13,6 @@ export async function getSetting(key: string): Promise<string | null> {
  * Write a setting to the _syncMeta table.
  * Uses put() so it creates or overwrites.
  */
-export async function setSetting(key: string, value: string): Promise<void> {
+export async function setSetting(db: ArgentDb, key: string, value: string): Promise<void> {
   await db._syncMeta.put({ key, value });
 }

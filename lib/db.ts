@@ -22,8 +22,8 @@ export class ArgentDb extends Dexie {
   _syncMeta!: EntityTable<SyncMeta, "key">;
   _syncConflicts!: EntityTable<SyncConflict, "id">;
 
-  constructor() {
-    super("argent");
+  constructor(name: string = "argent") {
+    super(name);
 
     this.version(1).stores({
       cameras:
@@ -76,5 +76,7 @@ export class ArgentDb extends Dexie {
   }
 }
 
-/** Singleton database instance */
-export const db = new ArgentDb();
+/** Create a per-user database instance with name `argent-${userId}`. */
+export function createArgentDb(userId: string): ArgentDb {
+  return new ArgentDb(`argent-${userId}`);
+}

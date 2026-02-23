@@ -1,4 +1,4 @@
-import { db } from "./db";
+import type { ArgentDb } from "./db";
 import { SYNCABLE_TABLES, type SyncableTable } from "./constants";
 import type { SyncQueueItem } from "./types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -15,7 +15,7 @@ const LOCAL_ONLY_FIELDS: Record<SyncableTable, string[]> = {
   lenses: [],
   films: [],
   rolls: [],
-  frames: ["thumbnail", "deleted_at"],
+  frames: ["thumbnail"],
 };
 
 /** Timestamp fields that store epoch-ms locally but need ISO strings for Postgres. */
@@ -107,6 +107,7 @@ export function deduplicateQueue(
  * @returns The number of entities successfully synced.
  */
 export async function processUploadQueue(
+  db: ArgentDb,
   supabase: SupabaseClient,
 ): Promise<number> {
   // 1. Read eligible queue entries
@@ -240,7 +241,7 @@ export async function processUploadQueue(
 /**
  * Get queue statistics for the sync status indicator.
  */
-export async function getQueueStats(): Promise<{
+export async function getQueueStats(db: ArgentDb): Promise<{
   pending: number;
   failed: number;
 }> {
@@ -281,7 +282,7 @@ export async function withTimeout<T>(
  * Reset all failed sync queue entries back to pending so they will be
  * retried on the next sync cycle.
  */
-export async function retryFailedEntries(): Promise<void> {
+export async function retryFailedEntries(db: ArgentDb): Promise<void> {
   await db._syncQueue
     .where("status")
     .equals("failed")
@@ -291,14 +292,14 @@ export async function retryFailedEntries(): Promise<void> {
 /**
  * Permanently delete all failed sync queue entries.
  */
-export async function clearFailedEntries(): Promise<void> {
+export async function clearFailedEntries(db: ArgentDb): Promise<void> {
   await db._syncQueue.where("status").equals("failed").delete();
 }
 
 /**
  * Get failed entries grouped by table for display in the sync details panel.
  */
-export async function getFailedEntrySummary(): Promise<
+export async function getFailedEntrySummary(db: ArgentDb): Promise<
   Map<SyncableTable, { count: number; entities: { id: string; operation: string }[] }>
 > {
   const failed = await db._syncQueue
@@ -418,6 +419,7 @@ export async function downloadFromTable(
  * @returns Summary of downloaded entities and conflicts detected.
  */
 export async function processDownloadSync(
+  db: ArgentDb,
   supabase: SupabaseClient,
 ): Promise<{ downloaded: number; conflicts: number }> {
   const meta = await db._syncMeta.get("lastDownloadSync");
@@ -446,6 +448,9 @@ export async function processDownloadSync(
       const entityId = serverRow.id as string;
       const converted = convertTimestampsFromServer(serverRow);
 
+      // Single fetch — reused for conflict detection and local-only field preservation
+      const localEntity = await db.table(table).get(entityId) as Record<string, unknown> | undefined;
+
       // Check if there's a pending upload queue entry for this entity
       const pendingEntries = await db._syncQueue
         .where("table")
@@ -459,13 +464,11 @@ export async function processDownloadSync(
 
       if (pendingEntries.length > 0) {
         // Conflict: local has pending changes, server has newer data
-        const localEntity = await db.table(table).get(entityId);
-
         if (localEntity) {
           await db._syncConflicts.add({
             table,
             entity_id: entityId,
-            local_data: localEntity as Record<string, unknown>,
+            local_data: localEntity,
             server_data: converted,
             resolved_by: "server_wins",
             created_at: Date.now(),
@@ -483,12 +486,7 @@ export async function processDownloadSync(
       }
 
       // Preserve local-only fields (e.g., thumbnail for frames)
-      const localEntity = await db.table(table).get(entityId);
-      const merged = preserveLocalFields(
-        table,
-        converted,
-        localEntity as Record<string, unknown> | undefined,
-      );
+      const merged = preserveLocalFields(table, converted, localEntity);
 
       toUpsert.push(merged);
     }

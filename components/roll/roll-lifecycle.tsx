@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { syncUpdate } from "@/lib/sync-write";
+import { useDb } from "@/components/db-provider";
 import { cn } from "@/lib/utils";
 import type { Roll, RollStatus } from "@/lib/types";
 import {
@@ -33,6 +34,7 @@ interface RollLifecycleProps {
 export function RollLifecycle({ roll }: RollLifecycleProps) {
   const t = useTranslations("roll");
   const tc = useTranslations("common");
+  const db = useDb();
 
   const [showDevelopDialog, setShowDevelopDialog] = useState(false);
   const [labName, setLabName] = useState(roll.lab_name ?? "");
@@ -116,13 +118,13 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
       return;
     }
 
-    await syncUpdate("rolls", roll.id, getAdvanceFields(nextStatus));
+    await syncUpdate(db, "rolls", roll.id, getAdvanceFields(nextStatus));
     toast.success(t("statusUpdated"));
   }
 
   async function confirmDeveloped() {
     const now = Date.now();
-    await syncUpdate("rolls", roll.id, {
+    await syncUpdate(db, "rolls", roll.id, {
       status: "developed" as RollStatus,
       develop_date: now,
       lab_name: labName.trim() || null,
@@ -135,7 +137,7 @@ export function RollLifecycle({ roll }: RollLifecycleProps) {
 
   async function undoStatus() {
     if (!prevStatus) return;
-    await syncUpdate("rolls", roll.id, getUndoFields(roll.status, prevStatus));
+    await syncUpdate(db, "rolls", roll.id, getUndoFields(roll.status, prevStatus));
     toast.success(t("statusUpdated"));
   }
 
