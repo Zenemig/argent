@@ -111,6 +111,7 @@ export async function deleteE2eUser(): Promise<void> {
 }
 
 export async function cleanupOrphanE2eUsers(): Promise<void> {
+  const currentEmail = process.env.E2E_USER_EMAIL;
   const admin = makeAdminClient();
 
   let page = 1;
@@ -131,7 +132,8 @@ export async function cleanupOrphanE2eUsers(): Promise<void> {
     const orphans = users.filter(
       (u) =>
         u.email?.startsWith(E2E_EMAIL_PREFIX) &&
-        u.email.endsWith(E2E_EMAIL_DOMAIN),
+        u.email.endsWith(E2E_EMAIL_DOMAIN) &&
+        u.email !== currentEmail,
     );
 
     for (const orphan of orphans) {

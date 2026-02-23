@@ -347,6 +347,7 @@ describe("deleteE2eUser", () => {
 describe("cleanupOrphanE2eUsers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("E2E_USER_EMAIL", "e2e-current-run@example.com");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://fake.supabase.co");
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "fake-service-role-key");
     mockDeleteUser.mockResolvedValue({ error: null });
@@ -394,6 +395,25 @@ describe("cleanupOrphanE2eUsers", () => {
     await cleanupOrphanE2eUsers();
 
     expect(mockDeleteUser).not.toHaveBeenCalled();
+  });
+
+  it("excludes the current run's own user from orphan cleanup", async () => {
+    vi.stubEnv("E2E_USER_EMAIL", "e2e-99999@example.com");
+    mockListUsers.mockResolvedValue({
+      data: {
+        users: [
+          { id: "current-run", email: "e2e-99999@example.com" },
+          { id: "orphan-1", email: "e2e-111@example.com" },
+        ],
+      },
+      error: null,
+    });
+
+    await cleanupOrphanE2eUsers();
+
+    expect(mockDeleteUser).toHaveBeenCalledTimes(1);
+    expect(mockDeleteUser).toHaveBeenCalledWith("orphan-1");
+    expect(mockDeleteUser).not.toHaveBeenCalledWith("current-run");
   });
 
   it("continues after a per-user delete failure", async () => {
